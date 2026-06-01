@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
+import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — SmartKlimat" }] }),
@@ -123,34 +125,32 @@ function AdminPage() {
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-                        <tr><th className="py-2">Namn</th><th>E-post</th><th>Mall-koppling</th><th>Skapad</th></tr>
+                        <tr><th className="py-2">Namn</th><th>E-post</th><th>Mall-koppling</th><th>Skapad</th><th>Lösenord</th></tr>
                       </thead>
                       <tbody>
-                        {profiles.map(p => {
-                          const linked = templates.find(t => t.id === p.company_template_id);
-                          return (
-                            <tr key={p.user_id} className="border-t" style={{ borderColor: "var(--border)" }}>
-                              <td className="py-3">{p.name}</td>
-                              <td className="font-mono text-xs">{p.email}</td>
-                              <td>
-                                <select
-                                  className="input-field !py-1 !text-xs"
-                                  value={p.company_template_id ?? ""}
-                                  onChange={async (e) => {
-                                    const v = e.target.value || null;
-                                    await supabase.from("profiles").update({ company_template_id: v }).eq("user_id", p.user_id);
-                                    await load();
-                                  }}
-                                >
-                                  <option value="">— (standard)</option>
-                                  {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                </select>
-                              </td>
-                              <td className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>{formatDate(p.created_at)}</td>
-                            </tr>
-                          );
-                        })}
-                        {profiles.length === 0 && <tr><td colSpan={4} className="py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Inga användare än.</td></tr>}
+                        {profiles.map(p => (
+                          <tr key={p.user_id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                            <td className="py-3">{p.name}</td>
+                            <td className="font-mono text-xs">{p.email}</td>
+                            <td>
+                              <select
+                                className="input-field !py-1 !text-xs"
+                                value={p.company_template_id ?? ""}
+                                onChange={async (e) => {
+                                  const v = e.target.value || null;
+                                  await supabase.from("profiles").update({ company_template_id: v }).eq("user_id", p.user_id);
+                                  await load();
+                                }}
+                              >
+                                <option value="">— (standard)</option>
+                                {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                              </select>
+                            </td>
+                            <td className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>{formatDate(p.created_at)}</td>
+                            <td><PasswordActions userId={p.user_id} email={p.email} /></td>
+                          </tr>
+                        ))}
+                        {profiles.length === 0 && <tr><td colSpan={5} className="py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Inga användare än.</td></tr>}
                       </tbody>
                     </table>
                   </div>
@@ -200,6 +200,71 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="surface-card p-6">
       <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>{label}</div>
       <div className="mt-2 font-mono text-3xl font-semibold" style={{ color: "var(--forest)" }}>{value}</div>
+    </div>
+  );
+}
+
+function PasswordActions({ userId, email }: { userId: string; email: string }) {
+  const setPw = useServerFn(adminSetPassword);
+  const sendReset = useServerFn(adminSendPasswordReset);
+  const [open, setOpen] = useState(false);
+  const [pw, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [link, setLink] = useState<string | null>(null);
+
+  const doSet = async () => {
+    if (pw.length < 8) { setMsg("Minst 8 tecken."); return; }
+    setBusy(true); setMsg(null); setLink(null);
+    try {
+      await setPw({ data: { targetUserId: userId, newPassword: pw } });
+      setMsg("Nytt lösenord sparat.");
+      setPw2("");
+      setOpen(false);
+    } catch (e) { setMsg((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  const doReset = async () => {
+    setBusy(true); setMsg(null); setLink(null);
+    try {
+      const res = await sendReset({ data: { email, redirectTo: `${window.location.origin}/reset-password` } });
+      setMsg("Återställningsmail begärt.");
+      if (res?.actionLink) setLink(res.actionLink);
+    } catch (e) { setMsg((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <div className="flex gap-2">
+        <button type="button" className="btn-secondary !py-1 !px-2 text-xs" disabled={busy} onClick={() => setOpen(v => !v)}>
+          Sätt nytt
+        </button>
+        <button type="button" className="btn-secondary !py-1 !px-2 text-xs" disabled={busy} onClick={doReset}>
+          Skicka mail
+        </button>
+      </div>
+      {open && (
+        <div className="mt-1 flex gap-1">
+          <input
+            className="input-field !py-1 !text-xs !w-36"
+            type="text"
+            placeholder="Nytt lösenord"
+            value={pw}
+            onChange={(e) => setPw2(e.target.value)}
+          />
+          <button type="button" className="btn-primary !py-1 !px-2 text-xs" disabled={busy} onClick={doSet}>
+            Spara
+          </button>
+        </div>
+      )}
+      {msg && <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{msg}</div>}
+      {link && (
+        <a href={link} target="_blank" rel="noreferrer" className="text-xs underline break-all" style={{ color: "var(--primary)" }}>
+          Öppna återställningslänk
+        </a>
+      )}
     </div>
   );
 }

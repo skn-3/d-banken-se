@@ -13,18 +13,24 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+type Mode = "login" | "signup" | "forgot";
+
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const switchMode = (m: Mode) => { setMode(m); setError(null); setInfo(null); };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     setLoading(true);
     try {
       if (mode === "signup") {
@@ -37,11 +43,19 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-      } else {
+        navigate({ to: "/konto" });
+      } else if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        navigate({ to: "/konto" });
+      } else {
+        // forgot
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("Om e-postadressen finns har vi skickat en återställningslänk. Kolla din inkorg (och skräppost).");
       }
-      navigate({ to: "/konto" });
     } catch (err) {
       const msg = (err as Error).message;
       if (msg.includes("already registered") || msg.includes("already been registered")) {
@@ -56,20 +70,24 @@ function AuthPage() {
     }
   };
 
+  const title =
+    mode === "login" ? "Välkommen tillbaka"
+    : mode === "signup" ? "Skapa konto"
+    : "Återställ lösenord";
+
+  const subtitle =
+    mode === "login" ? "Logga in för att se din trädbank."
+    : mode === "signup" ? "Det tar 30 sekunder. Inget kort behövs nu."
+    : "Ange din e-post så skickar vi en länk för att sätta ett nytt lösenord.";
+
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
       <Blobs />
       <SiteHeader />
       <main className="relative z-10 mx-auto flex w-full max-w-md flex-col px-6 pb-20 pt-10">
         <div className="surface-card p-8">
-          <h1 className="font-display text-3xl font-semibold">
-            {mode === "login" ? "Välkommen tillbaka" : "Skapa konto"}
-          </h1>
-          <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-            {mode === "login"
-              ? "Logga in för att se din trädbank."
-              : "Det tar 30 sekunder. Inget kort behövs nu."}
-          </p>
+          <h1 className="font-display text-3xl font-semibold">{title}</h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>{subtitle}</p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
             {mode === "signup" && (
@@ -82,35 +100,64 @@ function AuthPage() {
               <label className="mb-1.5 block text-sm font-medium">E-post</label>
               <input className="input-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium">Lösenord</label>
-              <input className="input-field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
-            </div>
+            {mode !== "forgot" && (
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="block text-sm font-medium">Lösenord</label>
+                  {mode === "login" && (
+                    <button type="button" onClick={() => switchMode("forgot")} className="text-xs font-medium underline" style={{ color: "var(--primary)" }}>
+                      Glömt lösenord?
+                    </button>
+                  )}
+                </div>
+                <input className="input-field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
+              </div>
+            )}
 
             {error && (
               <div className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--destructive)", color: "var(--destructive)", background: "rgba(179,38,30,0.05)" }}>
                 {error}
               </div>
             )}
+            {info && (
+              <div className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", color: "var(--forest)", background: "rgba(30,158,106,0.06)" }}>
+                {info}
+              </div>
+            )}
 
             <button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? "Vänta…" : mode === "login" ? "Logga in" : "Skapa konto"}
+              {loading ? "Vänta…"
+                : mode === "login" ? "Logga in"
+                : mode === "signup" ? "Skapa konto"
+                : "Skicka återställningslänk"}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
-            {mode === "login" ? (
-              <>Ny här?{" "}
-                <button onClick={() => { setMode("signup"); setError(null); }} className="font-medium underline" style={{ color: "var(--primary)" }}>
-                  Skapa konto
-                </button>
+          <div className="mt-6 space-y-2 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
+            {mode === "login" && (
+              <>
+                <div>
+                  Ny här?{" "}
+                  <button onClick={() => switchMode("signup")} className="font-medium underline" style={{ color: "var(--primary)" }}>
+                    Skapa konto
+                  </button>
+                </div>
               </>
-            ) : (
-              <>Har du redan ett konto?{" "}
-                <button onClick={() => { setMode("login"); setError(null); }} className="font-medium underline" style={{ color: "var(--primary)" }}>
+            )}
+            {mode === "signup" && (
+              <div>
+                Har du redan ett konto?{" "}
+                <button onClick={() => switchMode("login")} className="font-medium underline" style={{ color: "var(--primary)" }}>
                   Logga in
                 </button>
-              </>
+              </div>
+            )}
+            {mode === "forgot" && (
+              <div>
+                <button onClick={() => switchMode("login")} className="font-medium underline" style={{ color: "var(--primary)" }}>
+                  ← Tillbaka till inloggning
+                </button>
+              </div>
             )}
           </div>
         </div>

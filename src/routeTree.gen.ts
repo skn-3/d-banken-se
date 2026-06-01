@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -16,6 +17,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VIdRouteImport } from './routes/v.$id'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KopRoute = KopRouteImport.update({
   id: '/kop',
   path: '/kop',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/v/$id': typeof VIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/v/$id': typeof VIdRoute
 }
 export interface FileRoutesById {
@@ -70,14 +78,37 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/v/$id': typeof VIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/auth' | '/konto' | '/kop' | '/v/$id'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/konto'
+    | '/kop'
+    | '/reset-password'
+    | '/v/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/konto' | '/kop' | '/v/$id'
-  id: '__root__' | '/' | '/admin' | '/auth' | '/konto' | '/kop' | '/v/$id'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/konto'
+    | '/kop'
+    | '/reset-password'
+    | '/v/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/konto'
+    | '/kop'
+    | '/reset-password'
+    | '/v/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -86,11 +117,19 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   VIdRoute: typeof VIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kop': {
       id: '/kop'
       path: '/kop'
@@ -142,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   VIdRoute: VIdRoute,
 }
 export const routeTree = rootRouteImport
