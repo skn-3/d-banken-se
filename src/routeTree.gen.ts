@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as KopRouteImport } from './routes/kop'
+import { Route as KontoRouteImport } from './routes/konto'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 
 const KopRoute = KopRouteImport.update({
   id: '/kop',
   path: '/kop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KontoRoute = KontoRouteImport.update({
+  id: '/konto',
+  path: '/konto',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -32,30 +38,34 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/kop'
+  fullPaths: '/' | '/auth' | '/konto' | '/kop'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/kop'
-  id: '__root__' | '/' | '/auth' | '/kop'
+  to: '/' | '/auth' | '/konto' | '/kop'
+  id: '__root__' | '/' | '/auth' | '/konto' | '/kop'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
 }
 
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/kop'
       fullPath: '/kop'
       preLoaderRoute: typeof KopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/konto': {
+      id: '/konto'
+      path: '/konto'
+      fullPath: '/konto'
+      preLoaderRoute: typeof KontoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  KontoRoute: KontoRoute,
   KopRoute: KopRoute,
 }
 export const routeTree = rootRouteImport
