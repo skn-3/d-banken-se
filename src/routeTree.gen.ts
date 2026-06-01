@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SaljareRouteImport } from './routes/saljare'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
@@ -17,6 +18,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VIdRouteImport } from './routes/v.$id'
 
+const SaljareRoute = SaljareRouteImport.update({
+  id: '/saljare',
+  path: '/saljare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/saljare': typeof SaljareRoute
   '/v/$id': typeof VIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/saljare': typeof SaljareRoute
   '/v/$id': typeof VIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/saljare': typeof SaljareRoute
   '/v/$id': typeof VIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/konto'
     | '/kop'
     | '/reset-password'
+    | '/saljare'
     | '/v/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/konto'
     | '/kop'
     | '/reset-password'
+    | '/saljare'
     | '/v/$id'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/konto'
     | '/kop'
     | '/reset-password'
+    | '/saljare'
     | '/v/$id'
   fileRoutesById: FileRoutesById
 }
@@ -118,11 +130,19 @@ export interface RootRouteChildren {
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SaljareRoute: typeof SaljareRoute
   VIdRoute: typeof VIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/saljare': {
+      id: '/saljare'
+      path: '/saljare'
+      fullPath: '/saljare'
+      preLoaderRoute: typeof SaljareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SaljareRoute: SaljareRoute,
   VIdRoute: VIdRoute,
 }
 export const routeTree = rootRouteImport

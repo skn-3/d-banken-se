@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
 import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
+import { AdminOrgsTab } from "@/components/admin-orgs-tab";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — SmartKlimat" }] }),
@@ -39,7 +40,7 @@ interface Settings {
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 
-type Tab = "overview" | "templates" | "settings";
+type Tab = "overview" | "organizations" | "templates" | "settings";
 
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -102,6 +103,7 @@ function AdminPage() {
             <div className="mt-4 flex flex-wrap gap-2">
               {([
                 ["overview", "Översikt"],
+                ["organizations", "Organisationer"],
                 ["templates", "Värdebevis-mallar"],
                 ["settings", "Planteringsplats"],
               ] as [Tab, string][]).map(([k, label]) => (
@@ -180,6 +182,8 @@ function AdminPage() {
                 </section>
               </>
             )}
+
+            {tab === "organizations" && <AdminOrgsTab />}
 
             {tab === "templates" && (
               <TemplatesTab templates={templates} editing={editing} setEditing={setEditing} reload={load} />

@@ -1,19 +1,53 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
 export function SiteHeader() {
   const { user } = useAuth();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!user) { setIsSeller(false); return; }
+      const { data } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!cancelled) setIsSeller(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const logout = async () => {
     await supabase.auth.signOut();
     setMenuOpen(false);
     router.navigate({ to: "/" });
   };
+
+  const userLinks = (onClick?: () => void) => (
+    <>
+      {isSeller ? (
+        <Link to="/saljare" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Säljarvy</Link>
+      ) : (
+        <Link to="/kop" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Plantera träd</Link>
+      )}
+      <Link to="/konto" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Mitt konto</Link>
+      <button onClick={logout} className="btn-secondary whitespace-nowrap text-center">Logga ut</button>
+    </>
+  );
+
+  const guestLinks = (onClick?: () => void) => (
+    <>
+      <Link to="/auth" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Logga in</Link>
+      <Link to="/kop" onClick={onClick} className="btn-primary whitespace-nowrap text-center">Plantera träd</Link>
+    </>
+  );
 
   return (
     <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
@@ -24,23 +58,10 @@ export function SiteHeader() {
         </span>
       </Link>
 
-      {/* Desktop nav */}
       <nav className="hidden md:flex items-center gap-3">
-        {user ? (
-          <>
-            <Link to="/kop" className="btn-secondary whitespace-nowrap">Plantera träd</Link>
-            <Link to="/konto" className="btn-secondary whitespace-nowrap">Mitt konto</Link>
-            <button onClick={logout} className="btn-secondary whitespace-nowrap">Logga ut</button>
-          </>
-        ) : (
-          <>
-            <Link to="/auth" className="btn-secondary whitespace-nowrap">Logga in</Link>
-            <Link to="/kop" className="btn-primary whitespace-nowrap">Plantera träd</Link>
-          </>
-        )}
+        {user ? userLinks() : guestLinks()}
       </nav>
 
-      {/* Mobile hamburger */}
       <button
         className="md:hidden flex items-center justify-center rounded-full p-2"
         style={{ border: "1px solid var(--border)" }}
@@ -50,29 +71,16 @@ export function SiteHeader() {
         {menuOpen ? <X size={22} style={{ color: "var(--forest)" }} /> : <Menu size={22} style={{ color: "var(--forest)" }} />}
       </button>
 
-      {/* Mobile menu overlay */}
       {menuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 z-50 px-6 pb-6" style={{ background: "var(--paper)" }}>
           <nav className="flex flex-col gap-3 pt-2">
-            {user ? (
-              <>
-                <Link to="/kop" onClick={() => setMenuOpen(false)} className="btn-secondary whitespace-nowrap text-center">Plantera träd</Link>
-                <Link to="/konto" onClick={() => setMenuOpen(false)} className="btn-secondary whitespace-nowrap text-center">Mitt konto</Link>
-                <button onClick={logout} className="btn-secondary whitespace-nowrap text-center">Logga ut</button>
-              </>
-            ) : (
-              <>
-                <Link to="/auth" onClick={() => setMenuOpen(false)} className="btn-secondary whitespace-nowrap text-center">Logga in</Link>
-                <Link to="/kop" onClick={() => setMenuOpen(false)} className="btn-primary whitespace-nowrap text-center">Plantera träd</Link>
-              </>
-            )}
+            {user ? userLinks(() => setMenuOpen(false)) : guestLinks(() => setMenuOpen(false))}
           </nav>
         </div>
       )}
     </header>
   );
 }
-
 
 export function Blobs() {
   return (
