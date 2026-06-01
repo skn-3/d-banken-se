@@ -10,14 +10,14 @@ export const Route = createFileRoute("/konto")({
   head: () => ({
     meta: [
       { title: "Min trädbank — SmartKlimat" },
-      { name: "description", content: "Översikt över dina planterade träd, köp och värdebevis." },
+      { name: "description", content: "Översikt över träd, köp och värdebevis kopplade till din e-post." },
     ],
   }),
   component: KontoPage,
 });
 
 interface Purchase { id: string; tree_count: number; total_amount_ore: number; status: string; created_at: string }
-interface Profile { name: string; email: string }
+interface Customer { id: string; name: string; email: string }
 interface CertRow {
   id: string;
   verification_id: string;
@@ -52,7 +52,7 @@ function KontoPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [certs, setCerts] = useState<CertRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,21 +61,43 @@ function KontoPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate({ to: "/auth" }); return; }
+    if (!user || !user.email) { navigate({ to: "/auth" }); return; }
+    const email = user.email.toLowerCase();
     let cancelled = false;
     (async () => {
-      const [p, pr, r, c] = await Promise.all([
-        supabase.from("purchases").select("id, tree_count, total_amount_ore, status, created_at").order("created_at", { ascending: false }),
-        supabase.from("profiles").select("name, email").eq("user_id", user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
-        supabase.from("certificates").select("id, verification_id, recipient_name, tree_count, location_name, latitude, longitude, issued_date, template_snapshot")
-          .eq("user_id", user.id).order("issued_date", { ascending: false }),
-      ]);
+      // Lookup customer by email
+      const { data: cust } = await supabase
+        .from("customers")
+        .select("id, name, email")
+        .eq("email", email)
+        .maybeSingle();
+
+      const { data: r } = await supabase
+        .from("user_roles")
+        .select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+
+      let p: Purchase[] = [];
+      let c: CertRow[] = [];
+      if (cust) {
+        const [pr, cr] = await Promise.all([
+          supabase.from("purchases")
+            .select("id, tree_count, total_amount_ore, status, created_at")
+            .eq("customer_id", cust.id)
+            .order("created_at", { ascending: false }),
+          supabase.from("certificates")
+            .select("id, verification_id, recipient_name, tree_count, location_name, latitude, longitude, issued_date, template_snapshot")
+            .eq("customer_id", cust.id)
+            .order("issued_date", { ascending: false }),
+        ]);
+        p = (pr.data ?? []) as Purchase[];
+        c = (cr.data ?? []) as CertRow[];
+      }
+
       if (cancelled) return;
-      setPurchases((p.data ?? []) as Purchase[]);
-      setProfile(pr.data as Profile | null);
-      setIsAdmin(!!r.data);
-      setCerts((c.data ?? []) as CertRow[]);
+      setCustomer(cust as Customer | null);
+      setPurchases(p);
+      setCerts(c);
+      setIsAdmin(!!r);
       setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -94,13 +116,22 @@ function KontoPage() {
         ) : (
           <>
             <div className="surface-card overflow-hidden p-10 text-center" style={{ background: "var(--gradient-mint)" }}>
-              <div className="text-sm font-medium uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Din trädbank</div>
+              <div className="text-sm font-medium uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+                Trädbank för {user?.email}
+              </div>
               <div className="mt-4 font-mono text-7xl font-semibold leading-none" style={{ color: "var(--forest)" }}>
                 {balance.toLocaleString("sv-SE")}
               </div>
               <div className="mt-3 text-base" style={{ color: "var(--forest)" }}>
-                träd planterade {profile?.name ? `av ${profile.name}` : ""}
+                träd planterade {customer?.name ? `i ${customer.name}s namn` : ""}
               </div>
+              {!customer && (
+                <p className="mt-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                  Vi hittade inga köp för den här e-posten ännu.
+                  <br />
+                  <button onClick={() => navigate({ to: "/kop" })} className="mt-3 btn-primary">Registrera ett köp</button>
+                </p>
+              )}
             </div>
 
             <div className="mt-8 surface-card p-8">
@@ -110,7 +141,7 @@ function KontoPage() {
               </div>
               {certs.length === 0 ? (
                 <p className="mt-6 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                  Inga värdebevis än. <button onClick={() => navigate({ to: "/kop" })} className="underline" style={{ color: "var(--primary)" }}>Plantera dina första träd</button>.
+                  Inga värdebevis än för {user?.email}.
                 </p>
               ) : (
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">

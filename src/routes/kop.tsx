@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
+import { createPurchase } from "@/lib/purchases.functions";
 
 const PRICE_PER_TREE_ORE = 3500;
 
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/kop")({
   head: () => ({
     meta: [
       { title: "Plantera träd — SmartKlimat" },
-      { name: "description", content: "Välj antal träd och bidra till riktig plantering." },
+      { name: "description", content: "Registrera en plantering åt en kund. Inloggning krävs inte." },
     ],
   }),
   component: KopPage,
@@ -24,7 +24,7 @@ function formatKr(ore: number) {
   return `${(ore / 100).toLocaleString("sv-SE")} kr`;
 }
 
-interface CertificateRow {
+interface SnapshotCert {
   verification_id: string;
   recipient_name: string;
   tree_count: number;
@@ -35,7 +35,7 @@ interface CertificateRow {
   template_snapshot: Record<string, unknown>;
 }
 
-function rowToData(row: CertificateRow): CertificateData {
+function rowToData(row: SnapshotCert): CertificateData {
   return {
     verification_id: row.verification_id,
     recipient_name: row.recipient_name,
@@ -49,11 +49,16 @@ function rowToData(row: CertificateRow): CertificateData {
 }
 
 function KopPage() {
-  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const purchaseFn = useServerFn(createPurchase);
+
   const [count, setCount] = useState(10);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [resultEmail, setResultEmail] = useState<string>("");
+  const [emailSent, setEmailSent] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
 
@@ -61,33 +66,22 @@ function KopPage() {
 
   const pay = async () => {
     setError(null);
-    if (!user) {
-      navigate({ to: "/auth" });
+    if (!name.trim()) { setError("Ange mottagarens namn."); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+      setError("Ange en giltig e-postadress.");
       return;
     }
     setSubmitting(true);
     try {
-      const { data: purchase, error: purchaseErr } = await supabase
-        .from("purchases")
-        .insert({
-          user_id: user.id,
-          tree_count: count,
-          unit_price_ore: PRICE_PER_TREE_ORE,
-          total_amount_ore: total,
-          status: "paid",
-          paid_at: new Date().toISOString(),
-        })
-        .select("id")
-        .single();
-      if (purchaseErr) throw purchaseErr;
-
-      const { data: cert, error: certErr } = await supabase.rpc("generate_certificate", {
-        _purchase_id: purchase.id,
+      const res = await purchaseFn({
+        data: { treeCount: count, recipientName: name.trim(), recipientEmail: email.trim() },
       });
-      if (certErr) throw certErr;
-      setCertificate(rowToData(cert as CertificateRow));
+      const certData = JSON.parse(res.certificateJson) as SnapshotCert;
+      setCertificate(rowToData(certData));
+      setResultEmail(res.recipientEmail);
+      setEmailSent(res.emailSent);
     } catch (err) {
-      setError((err as Error).message);
+      setError((err as Error).message || "Något gick fel.");
     } finally {
       setSubmitting(false);
     }
@@ -105,8 +99,15 @@ function KopPage() {
               <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--gradient-mint)" }}>
                 <span className="font-display text-2xl" style={{ color: "var(--forest)" }}>✓</span>
               </div>
-              <h1 className="font-display text-3xl font-semibold">Tack — här är ditt värdebevis</h1>
+              <h1 className="font-display text-3xl font-semibold">
+                Tack! {certificate.tree_count} träd planterade
+              </h1>
               <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                {emailSent
+                  ? <>Värdebeviset har skickats till <span className="font-mono">{resultEmail}</span>.</>
+                  : <>Köpet är registrerat. Mailet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
+              </p>
+              <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
                 Verifierings-ID: <span className="font-mono">{certificate.verification_id}</span>
               </p>
             </div>
@@ -121,14 +122,20 @@ function KopPage() {
                 className="btn-primary"
               >Ladda ner som PDF</button>
               <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary">Öppna publik sida</Link>
-              <button onClick={() => navigate({ to: "/konto" })} className="btn-secondary">Till min trädbank</button>
+              <button
+                onClick={() => {
+                  setCertificate(null); setName(""); setEmail(""); setCount(10);
+                }}
+                className="btn-secondary"
+              >Registrera ett till köp</button>
             </div>
           </div>
         ) : (
           <div className="surface-card p-8 max-w-2xl mx-auto">
-            <h1 className="font-display text-3xl font-semibold">Plantera träd</h1>
+            <h1 className="font-display text-3xl font-semibold">Registrera en plantering</h1>
             <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Välj antal. Pris per träd: <span className="font-mono">35 kr</span>.
+              Värdebeviset och kvittot skickas till kundens e-post. Ingen inloggning krävs.
+              Pris per träd: <span className="font-mono">35 kr</span>.
             </p>
 
             <div className="mt-8">
@@ -153,6 +160,28 @@ function KopPage() {
               </div>
             </div>
 
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium">Mottagarens namn</label>
+                <input
+                  type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  placeholder="Sven Svensson" maxLength={120}
+                  className="input-field w-full"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium">Mottagarens e-post</label>
+                <input
+                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="sven@example.se" maxLength={255}
+                  className="input-field w-full"
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              E-posten knyter träden till kunden. Samma e-post över tid hamnar i samma trädbank.
+            </p>
+
             <div className="mt-8 rounded-2xl p-6" style={{ background: "var(--mint-paper)", border: "1px solid var(--border)" }}>
               <div className="flex items-center justify-between">
                 <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>Totalt</span>
@@ -171,11 +200,14 @@ function KopPage() {
               </div>
             )}
 
-            <button onClick={pay} disabled={submitting || authLoading} className="btn-primary mt-6 w-full">
-              {submitting ? "Bearbetar…" : user ? "Bekräfta köp" : "Logga in för att fortsätta"}
+            <button onClick={pay} disabled={submitting} className="btn-primary mt-6 w-full">
+              {submitting ? "Bearbetar…" : "Bekräfta köp"}
             </button>
             <p className="mt-3 text-center text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>
               Betalning simuleras i detta byggsteg.
+            </p>
+            <p className="mt-4 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
+              Vill du se en kunds trädbank? <button onClick={() => navigate({ to: "/auth" })} className="underline" style={{ color: "var(--primary)" }}>Logga in med kundens e-post</button>.
             </p>
           </div>
         )}
