@@ -112,5 +112,3 @@ function Fact({ label, value, mono }: { label: string; value: string; mono?: boo
     </div>
   );
 }
-
-void notFound;
