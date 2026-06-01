@@ -92,6 +92,7 @@ export type Database = {
       certificates: {
         Row: {
           created_at: string
+          customer_id: string | null
           id: string
           issued_date: string
           latitude: number
@@ -101,11 +102,12 @@ export type Database = {
           recipient_name: string
           template_snapshot: Json
           tree_count: number
-          user_id: string
+          user_id: string | null
           verification_id: string
         }
         Insert: {
           created_at?: string
+          customer_id?: string | null
           id?: string
           issued_date?: string
           latitude: number
@@ -115,11 +117,12 @@ export type Database = {
           recipient_name: string
           template_snapshot: Json
           tree_count: number
-          user_id: string
+          user_id?: string | null
           verification_id: string
         }
         Update: {
           created_at?: string
+          customer_id?: string | null
           id?: string
           issued_date?: string
           latitude?: number
@@ -129,8 +132,43 @@ export type Database = {
           recipient_name?: string
           template_snapshot?: Json
           tree_count?: number
-          user_id?: string
+          user_id?: string | null
           verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          account_user_id: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          account_user_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          account_user_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -175,35 +213,55 @@ export type Database = {
       purchases: {
         Row: {
           created_at: string
+          customer_id: string | null
           id: string
           paid_at: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          registered_by_user_id: string | null
           status: string
           total_amount_ore: number
           tree_count: number
           unit_price_ore: number
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
+          customer_id?: string | null
           id?: string
           paid_at?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          registered_by_user_id?: string | null
           status?: string
           total_amount_ore: number
           tree_count: number
           unit_price_ore: number
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
+          customer_id?: string | null
           id?: string
           paid_at?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          registered_by_user_id?: string | null
           status?: string
           total_amount_ore?: number
           tree_count?: number
           unit_price_ore?: number
-          user_id?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "purchases_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -235,6 +293,7 @@ export type Database = {
         Args: { _purchase_id: string }
         Returns: {
           created_at: string
+          customer_id: string | null
           id: string
           issued_date: string
           latitude: number
@@ -244,7 +303,7 @@ export type Database = {
           recipient_name: string
           template_snapshot: Json
           tree_count: number
-          user_id: string
+          user_id: string | null
           verification_id: string
         }
         SetofOptions: {
