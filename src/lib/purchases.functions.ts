@@ -67,16 +67,8 @@ export const createPurchase = createServerFn({ method: "POST" })
       _purchase_id: purchase.id,
     });
     if (cErr) throw new Error(`Certificate failed: ${cErr.message}`);
-    const certificate = cert as {
-      verification_id: string;
-      recipient_name: string;
-      tree_count: number;
-      location_name: string;
-      latitude: number | string;
-      longitude: number | string;
-      issued_date: string;
-      template_snapshot: Record<string, unknown>;
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const certificate = cert as any;
 
     // 4) Send thank-you email
     const host = getRequestHeader("host") || "smartklimat.app";
@@ -99,8 +91,8 @@ export const createPurchase = createServerFn({ method: "POST" })
     const emailResult = await sendEmail({ to: email, subject, html });
 
     return {
-      certificate,
-      emailSent: emailResult.ok,
+      certificate: certificate as Record<string, unknown>,
+      emailSent: emailResult.ok === true,
       recipientEmail: email,
-    };
+    } as { certificate: Record<string, unknown>; emailSent: boolean; recipientEmail: string };
   });
