@@ -91,8 +91,8 @@ export const createPurchase = createServerFn({ method: "POST" })
     const emailResult = await sendEmail({ to: email, subject, html });
 
     return {
-      certificate: certificate as Record<string, unknown>,
+      certificateJson: JSON.stringify(certificate),
       emailSent: emailResult.ok === true,
       recipientEmail: email,
-    } as { certificate: Record<string, unknown>; emailSent: boolean; recipientEmail: string };
+    };
   });

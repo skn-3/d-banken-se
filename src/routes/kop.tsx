@@ -76,7 +76,8 @@ function KopPage() {
       const res = await purchaseFn({
         data: { treeCount: count, recipientName: name.trim(), recipientEmail: email.trim() },
       });
-      setCertificate(rowToData(res.certificate as SnapshotCert));
+      const certData = JSON.parse(res.certificateJson) as SnapshotCert;
+      setCertificate(rowToData(certData));
       setResultEmail(res.recipientEmail);
       setEmailSent(res.emailSent);
     } catch (err) {
