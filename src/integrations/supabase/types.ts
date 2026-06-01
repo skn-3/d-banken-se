@@ -14,9 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          id: number
+          planting_latitude: number
+          planting_location_name: string
+          planting_longitude: number
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          planting_latitude?: number
+          planting_location_name?: string
+          planting_longitude?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          planting_latitude?: number
+          planting_location_name?: string
+          planting_longitude?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      certificate_templates: {
+        Row: {
+          accent_color: string
+          background_key: string
+          body_text: string
+          company_user_id: string | null
+          created_at: string
+          heading_text: string
+          id: string
+          is_default: boolean
+          logo_url: string | null
+          name: string
+          show_coordinates: boolean
+          show_social: boolean
+          social_handles: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          background_key?: string
+          body_text?: string
+          company_user_id?: string | null
+          created_at?: string
+          heading_text?: string
+          id?: string
+          is_default?: boolean
+          logo_url?: string | null
+          name: string
+          show_coordinates?: boolean
+          show_social?: boolean
+          social_handles?: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          background_key?: string
+          body_text?: string
+          company_user_id?: string | null
+          created_at?: string
+          heading_text?: string
+          id?: string
+          is_default?: boolean
+          logo_url?: string | null
+          name?: string
+          show_coordinates?: boolean
+          show_social?: boolean
+          social_handles?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      certificates: {
+        Row: {
+          created_at: string
+          id: string
+          issued_date: string
+          latitude: number
+          location_name: string
+          longitude: number
+          purchase_id: string
+          recipient_name: string
+          template_snapshot: Json
+          tree_count: number
+          user_id: string
+          verification_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          issued_date?: string
+          latitude: number
+          location_name: string
+          longitude: number
+          purchase_id: string
+          recipient_name: string
+          template_snapshot: Json
+          tree_count: number
+          user_id: string
+          verification_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          issued_date?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          purchase_id?: string
+          recipient_name?: string
+          template_snapshot?: Json
+          tree_count?: number
+          user_id?: string
+          verification_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string
+          company_template_id: string | null
           created_at: string
           email: string
           id: string
@@ -25,6 +146,7 @@ export type Database = {
         }
         Insert: {
           account_type?: string
+          company_template_id?: string | null
           created_at?: string
           email: string
           id?: string
@@ -33,13 +155,22 @@ export type Database = {
         }
         Update: {
           account_type?: string
+          company_template_id?: string | null
           created_at?: string
           email?: string
           id?: string
           name?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_template_id_fkey"
+            columns: ["company_template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       purchases: {
         Row: {
@@ -100,6 +231,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_certificate: {
+        Args: { _purchase_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          issued_date: string
+          latitude: number
+          location_name: string
+          longitude: number
+          purchase_id: string
+          recipient_name: string
+          template_snapshot: Json
+          tree_count: number
+          user_id: string
+          verification_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "certificates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
