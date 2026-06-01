@@ -14,6 +14,7 @@ import { Route as KontoRouteImport } from './routes/konto'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VIdRouteImport } from './routes/v.$id'
 
 const KopRoute = KopRouteImport.update({
   id: '/kop',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VIdRoute = VIdRouteImport.update({
+  id: '/v/$id',
+  path: '/v/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/v/$id': typeof VIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/v/$id': typeof VIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/v/$id': typeof VIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/auth' | '/konto' | '/kop'
+  fullPaths: '/' | '/admin' | '/auth' | '/konto' | '/kop' | '/v/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/konto' | '/kop'
-  id: '__root__' | '/' | '/admin' | '/auth' | '/konto' | '/kop'
+  to: '/' | '/admin' | '/auth' | '/konto' | '/kop' | '/v/$id'
+  id: '__root__' | '/' | '/admin' | '/auth' | '/konto' | '/kop' | '/v/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +86,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
+  VIdRoute: typeof VIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/v/$id': {
+      id: '/v/$id'
+      path: '/v/$id'
+      fullPath: '/v/$id'
+      preLoaderRoute: typeof VIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +142,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
+  VIdRoute: VIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
