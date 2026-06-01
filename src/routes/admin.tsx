@@ -169,7 +169,7 @@ function AdminPage() {
                         {purchases.map(q => (
                           <tr key={q.id} className="border-t" style={{ borderColor: "var(--border)" }}>
                             <td className="py-3 font-mono text-xs">{formatDate(q.created_at)}</td>
-                            <td className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>{q.user_id.slice(0, 8)}…</td>
+                            <td className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>{q.user_id ? `${q.user_id.slice(0, 8)}…` : "—"}</td>
                             <td className="font-mono">{q.tree_count}</td>
                             <td className="font-mono">{formatKr(q.total_amount_ore)}</td>
                             <td className="font-mono text-xs">{q.status}</td>
