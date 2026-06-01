@@ -297,8 +297,10 @@ export const createSeller = createServerFn({ method: "POST" })
     // Add user_roles seller (idempotent)
     await supabaseAdmin
       .from("user_roles")
-      // @ts-expect-error new enum value not yet in types
-      .upsert({ user_id: userId, role: data.role === "team_leader" ? "team_leader" : "seller" }, { onConflict: "user_id,role", ignoreDuplicates: true });
+      .upsert(
+        { user_id: userId, role: (data.role === "team_leader" ? "team_leader" : "seller") as "seller" },
+        { onConflict: "user_id,role", ignoreDuplicates: true },
+      );
 
     // Generate password recovery link so seller can set their own password
     let actionLink: string | null = null;
