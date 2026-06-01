@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
+import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — SmartKlimat" }] }),
@@ -123,34 +125,32 @@ function AdminPage() {
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-                        <tr><th className="py-2">Namn</th><th>E-post</th><th>Mall-koppling</th><th>Skapad</th></tr>
+                        <tr><th className="py-2">Namn</th><th>E-post</th><th>Mall-koppling</th><th>Skapad</th><th>Lösenord</th></tr>
                       </thead>
                       <tbody>
-                        {profiles.map(p => {
-                          const linked = templates.find(t => t.id === p.company_template_id);
-                          return (
-                            <tr key={p.user_id} className="border-t" style={{ borderColor: "var(--border)" }}>
-                              <td className="py-3">{p.name}</td>
-                              <td className="font-mono text-xs">{p.email}</td>
-                              <td>
-                                <select
-                                  className="input-field !py-1 !text-xs"
-                                  value={p.company_template_id ?? ""}
-                                  onChange={async (e) => {
-                                    const v = e.target.value || null;
-                                    await supabase.from("profiles").update({ company_template_id: v }).eq("user_id", p.user_id);
-                                    await load();
-                                  }}
-                                >
-                                  <option value="">— (standard)</option>
-                                  {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                </select>
-                              </td>
-                              <td className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>{formatDate(p.created_at)}</td>
-                            </tr>
-                          );
-                        })}
-                        {profiles.length === 0 && <tr><td colSpan={4} className="py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Inga användare än.</td></tr>}
+                        {profiles.map(p => (
+                          <tr key={p.user_id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                            <td className="py-3">{p.name}</td>
+                            <td className="font-mono text-xs">{p.email}</td>
+                            <td>
+                              <select
+                                className="input-field !py-1 !text-xs"
+                                value={p.company_template_id ?? ""}
+                                onChange={async (e) => {
+                                  const v = e.target.value || null;
+                                  await supabase.from("profiles").update({ company_template_id: v }).eq("user_id", p.user_id);
+                                  await load();
+                                }}
+                              >
+                                <option value="">— (standard)</option>
+                                {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                              </select>
+                            </td>
+                            <td className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>{formatDate(p.created_at)}</td>
+                            <td><PasswordActions userId={p.user_id} email={p.email} /></td>
+                          </tr>
+                        ))}
+                        {profiles.length === 0 && <tr><td colSpan={5} className="py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Inga användare än.</td></tr>}
                       </tbody>
                     </table>
                   </div>
