@@ -204,6 +204,71 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function PasswordActions({ userId, email }: { userId: string; email: string }) {
+  const setPw = useServerFn(adminSetPassword);
+  const sendReset = useServerFn(adminSendPasswordReset);
+  const [open, setOpen] = useState(false);
+  const [pw, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [link, setLink] = useState<string | null>(null);
+
+  const doSet = async () => {
+    if (pw.length < 8) { setMsg("Minst 8 tecken."); return; }
+    setBusy(true); setMsg(null); setLink(null);
+    try {
+      await setPw({ data: { targetUserId: userId, newPassword: pw } });
+      setMsg("Nytt lösenord sparat.");
+      setPw2("");
+      setOpen(false);
+    } catch (e) { setMsg((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  const doReset = async () => {
+    setBusy(true); setMsg(null); setLink(null);
+    try {
+      const res = await sendReset({ data: { email, redirectTo: `${window.location.origin}/reset-password` } });
+      setMsg("Återställningsmail begärt.");
+      if (res?.actionLink) setLink(res.actionLink);
+    } catch (e) { setMsg((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <div className="flex gap-2">
+        <button type="button" className="btn-secondary !py-1 !px-2 text-xs" disabled={busy} onClick={() => setOpen(v => !v)}>
+          Sätt nytt
+        </button>
+        <button type="button" className="btn-secondary !py-1 !px-2 text-xs" disabled={busy} onClick={doReset}>
+          Skicka mail
+        </button>
+      </div>
+      {open && (
+        <div className="mt-1 flex gap-1">
+          <input
+            className="input-field !py-1 !text-xs !w-36"
+            type="text"
+            placeholder="Nytt lösenord"
+            value={pw}
+            onChange={(e) => setPw2(e.target.value)}
+          />
+          <button type="button" className="btn-primary !py-1 !px-2 text-xs" disabled={busy} onClick={doSet}>
+            Spara
+          </button>
+        </div>
+      )}
+      {msg && <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{msg}</div>}
+      {link && (
+        <a href={link} target="_blank" rel="noreferrer" className="text-xs underline break-all" style={{ color: "var(--primary)" }}>
+          Öppna återställningslänk
+        </a>
+      )}
+    </div>
+  );
+}
+
 function TemplatesTab({ templates, editing, setEditing, reload }: {
   templates: Template[]; editing: Template | null; setEditing: (t: Template | null) => void; reload: () => Promise<void>;
 }) {
