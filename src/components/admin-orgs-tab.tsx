@@ -330,7 +330,7 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
                   </td>
                 </tr>
               )}
-              </>
+              </FragmentWithKey>
             ))}
             {sellers.length === 0 && <tr><td colSpan={4} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga säljare än.</td></tr>}
           </tbody>
