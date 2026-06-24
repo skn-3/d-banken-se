@@ -287,8 +287,8 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
           </thead>
           <tbody>
             {sellers.map(s => (
-              <>
-              <tr key={s.member_id} className="border-t" style={{ borderColor: "var(--border)" }}>
+              <FragmentWithKey key={s.member_id}>
+              <tr className="border-t" style={{ borderColor: "var(--border)" }}>
                 <td className="py-3">{s.name || <span style={{ color: "var(--muted-foreground)" }}>—</span>}</td>
                 <td className="font-mono text-xs">{s.email}</td>
                 <td className="font-mono font-semibold" style={{ color: "var(--forest)" }}>{s.tree_count.toLocaleString("sv-SE")}</td>
