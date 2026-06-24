@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   listOrganizations, createOrganization, updateOrganization,
   listTeams, createTeam, updateTeam,
   listSellers, createSeller, removeSeller,
 } from "@/lib/orgs.functions";
+import { adminSetPassword } from "@/lib/admin.functions";
 
 interface Org { id: string; name: string; type: string; team_count: number; tree_count: number }
 interface Team { id: string; name: string; member_count: number; tree_count: number }
@@ -212,7 +213,11 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
   const listSellersFn = useServerFn(listSellers);
   const createSellerFn = useServerFn(createSeller);
   const removeSellerFn = useServerFn(removeSeller);
+  const setPasswordFn = useServerFn(adminSetPassword);
   const [sellers, setSellers] = useState<Seller[]>([]);
+  const [pwFor, setPwFor] = useState<string | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -282,18 +287,50 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
           </thead>
           <tbody>
             {sellers.map(s => (
-              <tr key={s.member_id} className="border-t" style={{ borderColor: "var(--border)" }}>
+              <Fragment key={s.member_id}>
+              <tr className="border-t" style={{ borderColor: "var(--border)" }}>
                 <td className="py-3">{s.name || <span style={{ color: "var(--muted-foreground)" }}>—</span>}</td>
                 <td className="font-mono text-xs">{s.email}</td>
                 <td className="font-mono font-semibold" style={{ color: "var(--forest)" }}>{s.tree_count.toLocaleString("sv-SE")}</td>
                 <td className="text-right">
-                  <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
-                    if (!confirm(`Ta bort ${s.email} från ${team.name}?`)) return;
-                    await removeSellerFn({ data: { memberId: s.member_id } });
-                    await reload();
-                  }}>Ta bort</button>
+                  <div className="flex justify-end gap-2">
+                    <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => {
+                      setPwFor(pwFor === s.user_id ? null : s.user_id);
+                      setPwValue(""); setPwMsg(null);
+                    }}>Sätt lösenord</button>
+                    <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                      if (!confirm(`Ta bort ${s.email} från ${team.name}?`)) return;
+                      await removeSellerFn({ data: { memberId: s.member_id } });
+                      await reload();
+                    }}>Ta bort</button>
+                  </div>
                 </td>
               </tr>
+              {pwFor === s.user_id && (
+                <tr key={s.member_id + "-pw"}>
+                  <td colSpan={4} className="pb-3">
+                    <div className="rounded-lg border p-3" style={{ borderColor: "var(--border)" }}>
+                      <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+                        <input className="input-field !py-1 !text-sm" type="text" placeholder="Nytt lösenord (minst 8 tecken)"
+                          value={pwValue} onChange={e => setPwValue(e.target.value)} />
+                        <button className="btn-primary !py-1 !px-3 text-xs" onClick={() => {
+                          const gen = Math.random().toString(36).slice(2, 6) + "-" + Math.random().toString(36).slice(2, 6) + "!A1";
+                          setPwValue(gen);
+                        }}>Generera</button>
+                        <button className="btn-primary !py-1 !px-3 text-xs" onClick={async () => {
+                          if (pwValue.length < 8) { setPwMsg("Minst 8 tecken."); return; }
+                          try {
+                            await setPasswordFn({ data: { targetUserId: s.user_id, newPassword: pwValue } });
+                            setPwMsg(`Lösenord satt: ${pwValue}`);
+                          } catch (e) { setPwMsg((e as Error).message); }
+                        }}>Spara</button>
+                      </div>
+                      {pwMsg && <div className="mt-2 text-xs" style={{ color: "var(--muted-foreground)" }}>{pwMsg}</div>}
+                    </div>
+                  </td>
+                </tr>
+              )}
+              </Fragment>
             ))}
             {sellers.length === 0 && <tr><td colSpan={4} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga säljare än.</td></tr>}
           </tbody>
