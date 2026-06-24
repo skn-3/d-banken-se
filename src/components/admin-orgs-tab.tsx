@@ -213,7 +213,11 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
   const listSellersFn = useServerFn(listSellers);
   const createSellerFn = useServerFn(createSeller);
   const removeSellerFn = useServerFn(removeSeller);
+  const setPasswordFn = useServerFn(adminSetPassword);
   const [sellers, setSellers] = useState<Seller[]>([]);
+  const [pwFor, setPwFor] = useState<string | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
