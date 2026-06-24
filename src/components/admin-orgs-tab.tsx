@@ -287,7 +287,7 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
           </thead>
           <tbody>
             {sellers.map(s => (
-              <FragmentWithKey key={s.member_id}>
+              <Fragment key={s.member_id}>
               <tr className="border-t" style={{ borderColor: "var(--border)" }}>
                 <td className="py-3">{s.name || <span style={{ color: "var(--muted-foreground)" }}>—</span>}</td>
                 <td className="font-mono text-xs">{s.email}</td>
@@ -330,7 +330,7 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
                   </td>
                 </tr>
               )}
-              </FragmentWithKey>
+              </Fragment>
             ))}
             {sellers.length === 0 && <tr><td colSpan={4} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga säljare än.</td></tr>}
           </tbody>
