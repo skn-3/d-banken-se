@@ -736,3 +736,159 @@ function SettingsTab({ settings, reload }: { settings: Settings; reload: () => P
     </section>
   );
 }
+
+interface PointEvent {
+  id: string; name: string; start_at: string; end_at: string; multiplier: number; active: boolean;
+}
+
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function BoostersTab() {
+  const listFn = useServerFn(adminListEvents);
+  const createFn = useServerFn(adminCreateEvent);
+  const toggleFn = useServerFn(adminToggleEvent);
+  const deleteFn = useServerFn(adminDeleteEvent);
+
+  const [events, setEvents] = useState<PointEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showNew, setShowNew] = useState(false);
+  const now = new Date();
+  const later = new Date(now.getTime() + 24 * 3600 * 1000);
+  const [draft, setDraft] = useState({
+    name: "Dubbla poäng",
+    startAt: toLocalInput(now.toISOString()),
+    endAt: toLocalInput(later.toISOString()),
+    multiplier: 2,
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const reload = async () => {
+    const r = await listFn({ data: {} });
+    setEvents(r.events as PointEvent[]);
+  };
+  useEffect(() => { (async () => { await reload(); setLoading(false); })(); /* eslint-disable-next-line */ }, []);
+
+  const save = async () => {
+    setBusy(true); setErr(null);
+    try {
+      await createFn({ data: {
+        name: draft.name.trim(),
+        startAt: new Date(draft.startAt).toISOString(),
+        endAt: new Date(draft.endAt).toISOString(),
+        multiplier: draft.multiplier,
+      }});
+      setShowNew(false);
+      await reload();
+    } catch (e) { setErr((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  const status = (e: PointEvent): { label: string; bg: string; color: string } => {
+    const nowMs = Date.now();
+    const s = new Date(e.start_at).getTime();
+    const en = new Date(e.end_at).getTime();
+    if (!e.active) return { label: "Inaktiverat", bg: "var(--muted)", color: "var(--muted-foreground)" };
+    if (nowMs < s) return { label: "Planerat", bg: "var(--mint)", color: "var(--forest)" };
+    if (nowMs >= en) return { label: "Avslutat", bg: "var(--muted)", color: "var(--muted-foreground)" };
+    return { label: "Pågår nu", bg: "var(--forest)", color: "#fff" };
+  };
+
+  if (loading) return <div className="surface-card mt-6 p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>;
+
+  return (
+    <section className="surface-card mt-6 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Dubbelpoäng-event</h2>
+          <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Slå på en period då varje sålt träd ger flera poäng. Träd och planta påverkas inte — bara poäng.
+          </p>
+        </div>
+        <button className="btn-primary" onClick={() => setShowNew(true)}>+ Nytt event</button>
+      </div>
+
+      {showNew && (
+        <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-sm">
+              <div className="mb-1 font-medium">Namn</div>
+              <input className="input-field w-full" value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} />
+            </label>
+            <label className="text-sm">
+              <div className="mb-1 font-medium">Multiplikator</div>
+              <input className="input-field w-full font-mono" type="number" min={2} max={10}
+                value={draft.multiplier}
+                onChange={e => setDraft({ ...draft, multiplier: Math.max(2, Math.min(10, Number(e.target.value) || 2)) })} />
+            </label>
+            <label className="text-sm">
+              <div className="mb-1 font-medium">Starttid</div>
+              <input className="input-field w-full" type="datetime-local"
+                value={draft.startAt} onChange={e => setDraft({ ...draft, startAt: e.target.value })} />
+            </label>
+            <label className="text-sm">
+              <div className="mb-1 font-medium">Sluttid</div>
+              <input className="input-field w-full" type="datetime-local"
+                value={draft.endAt} onChange={e => setDraft({ ...draft, endAt: e.target.value })} />
+            </label>
+          </div>
+          {err && <div className="mt-3 text-sm" style={{ color: "var(--destructive)" }}>{err}</div>}
+          <div className="mt-3 flex justify-end gap-2">
+            <button className="btn-secondary" onClick={() => setShowNew(false)}>Avbryt</button>
+            <button className="btn-primary" disabled={busy || !draft.name.trim()} onClick={save}>
+              {busy ? "Sparar…" : "Skapa"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+            <tr>
+              <th className="py-2">Namn</th><th>Multiplikator</th><th>Start</th><th>Slut</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map(e => {
+              const st = status(e);
+              return (
+                <tr key={e.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                  <td className="py-3 font-medium">{e.name}</td>
+                  <td className="font-mono">{e.multiplier}×</td>
+                  <td className="font-mono text-xs">{new Date(e.start_at).toLocaleString("sv-SE")}</td>
+                  <td className="font-mono text-xs">{new Date(e.end_at).toLocaleString("sv-SE")}</td>
+                  <td>
+                    <span className="chip !py-0.5 !text-[10px]" style={{ background: st.bg, color: st.color }}>{st.label}</span>
+                  </td>
+                  <td className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                        await toggleFn({ data: { id: e.id, active: !e.active } });
+                        await reload();
+                      }}>{e.active ? "Inaktivera" : "Aktivera"}</button>
+                      <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                        if (!confirm(`Ta bort eventet "${e.name}"?`)) return;
+                        await deleteFn({ data: { id: e.id } });
+                        await reload();
+                      }}>Ta bort</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {events.length === 0 && (
+              <tr><td colSpan={6} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>
+                Inga event ännu. Skapa ett för att dubbla poängen under en period.
+              </td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
