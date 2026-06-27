@@ -106,10 +106,12 @@ function RewardsPage() {
       try {
         const r = (await ctxFn({ data: { targetUserId: previewAs } })) as Ctx;
         if (!cancelled) setCtx(r);
+        const ev = await eventFn({ data: {} });
+        if (!cancelled) setActiveEvent(ev.event);
       } finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn, previewAs]);
+  }, [user, authLoading, navigate, ctxFn, eventFn, previewAs]);
 
   const handleBuy = async (r: RewardRow) => {
     setBusyId(r.id);
