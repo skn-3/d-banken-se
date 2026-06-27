@@ -345,6 +345,108 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
           </tbody>
         </table>
       </div>
+
+      <RewardsManager teamId={team.id} />
     </section>
   );
 }
+
+interface Reward {
+  id: string; name: string; description: string | null;
+  threshold_trees: number; category: string | null; image_url: string | null;
+  active: boolean;
+}
+
+function RewardsManager({ teamId }: { teamId: string }) {
+  const listFn = useServerFn(adminListRewards);
+  const createFn = useServerFn(adminCreateReward);
+  const updateFn = useServerFn(adminUpdateReward);
+  const deleteFn = useServerFn(adminDeleteReward);
+
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [name, setName] = useState("");
+  const [threshold, setThreshold] = useState<number>(10);
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<Reward | null>(null);
+
+  const reload = async () => {
+    const r = await listFn({ data: { teamId } });
+    setRewards(r.rewards as Reward[]);
+  };
+  useEffect(() => { reload(); /* eslint-disable-next-line */ }, [teamId]);
+
+  const add = async () => {
+    if (!name.trim() || threshold < 0) return;
+    setBusy(true);
+    try {
+      await createFn({ data: { teamId, name: name.trim(), thresholdTrees: threshold, description: description.trim() || null, category: category.trim() || null, imageUrl: null, active: true } });
+      setName(""); setThreshold(10); setDescription(""); setCategory("");
+      await reload();
+    } finally { setBusy(false); }
+  };
+
+  const save = async (r: Reward) => {
+    await updateFn({ data: { id: r.id, teamId, name: r.name, thresholdTrees: r.threshold_trees, description: r.description, category: r.category, imageUrl: r.image_url, active: r.active } });
+    setEditing(null); await reload();
+  };
+
+  return (
+    <div className="mt-8">
+      <h3 className="font-display text-lg font-semibold">🎁 Belöningar</h3>
+      <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+        Belöningar låses upp automatiskt när säljarens totalt sålda träd når tröskeln. Inlösning minskar inte träd.
+      </p>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-[2fr_1fr_1fr_auto]">
+        <input className="input-field !py-2 !text-sm" placeholder="Namn (t.ex. Biobiljett)" value={name} onChange={e => setName(e.target.value)} />
+        <input className="input-field !py-2 !text-sm" placeholder="Kategori (valfri)" value={category} onChange={e => setCategory(e.target.value)} />
+        <input className="input-field !py-2 !text-sm font-mono" type="number" min={0} placeholder="Tröskel" value={threshold} onChange={e => setThreshold(Math.max(0, Number(e.target.value) || 0))} />
+        <button className="btn-primary !py-2 !px-3 text-sm" disabled={busy} onClick={add}>+ Belöning</button>
+      </div>
+      <textarea className="input-field mt-2 !py-2 !text-sm w-full" placeholder="Beskrivning (valfri)" rows={2} value={description} onChange={e => setDescription(e.target.value)} />
+
+      <div className="mt-4 divide-y" style={{ borderColor: "var(--border)" }}>
+        {rewards.map(r => (
+          <div key={r.id} className="py-3">
+            {editing?.id === r.id ? (
+              <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_auto_auto]">
+                <input className="input-field !py-1 !text-sm" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
+                <input className="input-field !py-1 !text-sm" value={editing.category ?? ""} placeholder="Kategori" onChange={e => setEditing({ ...editing, category: e.target.value })} />
+                <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} value={editing.threshold_trees} onChange={e => setEditing({ ...editing, threshold_trees: Math.max(0, Number(e.target.value) || 0) })} />
+                <button className="btn-primary !py-1 !px-2 text-xs" onClick={() => save(editing)}>Spara</button>
+                <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(null)}>Avbryt</button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{r.name}</span>
+                    <span className="chip !py-0.5 !text-[10px] font-mono" style={{ color: "var(--forest)" }}>{r.threshold_trees} träd</span>
+                    {r.category && <span className="chip !py-0.5 !text-[10px]">{r.category}</span>}
+                    {!r.active && <span className="chip !py-0.5 !text-[10px]" style={{ background: "var(--muted)" }}>inaktiv</span>}
+                  </div>
+                  {r.description && <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{r.description}</div>}
+                </div>
+                <div className="flex gap-2">
+                  <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(r)}>Redigera</button>
+                  <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                    await updateFn({ data: { id: r.id, teamId, name: r.name, thresholdTrees: r.threshold_trees, description: r.description, category: r.category, imageUrl: r.image_url, active: !r.active } });
+                    await reload();
+                  }}>{r.active ? "Inaktivera" : "Aktivera"}</button>
+                  <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                    if (!confirm(`Ta bort belöningen "${r.name}"?`)) return;
+                    await deleteFn({ data: { id: r.id } }); await reload();
+                  }}>Ta bort</button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+        {rewards.length === 0 && <p className="py-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga belöningar än.</p>}
+      </div>
+    </div>
+  );
+}
+
