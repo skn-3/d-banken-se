@@ -152,6 +152,7 @@ function SellerPage() {
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
   const [celebration, setCelebration] = useState<{ title: string; subtitle: string; bonus: number } | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const [view, setView] = useState<"home" | "register" | "done">("home");
   const [lbScope, setLbScope] = useState<"week" | "total">("week");
