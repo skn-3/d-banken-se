@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { getSellerContext } from "@/lib/seller.functions";
 import { useAuth } from "@/hooks/use-auth";
@@ -160,136 +160,203 @@ function SalesGuide({ onShowCustomer, onBack }: { onShowCustomer: () => void; on
   );
 }
 
-type Section = { kicker: string; title: string; body: React.ReactNode; bg: string };
-
-function CustomerPresentation({ onClose, teamName, teamTotal }: { onClose: () => void; teamName?: string; teamTotal?: number }) {
-  const [idx, setIdx] = useState(0);
-
-  const sections: Section[] = [
-    {
-      kicker: "På riktigt",
-      title: "Plantera ett träd, på riktigt.",
-      bg: "linear-gradient(160deg, #d6efd8, #a8d5a0)",
-      body: (
-        <div className="mt-6 grid h-64 place-items-center rounded-3xl bg-white/40 text-7xl">🌲</div>
-      ),
-    },
-    {
-      kicker: "Vad gör ett träd?",
-      title: "Mer än bara grönt.",
-      bg: "linear-gradient(160deg, #e7f5e9, #cfe9d3)",
-      body: (
-        <ul className="mt-6 space-y-4 text-lg">
-          <li className="flex items-center gap-4"><span className="text-3xl">🌬️</span> Suger upp ungefär 20 kg koldioxid per år</li>
-          <li className="flex items-center gap-4"><span className="text-3xl">💨</span> Ger renare luft</li>
-          <li className="flex items-center gap-4"><span className="text-3xl">🐦</span> Blir hem för djur och insekter</li>
-        </ul>
-      ),
-    },
-    {
-      kicker: "Var planteras träden?",
-      title: "Riktiga planteringsprojekt.",
-      bg: "linear-gradient(160deg, #e2f0e4, #b9dcc0)",
-      body: (
-        <div className="mt-6 space-y-4">
-          <div className="grid h-44 place-items-center rounded-3xl bg-white/40 text-6xl">🗺️</div>
-          <p className="text-lg">
-            Träden planteras genom <strong>WeForest</strong>, i etablerade planteringsprojekt runt om i världen.
-          </p>
-        </div>
-      ),
-    },
-    {
-      kicker: "Vad kostar det?",
-      title: "35 kr per träd.",
-      bg: "linear-gradient(160deg, #fdebd3, #f7d3a6)",
-      body: (
-        <div className="mt-6 space-y-4 text-lg">
-          <p>Du får ett <strong>värdebevis</strong> som visar ditt bidrag — fint att spara eller ge bort.</p>
-          <div className="rounded-3xl bg-white/60 p-6 text-center">
-            <div className="font-mono text-5xl font-semibold" style={{ color: "var(--forest)" }}>35 kr</div>
-            <div className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>per träd</div>
+function ImagePlaceholder({ label, ratio = "16 / 10" }: { label: string; ratio?: string }) {
+  return (
+    <div
+      className="relative w-full overflow-hidden rounded-3xl"
+      style={{
+        aspectRatio: ratio,
+        background:
+          "linear-gradient(160deg, #EAF7EE 0%, #C7EAD4 60%, #9FD9B6 100%)",
+        border: "1px solid #E2EDE6",
+      }}
+      aria-label={label}
+    >
+      <div className="absolute inset-0 grid place-items-center">
+        <div className="flex flex-col items-center gap-3 px-6 text-center">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#15784F" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <circle cx="9" cy="10" r="1.6" />
+            <path d="M3 17l5-5 4 4 3-3 6 6" />
+          </svg>
+          <div className="text-xs uppercase tracking-[0.18em]" style={{ color: "#15784F" }}>
+            {label}
           </div>
         </div>
-      ),
-    },
-    {
-      kicker: teamName ? `Vår klass — ${teamName}` : "Vår klass",
-      title: teamTotal && teamTotal > 0
-        ? `Vi har redan planterat ${teamTotal} träd!`
-        : "Vill du vara med?",
-      bg: "linear-gradient(160deg, #d8ecdb, #a5cfac)",
-      body: (
-        <div className="mt-8 space-y-6 text-center">
-          {teamTotal && teamTotal > 0 ? (
-            <div className="font-mono text-7xl font-semibold" style={{ color: "var(--forest)" }}>{teamTotal}</div>
-          ) : (
-            <div className="text-7xl">🌱</div>
-          )}
-          <p className="text-2xl font-display">Vill du köpa ett träd?</p>
-        </div>
-      ),
-    },
-  ];
-
-  const total = sections.length;
-  const go = useCallback((d: number) => setIdx((i) => Math.max(0, Math.min(total - 1, i + d))), [total]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") go(1);
-      else if (e.key === "ArrowLeft") go(-1);
-      else if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [go, onClose]);
-
-  const s = sections[idx];
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: s.bg, transition: "background 400ms ease" }}>
-      <div className="flex items-center justify-between px-5 py-4">
-        <button onClick={onClose} className="rounded-full bg-white/60 px-4 py-2 text-sm font-medium">✕ Stäng</button>
-        <div className="font-mono text-sm" style={{ color: "var(--forest)" }}>{idx + 1} / {total}</div>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center px-6">
-        <div className="w-full max-w-xl">
-          <div className="text-xs uppercase tracking-[0.18em]" style={{ color: "var(--forest)" }}>{s.kicker}</div>
-          <h2 className="mt-2 font-display text-4xl font-semibold leading-tight" style={{ color: "var(--forest)" }}>{s.title}</h2>
-          <div style={{ color: "var(--forest)" }}>{s.body}</div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-4 px-5 py-5">
-        <button
-          onClick={() => go(-1)}
-          disabled={idx === 0}
-          className="rounded-full bg-white/70 px-6 py-3 font-medium disabled:opacity-40"
-        >
-          ← Bakåt
-        </button>
-        <div className="flex gap-2">
-          {sections.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIdx(i)}
-              className="h-2 rounded-full transition-all"
-              style={{ width: i === idx ? 24 : 8, background: i === idx ? "var(--forest)" : "rgba(0,0,0,0.2)" }}
-              aria-label={`Gå till sektion ${i + 1}`}
-            />
-          ))}
-        </div>
-        <button
-          onClick={() => go(1)}
-          disabled={idx === total - 1}
-          className="rounded-full px-6 py-3 font-medium text-white disabled:opacity-40"
-          style={{ background: "var(--forest)" }}
-        >
-          Nästa →
-        </button>
       </div>
     </div>
   );
 }
+
+function Leaf() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9E6A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 4C12 4 4 9 4 18c0 1 .2 2 .5 2.5C12 21 20 14 20 4z" />
+      <path d="M4 20c4-6 9-10 15-12" />
+    </svg>
+  );
+}
+function Globe() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9E6A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" />
+    </svg>
+  );
+}
+function Hands() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9E6A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3v6" />
+      <path d="M9 6l3-3 3 3" />
+      <path d="M4 13c2-2 5-2 8 0 3-2 6-2 8 0v3c0 3-3 5-8 5s-8-2-8-5z" />
+    </svg>
+  );
+}
+
+function CustomerPresentation({ onClose, teamTotal }: { onClose: () => void; teamName?: string; teamTotal?: number }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const text = "#0B3D2E";
+  const muted = "#3A5A4A";
+  const line = "#E2EDE6";
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "#F4FAF5", color: text }}>
+      {/* Top bar */}
+      <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3" style={{ background: "rgba(244,250,245,0.92)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${line}` }}>
+        <div className="text-xs uppercase tracking-[0.2em]" style={{ color: muted }}>SmartKlimat × WeForest</div>
+        <button onClick={onClose} className="rounded-full px-4 py-1.5 text-sm font-medium" style={{ border: `1px solid ${line}`, background: "white", color: text }}>
+          ✕ Stäng
+        </button>
+      </div>
+
+      <article className="mx-auto max-w-xl px-5 pb-16 presentation-fade">
+        {/* HERO */}
+        <section className="pt-6">
+          <ImagePlaceholder label="WeForest-foto — skog / plantering" ratio="4 / 5" />
+          <div className="mt-6">
+            <div className="text-[11px] uppercase tracking-[0.2em]" style={{ color: muted }}>SmartKlimat × WeForest</div>
+            <h1 className="mt-3 font-display text-[34px] font-semibold leading-[1.1] tracking-tight" style={{ color: text }}>
+              Plantera ett träd.<br />Återställ en skog.
+            </h1>
+            <p className="mt-4 text-[17px] leading-relaxed" style={{ color: muted }}>
+              Träd som planteras där de behövs som mest.
+            </p>
+          </div>
+        </section>
+
+        <div className="my-10 h-px" style={{ background: line }} />
+
+        {/* THREE PILLARS */}
+        <section>
+          <div className="text-[11px] uppercase tracking-[0.2em]" style={{ color: muted }}>Vad ditt träd gör</div>
+          <h2 className="mt-2 font-display text-[26px] font-semibold leading-tight" style={{ color: text }}>
+            Ett träd gör mer än du tror.
+          </h2>
+
+          <ul className="mt-8 space-y-7">
+            {[
+              { icon: <Globe />, title: "Svalkar planeten", text: "Träd binder koldioxid och hjälper till att kyla jorden — ungefär 20 kg CO₂ per träd och år." },
+              { icon: <Leaf />, title: "Återställer ekosystem", text: "Skogar hyser upp till 90% av alla landlevande arter och skyddar mark och vatten." },
+              { icon: <Hands />, title: "Minskar fattigdom", text: "Planteringen skapar jobb och inkomst — särskilt för kvinnor, som kan skicka sina barn till skolan." },
+            ].map((p, i) => (
+              <li key={i} className="flex gap-4">
+                <div className="mt-1 grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "#EAF7EE", border: `1px solid ${line}` }}>
+                  {p.icon}
+                </div>
+                <div className="flex-1">
+                  <div className="font-display text-[18px] font-semibold" style={{ color: text }}>{p.title}</div>
+                  <p className="mt-1.5 text-[15px] leading-relaxed" style={{ color: muted }}>{p.text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="my-10 h-px" style={{ background: line }} />
+
+        {/* WEFOREST BAND (dark) */}
+        <section className="rounded-[28px] p-7" style={{ background: "linear-gradient(160deg, #0B3D2E 0%, #15784F 120%)", color: "#EAF7EE" }}>
+          <div className="text-[11px] uppercase tracking-[0.2em]" style={{ color: "#9FD9B6" }}>Var träden planteras</div>
+          <h2 className="mt-2 font-display text-[24px] font-semibold leading-tight">Skogar under återställning.</h2>
+          <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "#C7EAD4" }}>
+            Träden planteras tillsammans med WeForest och lokala partners, i pågående projekt.
+          </p>
+
+          <div className="mt-6 grid grid-cols-3 gap-2.5">
+            {[
+              { v: "1 265", l: "hektar under återställning" },
+              { v: "211", l: "arter återställda" },
+              { v: "37", l: "djurarter bevarade" },
+            ].map((s, i) => (
+              <div key={i} className="rounded-2xl p-3.5 text-center" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(159,217,182,0.18)" }}>
+                <div className="font-mono text-[20px] font-semibold" style={{ color: "white" }}>{s.v}</div>
+                <div className="mt-1 text-[10px] leading-tight" style={{ color: "#9FD9B6" }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-[10px]" style={{ color: "rgba(199,234,212,0.7)" }}>Exempelvärden — uppdateras per projekt.</div>
+
+          <div className="mt-6">
+            <ImagePlaceholder label="WeForest-projektfoto" ratio="16 / 10" />
+          </div>
+        </section>
+
+        <div className="my-10 h-px" style={{ background: line }} />
+
+        {/* CERTIFICATE */}
+        <section>
+          <div className="text-[11px] uppercase tracking-[0.2em]" style={{ color: muted }}>Ditt bevis</div>
+          <h2 className="mt-2 font-display text-[26px] font-semibold leading-tight" style={{ color: text }}>
+            Ett personligt värdebevis.
+          </h2>
+
+          <div className="mt-6 rounded-3xl p-5" style={{ background: "white", border: `1px solid ${line}` }}>
+            <div className="rounded-2xl p-5" style={{ background: "#F4FAF5", border: `1px dashed ${line}` }}>
+              <div className="text-[10px] uppercase tracking-[0.2em]" style={{ color: muted }}>Värdebevis</div>
+              <div className="mt-2 font-display text-[18px] font-semibold" style={{ color: text }}>För ditt bidrag till skogen</div>
+              <div className="mt-3 flex items-end justify-between">
+                <div>
+                  <div className="font-mono text-[12px]" style={{ color: muted }}>SK-•••• ••••</div>
+                  <div className="mt-1 text-[12px]" style={{ color: muted }}>SmartKlimat × WeForest</div>
+                </div>
+                <Leaf />
+              </div>
+            </div>
+            <p className="mt-4 text-[15px] leading-relaxed" style={{ color: muted }}>
+              Varje träd dedikeras till dig. Du får ett personligt värdebevis på mejlen och kan följa din påverkan över tid.
+            </p>
+          </div>
+        </section>
+
+        <div className="my-10 h-px" style={{ background: line }} />
+
+        {/* CLOSING */}
+        <section>
+          <div className="rounded-[28px] p-8 text-center" style={{ background: "#EAF7EE", border: `1px solid ${line}` }}>
+            <div className="font-mono text-[56px] font-semibold leading-none" style={{ color: text }}>35 kr</div>
+            <div className="mt-2 text-[13px] uppercase tracking-[0.18em]" style={{ color: muted }}>per träd</div>
+            <p className="mt-6 font-display text-[18px] leading-snug" style={{ color: text }}>
+              Ett litet steg för dig — ett träd i en skog som behöver det.
+            </p>
+            {teamTotal && teamTotal > 0 ? (
+              <p className="mt-4 text-[13px]" style={{ color: muted }}>
+                Vår klass har redan planterat <span className="font-mono font-semibold" style={{ color: text }}>{teamTotal}</span> träd.
+              </p>
+            ) : null}
+          </div>
+
+          <p className="mt-8 text-center font-display text-[15px]" style={{ color: muted }}>
+            Tänk smart. Vi har ett gemensamt klimat.
+          </p>
+        </section>
+      </article>
+    </div>
+  );
+}
+
