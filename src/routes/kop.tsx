@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { createPurchase } from "@/lib/purchases.functions";
+import { PlantingForm } from "@/components/planting-form";
 
 const PRICE_PER_TREE_ORE = 3500;
 
