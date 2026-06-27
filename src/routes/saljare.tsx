@@ -253,6 +253,19 @@ function SellerPage() {
     return () => { cancelled = true; };
   }, [user, authLoading, navigate, ctxFn, eventFn, bonusesFn, previewAs]);
 
+  // First-login onboarding (only for real seller, not preview)
+  useEffect(() => {
+    if (!ctx?.isSeller || ctx.isPreview) return;
+    const uid = ctx.userId;
+    if (!uid) return;
+    if (!hasSeenOnboarding(uid)) setShowOnboarding(true);
+  }, [ctx]);
+
+  const closeOnboarding = () => {
+    setShowOnboarding(false);
+    if (ctx?.userId) markOnboardingSeen(ctx.userId);
+  };
+
 
 
   const submit = async () => {
