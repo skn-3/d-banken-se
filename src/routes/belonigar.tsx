@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { useAuth } from "@/hooks/use-auth";
 import { getSellerRewards, purchaseSellerReward } from "@/lib/rewards.functions";
+import { getActiveEvent, type ActiveEvent } from "@/lib/events.functions";
+import { EventBanner } from "@/components/event-banner";
 
 export const Route = createFileRoute("/belonigar")({
   head: () => ({ meta: [{ title: "Belöningar — Smaarty" }] }),
@@ -80,14 +82,20 @@ function RewardsPage() {
   const { as: previewAs } = Route.useSearch();
   const ctxFn = useServerFn(getSellerRewards);
   const buyFn = useServerFn(purchaseSellerReward);
+  const eventFn = useServerFn(getActiveEvent);
 
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confetti, setConfetti] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
 
-  const reload = async () => setCtx((await ctxFn({ data: { targetUserId: previewAs } })) as Ctx);
+  const reload = async () => {
+    setCtx((await ctxFn({ data: { targetUserId: previewAs } })) as Ctx);
+    const ev = await eventFn({ data: {} });
+    setActiveEvent(ev.event);
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -98,10 +106,12 @@ function RewardsPage() {
       try {
         const r = (await ctxFn({ data: { targetUserId: previewAs } })) as Ctx;
         if (!cancelled) setCtx(r);
+        const ev = await eventFn({ data: {} });
+        if (!cancelled) setActiveEvent(ev.event);
       } finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn, previewAs]);
+  }, [user, authLoading, navigate, ctxFn, eventFn, previewAs]);
 
   const handleBuy = async (r: RewardRow) => {
     setBusyId(r.id);
@@ -148,6 +158,8 @@ function RewardsPage() {
             <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => navigate({ to: "/admin" })}>← Tillbaka till admin</button>
           </div>
         )}
+
+        <EventBanner event={activeEvent} />
 
         <header className="mb-6 flex items-center justify-between">
           <div>

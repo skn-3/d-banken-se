@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { getSellerContext, sellerCreatePurchase } from "@/lib/seller.functions";
+import { getActiveEvent, getSellerMilestones, type ActiveEvent } from "@/lib/events.functions";
+import { EventBanner } from "@/components/event-banner";
 
 const PRICE_PER_TREE_ORE = 3500;
 const QUICK_PICKS = [5, 10, 25, 100];
@@ -134,9 +136,13 @@ function SellerPage() {
   const { as: previewAs } = Route.useSearch();
   const ctxFn = useServerFn(getSellerContext);
   const purchaseFn = useServerFn(sellerCreatePurchase);
+  const eventFn = useServerFn(getActiveEvent);
+  const milestonesFn = useServerFn(getSellerMilestones);
 
   const [ctx, setCtx] = useState<SellerCtx | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
+  const [celebration, setCelebration] = useState<{ threshold: number; bonus: number } | null>(null);
 
   const [view, setView] = useState<"home" | "register" | "done">("home");
   const [lbScope, setLbScope] = useState<"week" | "total">("week");
@@ -154,9 +160,37 @@ function SellerPage() {
 
   const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
+  const milestoneStorageKey = (uid: string) => `smaarty:milestones-seen:${uid}`;
+
+  const detectNewMilestone = async (uid: string) => {
+    try {
+      const r = await milestonesFn({ data: { targetUserId: previewAs } });
+      const seenRaw = typeof window !== "undefined" ? window.localStorage.getItem(milestoneStorageKey(uid)) : null;
+      const seen: string[] = seenRaw ? JSON.parse(seenRaw) : [];
+      const list = r.milestones as { id: string; delta: number; description: string | null }[];
+      const fresh = list.find((m) => !seen.includes(m.id));
+      if (fresh) {
+        const match = (fresh.description ?? "").match(/(\d+)/);
+        setCelebration({ threshold: match ? Number(match[1]) : 0, bonus: fresh.delta });
+        const next = Array.from(new Set([...seen, ...list.map((m) => m.id)])).slice(-20);
+        window.localStorage.setItem(milestoneStorageKey(uid), JSON.stringify(next));
+        setTimeout(() => setCelebration(null), 6000);
+      } else if (list.length) {
+        // Initialize seen list silently on first visit
+        if (!seenRaw) {
+          window.localStorage.setItem(milestoneStorageKey(uid), JSON.stringify(list.map((m) => m.id)));
+        }
+      }
+    } catch {/* ignore */}
+  };
+
   const reload = async () => {
     const r = (await ctxFn({ data: { targetUserId: previewAs } })) as SellerCtx;
     setCtx(r);
+    const ev = await eventFn({ data: {} });
+    setActiveEvent(ev.event);
+    const uid = r.userId ?? r.previewUserId;
+    if (uid) await detectNewMilestone(uid);
   };
 
   useEffect(() => {
@@ -167,13 +201,30 @@ function SellerPage() {
     (async () => {
       try {
         const r = (await ctxFn({ data: { targetUserId: previewAs } })) as SellerCtx;
-        if (!cancelled) setCtx(r);
+        if (cancelled) return;
+        setCtx(r);
+        const ev = await eventFn({ data: {} });
+        if (!cancelled) setActiveEvent(ev.event);
+        const uid = r.userId ?? r.previewUserId;
+        if (uid && !cancelled) {
+          // Mark existing milestones as seen on first load (no toast)
+          try {
+            const mr = await milestonesFn({ data: { targetUserId: previewAs } });
+            const seenRaw = window.localStorage.getItem(milestoneStorageKey(uid));
+            if (!seenRaw) {
+              window.localStorage.setItem(
+                milestoneStorageKey(uid),
+                JSON.stringify((mr.milestones as { id: string }[]).map((m) => m.id)),
+              );
+            }
+          } catch {/* ignore */}
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn, previewAs]);
+  }, [user, authLoading, navigate, ctxFn, eventFn, milestonesFn, previewAs]);
 
 
   const submit = async () => {
@@ -228,6 +279,25 @@ function SellerPage() {
             <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => navigate({ to: "/admin" })}>
               ← Tillbaka till admin
             </button>
+          </div>
+        )}
+        <EventBanner event={activeEvent} />
+        {celebration && (
+          <div className="fixed inset-x-0 top-20 z-50 flex justify-center px-4">
+            <div
+              className="max-w-md rounded-2xl px-5 py-4 text-center shadow-xl"
+              style={{
+                background: "linear-gradient(135deg, #1e9e6a 0%, #3fc78b 100%)",
+                color: "#fff",
+                animation: "smaarty-pop 500ms cubic-bezier(.2,.9,.3,1.6)",
+              }}
+            >
+              <div className="text-2xl">🎉</div>
+              <div className="mt-1 font-display text-lg font-semibold">
+                Du nådde {celebration.threshold} sålda träd!
+              </div>
+              <div className="mt-1 font-mono text-sm">+{celebration.bonus} bonuspoäng</div>
+            </div>
           </div>
         )}
         {loading ? (

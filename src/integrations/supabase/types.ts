@@ -196,6 +196,39 @@ export type Database = {
         }
         Relationships: []
       }
+      point_events: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          end_at: string
+          id: string
+          multiplier: number
+          name: string
+          start_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          end_at: string
+          id?: string
+          multiplier?: number
+          name: string
+          start_at: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          end_at?: string
+          id?: string
+          multiplier?: number
+          name?: string
+          start_at?: string
+        }
+        Relationships: []
+      }
       point_transactions: {
         Row: {
           created_at: string
