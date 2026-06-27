@@ -275,6 +275,7 @@ function ClaimsTab() {
   );
 }
 
+function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="surface-card p-6">
       <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>{label}</div>
