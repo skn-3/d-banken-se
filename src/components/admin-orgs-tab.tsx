@@ -9,7 +9,7 @@ import {
 import { adminSetPassword } from "@/lib/admin.functions";
 
 interface Org { id: string; name: string; type: string; team_count: number; tree_count: number }
-interface Team { id: string; name: string; member_count: number; tree_count: number }
+interface Team { id: string; name: string; member_count: number; tree_count: number; weekly_goal_trees?: number | null; team_bonus_points?: number | null }
 interface Seller { member_id: string; user_id: string; role: string; name: string; email: string; tree_count: number }
 
 export function AdminOrgsTab() {
