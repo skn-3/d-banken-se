@@ -7,6 +7,7 @@ import {
   listSellers, createSeller, removeSeller,
 } from "@/lib/orgs.functions";
 import { adminSetPassword } from "@/lib/admin.functions";
+import { adminListRewards, adminCreateReward, adminUpdateReward, adminDeleteReward } from "@/lib/rewards.functions";
 
 interface Org { id: string; name: string; type: string; team_count: number; tree_count: number }
 interface Team { id: string; name: string; member_count: number; tree_count: number }
