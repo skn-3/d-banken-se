@@ -42,6 +42,9 @@ type LbSeller = { userId: string; name: string; trees: number };
 type LbTeam = { teamId: string; name: string; trees: number };
 interface SellerCtx {
   isSeller: boolean;
+  isPreview?: boolean;
+  previewName?: string | null;
+  previewUserId?: string;
   userId?: string;
   role?: string;
   team?: { id: string; name: string };
