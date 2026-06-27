@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { createPurchase } from "@/lib/purchases.functions";
+import { PlantingForm } from "@/components/planting-form";
 
-const PRICE_PER_TREE_ORE = 3500;
+
 
 export const Route = createFileRoute("/kop")({
   head: () => ({
@@ -17,12 +18,6 @@ export const Route = createFileRoute("/kop")({
   }),
   component: KopPage,
 });
-
-const QUICK_PICKS = [5, 10, 25, 100];
-
-function formatKr(ore: number) {
-  return `${(ore / 100).toLocaleString("sv-SE")} kr`;
-}
 
 interface SnapshotCert {
   verification_id: string;
@@ -61,8 +56,6 @@ function KopPage() {
   const [emailSent, setEmailSent] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
-
-  const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
   const pay = async () => {
     setError(null);
@@ -131,84 +124,26 @@ function KopPage() {
             </div>
           </div>
         ) : (
-          <div className="surface-card p-8 max-w-2xl mx-auto">
-            <h1 className="font-display text-3xl font-semibold">Registrera en plantering</h1>
-            <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Värdebeviset och kvittot skickas till kundens e-post. Ingen inloggning krävs.
-              Pris per träd: <span className="font-mono">35 kr</span>.
-            </p>
-
-            <div className="mt-8">
-              <label className="mb-2 block text-sm font-medium">Antal träd</label>
-              <div className="flex items-center gap-3">
-                <button type="button" className="btn-secondary !px-4 !py-2" onClick={() => setCount((c) => Math.max(1, c - 1))}>−</button>
-                <input
-                  type="number" min={1} max={10000} value={count}
-                  onChange={(e) => setCount(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))}
-                  className="input-field text-center font-mono text-lg !w-32"
-                />
-                <button type="button" className="btn-secondary !px-4 !py-2" onClick={() => setCount((c) => Math.min(10000, c + 1))}>+</button>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {QUICK_PICKS.map((n) => (
-                  <button key={n} type="button" onClick={() => setCount(n)} className="chip hover:!bg-[color:var(--mint)]"
-                    style={{ cursor: "pointer", background: count === n ? "var(--mint)" : undefined }}>
-                    {n} träd
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium">Mottagarens namn</label>
-                <input
-                  type="text" value={name} onChange={(e) => setName(e.target.value)}
-                  placeholder="Sven Svensson" maxLength={120}
-                  className="input-field w-full"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium">Mottagarens e-post</label>
-                <input
-                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="sven@example.se" maxLength={255}
-                  className="input-field w-full"
-                />
-              </div>
-            </div>
-            <p className="mt-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
-              E-posten knyter träden till kunden. Samma e-post över tid hamnar i samma trädbank.
-            </p>
-
-            <div className="mt-8 rounded-2xl p-6" style={{ background: "var(--mint-paper)", border: "1px solid var(--border)" }}>
-              <div className="flex items-center justify-between">
-                <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>Totalt</span>
-                <span className="font-mono text-3xl font-semibold" style={{ color: "var(--forest)" }}>
-                  {formatKr(total)}
-                </span>
-              </div>
-              <div className="mt-1 text-right text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>
-                {count} × 35,00 kr
-              </div>
-            </div>
-
-            {error && (
-              <div className="mt-4 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--destructive)", color: "var(--destructive)" }}>
-                {error}
-              </div>
-            )}
-
-            <button onClick={pay} disabled={submitting} className="btn-primary mt-6 w-full whitespace-nowrap">
-              {submitting ? "Planterar…" : `🌱 Plantera ${count} ${count === 1 ? "träd" : "träd"}`}
-            </button>
-            <p className="mt-3 text-center text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>
-              Betalning simuleras i detta byggsteg.
-            </p>
-            <p className="mt-4 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
-              Vill du se en kunds trädbank? <button onClick={() => navigate({ to: "/auth" })} className="underline" style={{ color: "var(--primary)" }}>Logga in med kundens e-post</button>.
-            </p>
+          <div className="max-w-2xl mx-auto">
+            <PlantingForm
+              count={count} setCount={setCount}
+              name={name} setName={setName}
+              email={email} setEmail={setEmail}
+              error={error} submitting={submitting}
+              onSubmit={pay}
+              footer={
+                <>
+                  <p className="mt-3 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    Betalning simuleras i detta steg.
+                  </p>
+                  <p className="mt-2 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    <button onClick={() => navigate({ to: "/auth" })} className="underline" style={{ color: "var(--primary)" }}>
+                      Se en kunds trädbank
+                    </button>
+                  </p>
+                </>
+              }
+            />
           </div>
         )}
       </main>

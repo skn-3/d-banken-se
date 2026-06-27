@@ -9,6 +9,7 @@ import { getSellerContext, sellerCreatePurchase } from "@/lib/seller.functions";
 import { getActiveEvent, getSellerBonuses, type ActiveEvent, type SellerBonus } from "@/lib/events.functions";
 import { EventBanner } from "@/components/event-banner";
 import { Onboarding, hasSeenOnboarding, markOnboardingSeen } from "@/components/onboarding";
+import { PlantingForm } from "@/components/planting-form";
 
 const WEEKEND_SPRINT_GOAL = 5;
 
@@ -759,7 +760,7 @@ function HomeView({
 }
 
 function RegisterView({
-  count, setCount, name, setName, email, setEmail, total, error, submitting, onBack, onSubmit,
+  count, setCount, name, setName, email, setEmail, total: _total, error, submitting, onBack, onSubmit,
 }: {
   count: number; setCount: (n: number) => void;
   name: string; setName: (s: string) => void;
@@ -768,64 +769,26 @@ function RegisterView({
   onBack: () => void; onSubmit: () => void;
 }) {
   return (
-    <section className="surface-card p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold">Registrera en plantering</h1>
-        <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm">← Tillbaka</button>
-      </div>
-      <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-        Varje träd gör skillnad 🌱 — fyll i mottagaren så skickas värdebeviset direkt till deras e-post. Pris per träd: <span className="font-mono">35 kr</span>.
-      </p>
-
-      <div className="mt-6">
-        <label className="mb-2 block text-sm font-medium">Antal träd att plantera</label>
-        <div className="flex items-center gap-3">
-          <button type="button" className="btn-secondary !px-4 !py-2" onClick={() => setCount(Math.max(1, count - 1))}>−</button>
-          <input type="number" min={1} max={10000} value={count}
-            onChange={(e) => setCount(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))}
-            className="input-field text-center font-mono text-lg !w-32" />
-          <button type="button" className="btn-secondary !px-4 !py-2" onClick={() => setCount(Math.min(10000, count + 1))}>+</button>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {QUICK_PICKS.map((n) => (
-            <button key={n} type="button" onClick={() => setCount(n)} className="chip"
-              style={{ cursor: "pointer", background: count === n ? "var(--mint)" : undefined }}>
-              {n} träd
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-sm font-medium">Mottagarens namn</label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className="input-field w-full" />
-        </div>
-        <div>
-          <label className="mb-2 block text-sm font-medium">Mottagarens e-post</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} className="input-field w-full" />
-        </div>
-      </div>
-
-      <div className="mt-6 rounded-2xl p-5" style={{ background: "var(--mint-paper)", border: "1px solid var(--border)" }}>
-        <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>Att betala</span>
-          <span className="font-mono text-2xl font-semibold" style={{ color: "var(--forest)" }}>{formatKr(total)}</span>
-        </div>
-      </div>
-
-      {error && (
-        <div className="mt-4 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--destructive)", color: "var(--destructive)" }}>{error}</div>
-      )}
-
-      <button onClick={onSubmit} disabled={submitting} className="btn-primary mt-6 w-full !py-4 text-lg"
-        style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
-        {submitting ? "Planterar…" : `🌱 Plantera ${count} ${count === 1 ? "träd" : "träd"}`}
-      </button>
-      <p className="mt-2 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>Värdebeviset skickas direkt till mottagaren.</p>
-    </section>
+    <PlantingForm
+      count={count} setCount={setCount}
+      name={name} setName={setName}
+      email={email} setEmail={setEmail}
+      error={error} submitting={submitting}
+      onSubmit={onSubmit}
+      title="Plantera träd"
+      intro="Välj hur många träd du vill plantera och vem de planteras för. Personen får ett värdebevis på mejlen — inget konto behövs."
+      topRight={
+        <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm whitespace-nowrap">← Tillbaka</button>
+      }
+      footer={
+        <p className="mt-3 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
+          Värdebeviset skickas direkt till mottagaren.
+        </p>
+      }
+    />
   );
 }
+
 
 
 function Confetti() {
