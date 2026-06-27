@@ -173,35 +173,61 @@ function OrgDetail({ org, onBack }: { org: Org; onBack: () => void }) {
 
       <div className="mt-4 divide-y" style={{ borderColor: "var(--border)" }}>
         {teams.map(t => (
-          <div key={t.id} className="flex items-center justify-between py-3">
-            <div className="flex-1">
-              {editingTeam?.id === t.id ? (
+          <div key={t.id} className="py-3">
+            {editingTeam?.id === t.id ? (
+              <div className="space-y-2">
                 <input className="input-field !py-1 !text-sm" value={editingTeam.name} onChange={e => setEditingTeam({ ...editingTeam, name: e.target.value })} />
-              ) : (
-                <>
-                  <div className="font-medium">{t.name}</div>
-                  <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                    {t.member_count} säljare · <span className="font-mono" style={{ color: "var(--forest)" }}>{t.tree_count.toLocaleString("sv-SE")} träd</span>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {editingTeam?.id === t.id ? (
-                <>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <label className="block text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    Veckomål (träd) — 0 stänger av lag-bonus
+                    <input
+                      type="number" min={0} max={100000}
+                      className="input-field !py-1 !text-sm mt-1 w-full"
+                      value={editingTeam.weekly_goal_trees ?? 0}
+                      onChange={e => setEditingTeam({ ...editingTeam, weekly_goal_trees: Math.max(0, Number(e.target.value) || 0) })}
+                    />
+                  </label>
+                  <label className="block text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    Lag-bonus (poäng per medlem)
+                    <input
+                      type="number" min={0} max={100000}
+                      className="input-field !py-1 !text-sm mt-1 w-full"
+                      value={editingTeam.team_bonus_points ?? 0}
+                      onChange={e => setEditingTeam({ ...editingTeam, team_bonus_points: Math.max(0, Number(e.target.value) || 0) })}
+                    />
+                  </label>
+                </div>
+                <div className="flex gap-2">
                   <button className="btn-primary !py-1 !px-2 text-xs" onClick={async () => {
-                    await updateTeamFn({ data: { id: editingTeam.id, name: editingTeam.name } });
+                    await updateTeamFn({ data: {
+                      id: editingTeam.id,
+                      name: editingTeam.name,
+                      weeklyGoalTrees: editingTeam.weekly_goal_trees ?? 0,
+                      teamBonusPoints: editingTeam.team_bonus_points ?? 0,
+                    } });
                     setEditingTeam(null); await reload();
                   }}>Spara</button>
                   <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditingTeam(null)}>Avbryt</button>
-                </>
-              ) : (
-                <>
-                  <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditingTeam(t)}>Byt namn</button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <div className="font-medium">{t.name}</div>
+                  <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    {t.member_count} säljare · <span className="font-mono" style={{ color: "var(--forest)" }}>{t.tree_count.toLocaleString("sv-SE")} träd</span>
+                    {" · "}
+                    {t.weekly_goal_trees && t.weekly_goal_trees > 0
+                      ? <>Veckomål: <span className="font-mono">{t.weekly_goal_trees}</span> träd → <span className="font-mono">+{t.team_bonus_points ?? 0}</span> p/medlem</>
+                      : <span style={{ color: "var(--muted-foreground)" }}>Lag-bonus av</span>}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditingTeam(t)}>Redigera</button>
                   <button className="btn-primary !py-1 !px-2 text-xs" onClick={() => setSelectedTeam(t)}>Öppna →</button>
-                </>
-              )}
-            </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
         {teams.length === 0 && <p className="py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga team än.</p>}
@@ -209,6 +235,7 @@ function OrgDetail({ org, onBack }: { org: Org; onBack: () => void }) {
     </section>
   );
 }
+
 
 function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; onBack: () => void }) {
   const listSellersFn = useServerFn(listSellers);
