@@ -204,3 +204,176 @@
   60% { transform: translateY(4px) scale(1.05); opacity: 1; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
+
+/* === Planting form === */
+@keyframes plantform-bump {
+  0% { transform: scale(0.96); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+@keyframes plantform-chip-pop {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-2px) scale(1.04); }
+}
+@keyframes plantform-mascot-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.plantform-mascot {
+  transform-origin: 50% 85%;
+  animation: plantform-mascot-sway 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 6px 12px rgba(11,61,46,0.12));
+}
+
+.plantform-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px; height: 54px;
+  border-radius: 999px;
+  background: var(--mint-paper);
+  color: var(--forest);
+  border: 1px solid #D9EBE0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  transition: background-color 150ms ease, transform 120ms cubic-bezier(.25,1,.5,1), box-shadow 150ms ease;
+  box-shadow: 0 4px 10px -6px rgba(11,61,46,0.18);
+}
+.plantform-step:hover { background: var(--mint); }
+.plantform-step:active { transform: scale(0.92); box-shadow: 0 2px 4px -2px rgba(11,61,46,0.18); }
+
+.plantform-count {
+  flex: 0 0 auto;
+}
+.plantform-count input {
+  width: 110px;
+  height: 54px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: var(--paper);
+  color: var(--forest);
+  border: 1px solid #D9EBE0;
+  border-radius: 16px;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  -moz-appearance: textfield;
+}
+.plantform-count input::-webkit-outer-spin-button,
+.plantform-count input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.plantform-count input:focus {
+  border-color: #3CB680;
+  box-shadow: 0 0 0 4px rgba(60,182,128,0.18);
+}
+
+.plantform-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--forest);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #D9EBE0;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(.34,1.56,.64,1), background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.plantform-chip:hover {
+  transform: translateY(-2px) scale(1.04);
+  background: var(--mint-paper);
+  border-color: var(--sage);
+}
+.plantform-chip.is-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 8px 18px -8px rgba(30,158,106,0.55);
+}
+.plantform-chip.is-active:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+.plantform-impact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--mint-paper) 0%, #FBE3C033 100%);
+  border: 1px solid #D9EBE0;
+  color: var(--forest);
+  font-size: 0.9rem;
+  animation: plantform-bump 280ms cubic-bezier(.34,1.56,.64,1);
+}
+
+.plantform-input {
+  width: 100%;
+  background: var(--paper);
+  color: var(--forest);
+  border: 1px solid #D9EBE0;
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.plantform-input::placeholder { color: rgba(11,61,46,0.4); }
+.plantform-input:focus {
+  outline: none;
+  background: var(--card);
+  border-color: #3CB680;
+  box-shadow: 0 0 0 4px rgba(60,182,128,0.18);
+}
+
+.plantform-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--mint-paper) 0%, #F4FAF5 100%);
+  border: 1px solid #D9EBE0;
+}
+
+.plantform-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 1.5rem;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #fff;
+  background: linear-gradient(135deg, #1E9E6A 0%, #3CB680 100%);
+  box-shadow: 0 12px 28px -12px rgba(30,158,106,0.65), 0 2px 0 rgba(255,255,255,0.18) inset;
+  transition: transform 220ms cubic-bezier(.25,1,.5,1), box-shadow 220ms cubic-bezier(.25,1,.5,1), filter 150ms ease;
+  border: none;
+  cursor: pointer;
+}
+.plantform-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px -14px rgba(30,158,106,0.7), 0 2px 0 rgba(255,255,255,0.22) inset;
+}
+.plantform-cta:hover .plantform-cta-sprout {
+  display: inline-block;
+  animation: plantform-mascot-sway 0.8s ease-in-out infinite;
+}
+.plantform-cta:active { transform: translateY(1px) scale(0.99); }
+.plantform-cta:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: 0 6px 16px -8px rgba(30,158,106,0.4); }
+.plantform-cta-sprout { font-size: 1.2rem; display: inline-block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plantform-mascot,
+  .plantform-impact,
+  .plantform-cta:hover .plantform-cta-sprout { animation: none !important; }
+  .plantform-chip,
+  .plantform-cta,
+  .plantform-step { transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease !important; }
+  .plantform-chip:hover,
+  .plantform-cta:hover { transform: none !important; }
+}
+
