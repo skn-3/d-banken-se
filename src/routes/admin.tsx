@@ -105,6 +105,7 @@ function AdminPage() {
               {([
                 ["overview", "Översikt"],
                 ["organizations", "Organisationer"],
+                ["claims", "Inlösningar"],
                 ["templates", "Värdebevis-mallar"],
                 ["settings", "Planteringsplats"],
               ] as [Tab, string][]).map(([k, label]) => (
