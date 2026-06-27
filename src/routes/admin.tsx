@@ -7,6 +7,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
 import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
+import { adminListClaims, adminFulfillClaim } from "@/lib/rewards.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — SmartKlimat" }] }),
