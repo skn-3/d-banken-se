@@ -307,6 +307,7 @@ function SellerPage() {
       <Blobs />
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-24 pt-4">
+        {showOnboarding && <Onboarding onClose={closeOnboarding} />}
         {ctx?.isPreview && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 shadow-sm"
             style={{ borderColor: "var(--primary)", background: "rgba(30,158,106,0.08)" }}>
