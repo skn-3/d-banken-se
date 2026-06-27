@@ -366,6 +366,14 @@
 .plantform-cta:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: 0 6px 16px -8px rgba(30,158,106,0.4); }
 .plantform-cta-sprout { font-size: 1.2rem; display: inline-block; }
 
+@keyframes presentation-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.presentation-fade { animation: presentation-fade-in 420ms ease both; }
+
+
+
 @media (prefers-reduced-motion: reduce) {
   .plantform-mascot,
   .plantform-impact,
