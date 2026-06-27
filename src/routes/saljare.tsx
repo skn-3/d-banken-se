@@ -277,6 +277,9 @@ function SellerPage() {
       setError("Ange en giltig e-postadress."); return;
     }
     setSubmitting(true);
+    const prevTotal = ctx?.treeCount ?? 0;
+    const multiplier = activeEvent?.multiplier ?? 1;
+    const treesPlanted = count;
     try {
       const res = await purchaseFn({
         data: { treeCount: count, recipientName: name.trim(), recipientEmail: email.trim() },
@@ -295,6 +298,7 @@ function SellerPage() {
       });
       setResultEmail(res.recipientEmail);
       setEmailSent(res.emailSent);
+      setPlantingResult({ trees: treesPlanted, prevTotal, points: treesPlanted * multiplier });
       setView("done");
       await reload();
     } catch (e) {
@@ -303,6 +307,7 @@ function SellerPage() {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
