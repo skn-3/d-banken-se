@@ -23,9 +23,11 @@ type Ctx = {
 
 function SaljHjalpPage() {
   const { as: previewAs } = Route.useSearch();
+  const { user } = useAuth();
   const fetchCtx = useServerFn(getSellerContext);
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [view, setView] = useState<"home" | "guide" | "present">("home");
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
     let alive = true;
