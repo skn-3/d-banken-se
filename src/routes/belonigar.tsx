@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { useAuth } from "@/hooks/use-auth";
 import { getSellerRewards, purchaseSellerReward } from "@/lib/rewards.functions";
+import { getActiveEvent, type ActiveEvent } from "@/lib/events.functions";
+import { EventBanner } from "@/components/event-banner";
 
 export const Route = createFileRoute("/belonigar")({
   head: () => ({ meta: [{ title: "Belöningar — Smaarty" }] }),
