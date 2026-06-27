@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SaljareRouteImport } from './routes/saljare'
+import { Route as SaljHjalpRouteImport } from './routes/salj-hjalp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
@@ -22,6 +23,11 @@ import { Route as VIdRouteImport } from './routes/v.$id'
 const SaljareRoute = SaljareRouteImport.update({
   id: '/saljare',
   path: '/saljare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaljHjalpRoute = SaljHjalpRouteImport.update({
+  id: '/salj-hjalp',
+  path: '/salj-hjalp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/v/$id': typeof VIdRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/v/$id': typeof VIdRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/v/$id': typeof VIdRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/konto'
     | '/kop'
     | '/reset-password'
+    | '/salj-hjalp'
     | '/saljare'
     | '/v/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/konto'
     | '/kop'
     | '/reset-password'
+    | '/salj-hjalp'
     | '/saljare'
     | '/v/$id'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/konto'
     | '/kop'
     | '/reset-password'
+    | '/salj-hjalp'
     | '/saljare'
     | '/v/$id'
   fileRoutesById: FileRoutesById
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SaljHjalpRoute: typeof SaljHjalpRoute
   SaljareRoute: typeof SaljareRoute
   VIdRoute: typeof VIdRoute
 }
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/saljare'
       fullPath: '/saljare'
       preLoaderRoute: typeof SaljareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salj-hjalp': {
+      id: '/salj-hjalp'
+      path: '/salj-hjalp'
+      fullPath: '/salj-hjalp'
+      preLoaderRoute: typeof SaljHjalpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SaljHjalpRoute: SaljHjalpRoute,
   SaljareRoute: SaljareRoute,
   VIdRoute: VIdRoute,
 }
