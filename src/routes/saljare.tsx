@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { getSellerContext, sellerCreatePurchase } from "@/lib/seller.functions";
+import { getActiveEvent, getSellerMilestones, type ActiveEvent } from "@/lib/events.functions";
+import { EventBanner } from "@/components/event-banner";
 
 const PRICE_PER_TREE_ORE = 3500;
 const QUICK_PICKS = [5, 10, 25, 100];
