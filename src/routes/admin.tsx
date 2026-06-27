@@ -187,6 +187,8 @@ function AdminPage() {
 
             {tab === "organizations" && <AdminOrgsTab />}
 
+            {tab === "claims" && <ClaimsTab />}
+
             {tab === "templates" && (
               <TemplatesTab templates={templates} editing={editing} setEditing={setEditing} reload={load} />
             )}
