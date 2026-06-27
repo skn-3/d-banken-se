@@ -210,11 +210,15 @@ export const getSellerContext = createServerFn({ method: "POST" })
       previewUserId: isPreview ? targetUserId : undefined,
       userId: targetUserId,
       role: member.role,
-      team: { id: team!.id, name: team!.name },
+      team: { id: team!.id, name: team!.name, weeklyGoal: teamGoal, bonusPoints: teamBonus },
       organization: { id: org!.id, name: org!.name, type: org!.type },
       treeCount: my.total,
       weekTrees: my.week,
       todayTrees: my.today,
+      weekendTrees: my.weekend,
+      isWeekendNow,
+      isoWeek,
+      teamWeekTrees: myTeamWeek,
       streak,
       badges,
       teamTotal: teamTotalAll,
@@ -227,6 +231,7 @@ export const getSellerContext = createServerFn({ method: "POST" })
       purchases: myPurchases ?? [],
     };
   });
+
 
 const PurchaseSchema = z.object({
   treeCount: z.number().int().min(1).max(10000),
