@@ -194,6 +194,8 @@ function AdminPage() {
 
             {tab === "orders" && <OrdersTab />}
 
+            {tab === "boosters" && <BoostersTab />}
+
             {tab === "templates" && (
               <TemplatesTab templates={templates} editing={editing} setEditing={setEditing} reload={load} />
             )}
