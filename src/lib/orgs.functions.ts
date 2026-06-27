@@ -189,13 +189,14 @@ export const updateTeam = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const update: Record<string, unknown> = { name: data.name };
+    const update: { name: string; weekly_goal_trees?: number; team_bonus_points?: number } = { name: data.name };
     if (data.weeklyGoalTrees !== undefined) update.weekly_goal_trees = data.weeklyGoalTrees;
     if (data.teamBonusPoints !== undefined) update.team_bonus_points = data.teamBonusPoints;
     const { error } = await supabaseAdmin
       .from("teams")
       .update(update)
       .eq("id", data.id);
+
     if (error) throw new Error(error.message);
     return { ok: true };
   });
