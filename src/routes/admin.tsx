@@ -108,6 +108,7 @@ function AdminPage() {
                 ["organizations", "Organisationer"],
                 ["rewards", "Belöningskatalog"],
                 ["orders", "Beställningar"],
+                ["boosters", "Boosters"],
                 ["templates", "Värdebevis-mallar"],
                 ["settings", "Planteringsplats"],
               ] as [Tab, string][]).map(([k, label]) => (
