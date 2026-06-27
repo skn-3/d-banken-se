@@ -382,6 +382,12 @@ function HomeView({
   const today = ctx.todayTrees ?? 0;
   const streak = ctx.streak ?? 0;
   const teamTotal = ctx.teamTotal ?? 0;
+  const weekendTrees = ctx.weekendTrees ?? 0;
+  const isWeekendNow = !!ctx.isWeekendNow;
+  const teamGoal = ctx.team?.weeklyGoal ?? 0;
+  const teamBonusPts = ctx.team?.bonusPoints ?? 0;
+  const teamWeekTrees = ctx.teamWeekTrees ?? 0;
+
   const stage = getStage(total);
   const stageStart = stage.current.min;
   const stageEnd = stage.next?.min ?? stage.current.min;
