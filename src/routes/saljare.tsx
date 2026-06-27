@@ -273,12 +273,13 @@ function SellerPage() {
 }
 
 function HomeView({
-  ctx, lbScope, setLbScope, lbKind, setLbKind, onRegister,
+  ctx, lbScope, setLbScope, lbKind, setLbKind, onRegister, readOnly = false,
 }: {
   ctx: SellerCtx;
   lbScope: "week" | "total"; setLbScope: (s: "week" | "total") => void;
   lbKind: "sellers" | "teams"; setLbKind: (k: "sellers" | "teams") => void;
   onRegister: () => void;
+  readOnly?: boolean;
 }) {
   const total = ctx.treeCount ?? 0;
   const week = ctx.weekTrees ?? 0;
