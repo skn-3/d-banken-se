@@ -474,10 +474,27 @@ function HomeView({
         </div>
       </section>
 
-      {/* Nästa belöning */}
+      {/* Belöningar-CTA */}
+      <Link
+        to="/belonigar"
+        search={ctx.isPreview && ctx.previewUserId ? { as: ctx.previewUserId } : { as: undefined }}
+        className="surface-card flex items-center justify-between p-5 transition hover:shadow-md"
+        style={{ background: "var(--gradient-mint)" }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl" style={{ background: "rgba(255,255,255,.7)" }}>🎁</div>
+          <div>
+            <div className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Belöningar</div>
+            <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>Se vad du har låst upp</div>
+          </div>
+        </div>
+        <span className="font-mono text-xl" style={{ color: "var(--forest)" }}>→</span>
+      </Link>
+
+      {/* Nästa märke */}
       {nextBadge && (
         <section className="surface-card p-6">
-          <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Nästa belöning</div>
+          <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Nästa märke</div>
           <div className="mt-3 flex items-center gap-4">
             <img src={nextBadge.img} alt={nextBadge.name} className="h-20 w-20" style={{ filter: "grayscale(1)", opacity: 0.55 }} />
             <div className="flex-1">

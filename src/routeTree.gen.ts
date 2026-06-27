@@ -13,6 +13,7 @@ import { Route as SaljareRouteImport } from './routes/saljare'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
+import { Route as BelonigarRouteImport } from './routes/belonigar'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +37,11 @@ const KopRoute = KopRouteImport.update({
 const KontoRoute = KontoRouteImport.update({
   id: '/konto',
   path: '/konto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BelonigarRoute = BelonigarRouteImport.update({
+  id: '/belonigar',
+  path: '/belonigar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/belonigar': typeof BelonigarRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/belonigar': typeof BelonigarRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/belonigar': typeof BelonigarRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/belonigar'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/belonigar'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/belonigar'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  BelonigarRoute: typeof BelonigarRoute
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -164,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KontoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/belonigar': {
+      id: '/belonigar'
+      path: '/belonigar'
+      fullPath: '/belonigar'
+      preLoaderRoute: typeof BelonigarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  BelonigarRoute: BelonigarRoute,
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
   ResetPasswordRoute: ResetPasswordRoute,
