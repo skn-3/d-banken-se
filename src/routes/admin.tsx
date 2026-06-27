@@ -41,7 +41,7 @@ interface Settings {
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 
-type Tab = "overview" | "organizations" | "templates" | "settings";
+type Tab = "overview" | "organizations" | "claims" | "templates" | "settings";
 
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
