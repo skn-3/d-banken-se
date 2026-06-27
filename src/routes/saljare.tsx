@@ -8,6 +8,7 @@ import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { getSellerContext, sellerCreatePurchase } from "@/lib/seller.functions";
 import { getActiveEvent, getSellerBonuses, type ActiveEvent, type SellerBonus } from "@/lib/events.functions";
 import { EventBanner } from "@/components/event-banner";
+import { Onboarding, hasSeenOnboarding, markOnboardingSeen } from "@/components/onboarding";
 
 const WEEKEND_SPRINT_GOAL = 5;
 
@@ -151,6 +152,7 @@ function SellerPage() {
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
   const [celebration, setCelebration] = useState<{ title: string; subtitle: string; bonus: number } | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const [view, setView] = useState<"home" | "register" | "done">("home");
   const [lbScope, setLbScope] = useState<"week" | "total">("week");
@@ -251,6 +253,19 @@ function SellerPage() {
     return () => { cancelled = true; };
   }, [user, authLoading, navigate, ctxFn, eventFn, bonusesFn, previewAs]);
 
+  // First-login onboarding (only for real seller, not preview)
+  useEffect(() => {
+    if (!ctx?.isSeller || ctx.isPreview) return;
+    const uid = ctx.userId;
+    if (!uid) return;
+    if (!hasSeenOnboarding(uid)) setShowOnboarding(true);
+  }, [ctx]);
+
+  const closeOnboarding = () => {
+    setShowOnboarding(false);
+    if (ctx?.userId) markOnboardingSeen(ctx.userId);
+  };
+
 
 
   const submit = async () => {
@@ -292,6 +307,7 @@ function SellerPage() {
       <Blobs />
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-24 pt-4">
+        {showOnboarding && <Onboarding onClose={closeOnboarding} />}
         {ctx?.isPreview && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 shadow-sm"
             style={{ borderColor: "var(--primary)", background: "rgba(30,158,106,0.08)" }}>

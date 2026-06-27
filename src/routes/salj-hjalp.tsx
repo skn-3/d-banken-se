@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { getSellerContext } from "@/lib/seller.functions";
+import { useAuth } from "@/hooks/use-auth";
+import { Onboarding, resetOnboarding } from "@/components/onboarding";
 
 export const Route = createFileRoute("/salj-hjalp")({
   head: () => ({ meta: [{ title: "Smaarty — Sälj-hjälp" }] }),
@@ -21,9 +23,11 @@ type Ctx = {
 
 function SaljHjalpPage() {
   const { as: previewAs } = Route.useSearch();
+  const { user } = useAuth();
   const fetchCtx = useServerFn(getSellerContext);
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [view, setView] = useState<"home" | "guide" | "present">("home");
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -81,9 +85,26 @@ function SaljHjalpPage() {
                 </div>
                 <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
               </button>
+
+              <button
+                onClick={() => {
+                  if (user?.id) resetOnboarding(user.id);
+                  setShowIntro(true);
+                }}
+                className="surface-card flex items-center gap-4 p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>✨</div>
+                <div className="flex-1">
+                  <div className="font-display text-lg font-semibold">Visa introduktionen igen</div>
+                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>De korta välkomst-slidesen</div>
+                </div>
+                <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
+              </button>
             </div>
           </>
         )}
+
+        {showIntro && <Onboarding onClose={() => setShowIntro(false)} />}
 
         {view === "guide" && <SalesGuide onShowCustomer={() => setView("present")} onBack={() => setView("home")} />}
       </main>
