@@ -215,13 +215,30 @@ function SellerPage() {
       <Blobs />
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-24 pt-4">
+        {ctx?.isPreview && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 shadow-sm"
+            style={{ borderColor: "var(--primary)", background: "rgba(30,158,106,0.08)" }}>
+            <div className="text-sm">
+              <span className="font-display font-semibold" style={{ color: "var(--forest)" }}>
+                👁 Förhandsvisning:
+              </span>{" "}
+              <span style={{ color: "var(--forest)" }}>{ctx.previewName ?? "Säljare"}</span>
+              <span className="ml-2 text-xs" style={{ color: "var(--muted-foreground)" }}>(read-only)</span>
+            </div>
+            <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => navigate({ to: "/admin" })}>
+              ← Tillbaka till admin
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="surface-card p-10 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>
         ) : !ctx?.isSeller ? (
           <div className="surface-card p-10 text-center">
             <h1 className="font-display text-2xl font-semibold">Ingen säljarprofil</h1>
             <p className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Ditt konto är inte kopplat till något säljarteam. Kontakta administratören.
+              {ctx?.isPreview
+                ? "Den valda användaren är inte kopplad till något säljarteam."
+                : "Ditt konto är inte kopplat till något säljarteam. Kontakta administratören."}
             </p>
           </div>
         ) : view === "done" && certificate ? (
@@ -232,7 +249,7 @@ function SellerPage() {
             resultEmail={resultEmail}
             onContinue={() => { setCertificate(null); setName(""); setEmail(""); setCount(10); setView("home"); }}
           />
-        ) : view === "register" ? (
+        ) : view === "register" && !ctx.isPreview ? (
           <RegisterView
             count={count} setCount={setCount}
             name={name} setName={setName}
@@ -247,6 +264,7 @@ function SellerPage() {
             lbScope={lbScope} setLbScope={setLbScope}
             lbKind={lbKind} setLbKind={setLbKind}
             onRegister={() => setView("register")}
+            readOnly={!!ctx.isPreview}
           />
         )}
       </main>
