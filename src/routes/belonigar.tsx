@@ -82,14 +82,20 @@ function RewardsPage() {
   const { as: previewAs } = Route.useSearch();
   const ctxFn = useServerFn(getSellerRewards);
   const buyFn = useServerFn(purchaseSellerReward);
+  const eventFn = useServerFn(getActiveEvent);
 
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confetti, setConfetti] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
 
-  const reload = async () => setCtx((await ctxFn({ data: { targetUserId: previewAs } })) as Ctx);
+  const reload = async () => {
+    setCtx((await ctxFn({ data: { targetUserId: previewAs } })) as Ctx);
+    const ev = await eventFn({ data: {} });
+    setActiveEvent(ev.event);
+  };
 
   useEffect(() => {
     if (authLoading) return;
