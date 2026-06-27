@@ -485,7 +485,7 @@ function HomeView({
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl" style={{ background: "rgba(255,255,255,.7)" }}>🎁</div>
           <div>
             <div className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Belöningar</div>
-            <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>Se vad du har låst upp</div>
+            <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>Handla med dina poäng</div>
           </div>
         </div>
         <span className="font-mono text-xl" style={{ color: "var(--forest)" }}>→</span>
