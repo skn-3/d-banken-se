@@ -101,7 +101,7 @@ export const purchaseSellerReward = createServerFn({ method: "POST" })
       const { error: tErr } = await supabaseAdmin.from("point_transactions").insert({
         seller_user_id: data.targetUserId,
         delta: -reward.cost_points,
-        kind: "spend",
+        type: "spend",
         reference_id: order.id,
       });
       if (tErr) throw new Error(tErr.message);
