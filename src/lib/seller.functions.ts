@@ -66,9 +66,12 @@ export const getSellerContext = createServerFn({ method: "POST" })
 
     const { data: team } = await supabaseAdmin
       .from("teams")
-      .select("id, name, organization_id")
+      .select("id, name, organization_id, weekly_goal_trees, team_bonus_points")
       .eq("id", member.team_id)
       .single();
+    const teamGoal = (team as { weekly_goal_trees?: number | null } | null)?.weekly_goal_trees ?? 0;
+    const teamBonus = (team as { team_bonus_points?: number | null } | null)?.team_bonus_points ?? 0;
+
     const { data: org } = await supabaseAdmin
       .from("organizations")
       .select("id, name, type")
