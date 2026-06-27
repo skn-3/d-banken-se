@@ -232,14 +232,14 @@ function SellerPage() {
         if (!cancelled) setActiveEvent(ev.event);
         const uid = r.userId ?? r.previewUserId;
         if (uid && !cancelled) {
-          // Mark existing milestones as seen on first load (no toast)
+          // Mark existing bonuses as seen on first load (no toast)
           try {
-            const mr = await milestonesFn({ data: { targetUserId: previewAs } });
-            const seenRaw = window.localStorage.getItem(milestoneStorageKey(uid));
+            const mr = await bonusesFn({ data: { targetUserId: previewAs } });
+            const seenRaw = window.localStorage.getItem(bonusStorageKey(uid));
             if (!seenRaw) {
               window.localStorage.setItem(
-                milestoneStorageKey(uid),
-                JSON.stringify((mr.milestones as { id: string }[]).map((m) => m.id)),
+                bonusStorageKey(uid),
+                JSON.stringify(mr.bonuses.map((m) => m.id)),
               );
             }
           } catch {/* ignore */}
@@ -249,7 +249,8 @@ function SellerPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn, eventFn, milestonesFn, previewAs]);
+  }, [user, authLoading, navigate, ctxFn, eventFn, bonusesFn, previewAs]);
+
 
 
   const submit = async () => {
