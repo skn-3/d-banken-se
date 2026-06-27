@@ -319,10 +319,10 @@ function SellerPage() {
               }}
             >
               <div className="text-2xl">🎉</div>
-              <div className="mt-1 font-display text-lg font-semibold">
-                Du nådde {celebration.threshold} sålda träd!
-              </div>
+              <div className="mt-1 font-display text-lg font-semibold">{celebration.title}</div>
+              <div className="text-xs opacity-90">{celebration.subtitle}</div>
               <div className="mt-1 font-mono text-sm">+{celebration.bonus} bonuspoäng</div>
+
             </div>
           </div>
         )}
