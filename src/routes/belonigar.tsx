@@ -159,6 +159,8 @@ function RewardsPage() {
           </div>
         )}
 
+        <EventBanner event={activeEvent} />
+
         <header className="mb-6 flex items-center justify-between">
           <div>
             <div className="font-display text-3xl font-semibold" style={{ color: "var(--forest)" }}>Belöningar</div>
