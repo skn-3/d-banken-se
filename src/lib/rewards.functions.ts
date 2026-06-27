@@ -1,24 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-async function isAdmin(userId: string): Promise<boolean> {
+async function isAdminUser(userId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("user_roles").select("role")
     .eq("user_id", userId).eq("role", "admin").maybeSingle();
   return !!data;
 }
 
-async function getTeamTotalForUser(userId: string): Promise<{ teamId: string | null; total: number }> {
-  const { data: m } = await supabaseAdmin
-    .from("team_members").select("team_id").eq("user_id", userId).maybeSingle();
-  if (!m) return { teamId: null, total: 0 };
-  const { data: rows } = await supabaseAdmin
-    .from("purchases").select("tree_count")
-    .eq("registered_by_user_id", userId).eq("status", "paid");
-  const total = (rows ?? []).reduce((s, r) => s + (r.tree_count ?? 0), 0);
-  return { teamId: m.team_id, total };
+async function sellerBalance(userId: string): Promise<number> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("point_transactions").select("delta").eq("seller_user_id", userId);
+  return (data ?? []).reduce((s, r) => s + (r.delta ?? 0), 0);
 }
 
 /* ---------------- Seller view ---------------- */
@@ -30,11 +26,13 @@ export const getSellerRewards = createServerFn({ method: "POST" })
     return { targetUserId: typeof v.targetUserId === "string" && v.targetUserId.length > 0 ? v.targetUserId : undefined };
   })
   .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     let targetUserId = context.userId;
     let isPreview = false;
     let previewName: string | null = null;
     if (data.targetUserId && data.targetUserId !== context.userId) {
-      if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
+      if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
       targetUserId = data.targetUserId;
       isPreview = true;
       const { data: prof } = await supabaseAdmin
@@ -42,82 +40,70 @@ export const getSellerRewards = createServerFn({ method: "POST" })
       previewName = prof?.name || prof?.email || "Säljare";
     }
 
-    const { teamId, total } = await getTeamTotalForUser(targetUserId);
-    if (!teamId) return { isSeller: false as const, isPreview, previewName };
+    const { data: membership } = await supabaseAdmin
+      .from("team_members").select("team_id").eq("user_id", targetUserId).maybeSingle();
+    if (!membership) return { isSeller: false as const, isPreview, previewName };
+
+    const balance = await sellerBalance(targetUserId);
 
     const { data: rewards } = await supabaseAdmin
       .from("rewards").select("*")
-      .eq("team_id", teamId).eq("active", true)
-      .order("threshold_trees", { ascending: true });
+      .eq("active", true)
+      .order("sort_order", { ascending: true });
 
-    const { data: claims } = await supabaseAdmin
-      .from("reward_claims").select("*")
-      .eq("seller_user_id", targetUserId);
-    const claimByReward: Record<string, { id: string; status: string; requested_at: string; fulfilled_at: string | null }> = {};
-    (claims ?? []).forEach(c => { claimByReward[c.reward_id] = { id: c.id, status: c.status, requested_at: c.requested_at, fulfilled_at: c.fulfilled_at }; });
+    const { data: orders } = await supabaseAdmin
+      .from("reward_orders").select("*")
+      .eq("seller_user_id", targetUserId)
+      .order("requested_at", { ascending: false });
 
     return {
       isSeller: true as const,
       isPreview,
       previewName,
-      treeCount: total,
+      balance,
       rewards: (rewards ?? []).map(r => ({
         id: r.id, name: r.name, description: r.description,
-        threshold_trees: r.threshold_trees, category: r.category, image_url: r.image_url,
-        unlocked: total >= r.threshold_trees,
-        claim: claimByReward[r.id] ?? null,
+        cost_points: r.cost_points, category: r.category,
+        image_url: r.image_url, sort_order: r.sort_order,
+      })),
+      orders: (orders ?? []).map(o => ({
+        id: o.id, reward_id: o.reward_id, cost_points: o.cost_points,
+        status: o.status, requested_at: o.requested_at, fulfilled_at: o.fulfilled_at,
       })),
     };
   });
 
-export const claimSellerReward = createServerFn({ method: "POST" })
+export const purchaseSellerReward = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ rewardId: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }) => {
-    const { teamId, total } = await getTeamTotalForUser(context.userId);
-    if (!teamId) throw new Error("Du är inte säljare.");
-    const { data: reward } = await supabaseAdmin
-      .from("rewards").select("*").eq("id", data.rewardId).maybeSingle();
-    if (!reward) throw new Error("Belöningen hittades inte.");
-    if (reward.team_id !== teamId) throw new Error("Belöningen tillhör inte ditt team.");
-    if (!reward.active) throw new Error("Belöningen är inte aktiv.");
-    if (total < reward.threshold_trees) throw new Error("Tröskeln är inte nådd än.");
-
-    const { data: existing } = await supabaseAdmin
-      .from("reward_claims").select("id")
-      .eq("reward_id", reward.id).eq("seller_user_id", context.userId).maybeSingle();
-    if (existing) return { ok: true, alreadyClaimed: true };
-
-    const { error } = await supabaseAdmin.from("reward_claims").insert({
-      reward_id: reward.id,
-      seller_user_id: context.userId,
-      status: "begard",
-    });
+    // Use the user-scoped supabase client so auth.uid() is set inside the RPC.
+    const { data: order, error } = await context.supabase.rpc("purchase_reward", { _reward_id: data.rewardId });
     if (error) throw new Error(error.message);
-    return { ok: true, alreadyClaimed: false };
+    return { ok: true, order };
   });
 
-/* ---------------- Admin CRUD ---------------- */
+/* ---------------- Admin: catalog ---------------- */
 
 const RewardInput = z.object({
-  teamId: z.string().uuid(),
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(1000).optional().nullable(),
-  thresholdTrees: z.number().int().min(0).max(100000),
-  category: z.string().trim().max(60).optional().nullable(),
+  costPoints: z.number().int().min(0).max(1000000),
+  category: z.string().trim().min(1).max(60),
   imageUrl: z.string().trim().max(500).optional().nullable(),
   active: z.boolean().optional(),
+  sortOrder: z.number().int().optional(),
 });
 
 export const adminListRewards = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ teamId: z.string().uuid() }).parse(input))
-  .handler(async ({ context, data }) => {
-    if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
+  .inputValidator(() => ({}))
+  .handler(async ({ context }) => {
+    if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rewards } = await supabaseAdmin
       .from("rewards").select("*")
-      .eq("team_id", data.teamId)
-      .order("threshold_trees", { ascending: true });
+      .order("sort_order", { ascending: true });
     return { rewards: rewards ?? [] };
   });
 
@@ -125,15 +111,16 @@ export const adminCreateReward = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => RewardInput.parse(input))
   .handler(async ({ context, data }) => {
-    if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
+    if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("rewards").insert({
-      team_id: data.teamId,
       name: data.name,
       description: data.description || null,
-      threshold_trees: data.thresholdTrees,
-      category: data.category || null,
+      cost_points: data.costPoints,
+      category: data.category,
       image_url: data.imageUrl || null,
       active: data.active ?? true,
+      sort_order: data.sortOrder ?? 0,
       created_by: context.userId,
     });
     if (error) throw new Error(error.message);
@@ -144,14 +131,16 @@ export const adminUpdateReward = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => RewardInput.extend({ id: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }) => {
-    if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
+    if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("rewards").update({
       name: data.name,
       description: data.description || null,
-      threshold_trees: data.thresholdTrees,
-      category: data.category || null,
+      cost_points: data.costPoints,
+      category: data.category,
       image_url: data.imageUrl || null,
       active: data.active ?? true,
+      sort_order: data.sortOrder ?? 0,
     }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -161,28 +150,38 @@ export const adminDeleteReward = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }) => {
-    if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
+    if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("rewards").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
-/* ---------------- Admin claims ---------------- */
+/* ---------------- Admin: orders ---------------- */
 
-export const adminListClaims = createServerFn({ method: "POST" })
+export const adminListOrders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(() => ({}))
   .handler(async ({ context }) => {
-    if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
-    const { data: claims } = await supabaseAdmin
-      .from("reward_claims").select("*")
+    if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: orders } = await supabaseAdmin
+      .from("reward_orders").select("*")
       .order("requested_at", { ascending: false });
-    const rewardIds = Array.from(new Set((claims ?? []).map(c => c.reward_id)));
-    const sellerIds = Array.from(new Set((claims ?? []).map(c => c.seller_user_id)));
+
+    const rewardIds = Array.from(new Set((orders ?? []).map(o => o.reward_id)));
+    const sellerIds = Array.from(new Set((orders ?? []).map(o => o.seller_user_id)));
+
     const { data: rewards } = await supabaseAdmin
-      .from("rewards").select("id, name, threshold_trees, team_id")
+      .from("rewards").select("id, name, category")
       .in("id", rewardIds.length ? rewardIds : ["00000000-0000-0000-0000-000000000000"]);
-    const teamIds = Array.from(new Set((rewards ?? []).map(r => r.team_id)));
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles").select("user_id, name, email")
+      .in("user_id", sellerIds.length ? sellerIds : ["00000000-0000-0000-0000-000000000000"]);
+    const { data: members } = await supabaseAdmin
+      .from("team_members").select("user_id, team_id")
+      .in("user_id", sellerIds.length ? sellerIds : ["00000000-0000-0000-0000-000000000000"]);
+    const teamIds = Array.from(new Set((members ?? []).map(m => m.team_id)));
     const { data: teams } = await supabaseAdmin
       .from("teams").select("id, name, organization_id")
       .in("id", teamIds.length ? teamIds : ["00000000-0000-0000-0000-000000000000"]);
@@ -190,43 +189,45 @@ export const adminListClaims = createServerFn({ method: "POST" })
     const { data: orgs } = await supabaseAdmin
       .from("organizations").select("id, name")
       .in("id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"]);
-    const { data: profiles } = await supabaseAdmin
-      .from("profiles").select("user_id, name, email")
-      .in("user_id", sellerIds.length ? sellerIds : ["00000000-0000-0000-0000-000000000000"]);
 
     const rewardMap = new Map((rewards ?? []).map(r => [r.id, r]));
+    const profMap = new Map((profiles ?? []).map(p => [p.user_id, p]));
+    const memberMap = new Map((members ?? []).map(m => [m.user_id, m]));
     const teamMap = new Map((teams ?? []).map(t => [t.id, t]));
     const orgMap = new Map((orgs ?? []).map(o => [o.id, o]));
-    const profMap = new Map((profiles ?? []).map(p => [p.user_id, p]));
 
     return {
-      claims: (claims ?? []).map(c => {
-        const r = rewardMap.get(c.reward_id);
-        const t = r ? teamMap.get(r.team_id) : null;
-        const o = t ? orgMap.get(t.organization_id) : null;
-        const p = profMap.get(c.seller_user_id);
+      orders: (orders ?? []).map(o => {
+        const r = rewardMap.get(o.reward_id);
+        const p = profMap.get(o.seller_user_id);
+        const m = memberMap.get(o.seller_user_id);
+        const t = m ? teamMap.get(m.team_id) : null;
+        const org = t ? orgMap.get(t.organization_id) : null;
         return {
-          id: c.id,
-          status: c.status,
-          requested_at: c.requested_at,
-          fulfilled_at: c.fulfilled_at,
+          id: o.id,
+          status: o.status,
+          cost_points: o.cost_points,
+          requested_at: o.requested_at,
+          fulfilled_at: o.fulfilled_at,
           reward_name: r?.name ?? "—",
-          threshold_trees: r?.threshold_trees ?? 0,
+          reward_category: r?.category ?? "",
           team_name: t?.name ?? "—",
-          org_name: o?.name ?? "—",
+          org_name: org?.name ?? "—",
           seller_name: p?.name || p?.email || "—",
           seller_email: p?.email ?? "",
+          seller_user_id: o.seller_user_id,
         };
       }),
     };
   });
 
-export const adminFulfillClaim = createServerFn({ method: "POST" })
+export const adminFulfillOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }) => {
-    if (!(await isAdmin(context.userId))) throw new Error("Forbidden");
-    const { error } = await supabaseAdmin.from("reward_claims").update({
+    if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("reward_orders").update({
       status: "uppfylld",
       fulfilled_at: new Date().toISOString(),
       fulfilled_by: context.userId,
