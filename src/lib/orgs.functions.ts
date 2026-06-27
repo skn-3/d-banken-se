@@ -113,10 +113,11 @@ export const listTeams = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     const { data: teams, error } = await supabaseAdmin
       .from("teams")
-      .select("id, name, created_at")
+      .select("id, name, created_at, weekly_goal_trees, team_bonus_points")
       .eq("organization_id", data.organizationId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
+
 
     const teamIds = (teams ?? []).map((t) => t.id);
     const memberCounts = new Map<string, number>();
