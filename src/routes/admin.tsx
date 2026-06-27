@@ -7,7 +7,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
 import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
-import { adminListClaims, adminFulfillClaim } from "@/lib/rewards.functions";
+import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward, adminUpdateReward, adminDeleteReward } from "@/lib/rewards.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — SmartKlimat" }] }),
@@ -41,7 +41,7 @@ interface Settings {
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 
-type Tab = "overview" | "organizations" | "claims" | "templates" | "settings";
+type Tab = "overview" | "organizations" | "rewards" | "orders" | "templates" | "settings";
 
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -105,7 +105,8 @@ function AdminPage() {
               {([
                 ["overview", "Översikt"],
                 ["organizations", "Organisationer"],
-                ["claims", "Inlösningar"],
+                ["rewards", "Belöningskatalog"],
+                ["orders", "Beställningar"],
                 ["templates", "Värdebevis-mallar"],
                 ["settings", "Planteringsplats"],
               ] as [Tab, string][]).map(([k, label]) => (
@@ -187,7 +188,9 @@ function AdminPage() {
 
             {tab === "organizations" && <AdminOrgsTab />}
 
-            {tab === "claims" && <ClaimsTab />}
+            {tab === "rewards" && <RewardsCatalogTab />}
+
+            {tab === "orders" && <OrdersTab />}
 
             {tab === "templates" && (
               <TemplatesTab templates={templates} editing={editing} setEditing={setEditing} reload={load} />
@@ -203,33 +206,33 @@ function AdminPage() {
   );
 }
 
-interface Claim {
-  id: string; status: string; requested_at: string; fulfilled_at: string | null;
-  reward_name: string; threshold_trees: number; team_name: string; org_name: string;
-  seller_name: string; seller_email: string;
+interface Order {
+  id: string; status: string; cost_points: number; requested_at: string; fulfilled_at: string | null;
+  reward_name: string; reward_category: string; team_name: string; org_name: string;
+  seller_name: string; seller_email: string; seller_user_id: string;
 }
 
-function ClaimsTab() {
-  const listFn = useServerFn(adminListClaims);
-  const fulfillFn = useServerFn(adminFulfillClaim);
-  const [claims, setClaims] = useState<Claim[]>([]);
+function OrdersTab() {
+  const listFn = useServerFn(adminListOrders);
+  const fulfillFn = useServerFn(adminFulfillOrder);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "begard" | "uppfylld">("begard");
 
   const reload = async () => {
     const r = await listFn({ data: {} });
-    setClaims(r.claims as Claim[]);
+    setOrders(r.orders as Order[]);
   };
   useEffect(() => { (async () => { await reload(); setLoading(false); })(); /* eslint-disable-next-line */ }, []);
 
-  const visible = claims.filter(c => filter === "all" ? true : c.status === filter);
+  const visible = orders.filter(o => filter === "all" ? true : o.status === filter);
 
   if (loading) return <div className="surface-card mt-6 p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>;
 
   return (
     <section className="surface-card mt-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-semibold">Inlösningar av belöningar</h2>
+        <h2 className="font-display text-xl font-semibold">Beställda belöningar</h2>
         <div className="flex gap-2">
           {(["begard", "uppfylld", "all"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)} className="chip"
@@ -243,33 +246,171 @@ function ClaimsTab() {
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-            <tr><th className="py-2">Datum</th><th>Säljare</th><th>Org · Team</th><th>Belöning</th><th>Status</th><th></th></tr>
+            <tr><th className="py-2">Datum</th><th>Säljare</th><th>Org · Team</th><th>Belöning</th><th>Poäng</th><th>Status</th><th></th></tr>
           </thead>
           <tbody>
-            {visible.map(c => (
-              <tr key={c.id} className="border-t" style={{ borderColor: "var(--border)" }}>
-                <td className="py-3 font-mono text-xs">{new Date(c.requested_at).toLocaleString("sv-SE")}</td>
-                <td><div className="font-medium">{c.seller_name}</div><div className="font-mono text-[10px]" style={{ color: "var(--muted-foreground)" }}>{c.seller_email}</div></td>
-                <td className="text-xs">{c.org_name} · {c.team_name}</td>
-                <td><span className="font-medium">{c.reward_name}</span> <span className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>({c.threshold_trees} träd)</span></td>
+            {visible.map(o => (
+              <tr key={o.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                <td className="py-3 font-mono text-xs">{new Date(o.requested_at).toLocaleString("sv-SE")}</td>
+                <td><div className="font-medium">{o.seller_name}</div><div className="font-mono text-[10px]" style={{ color: "var(--muted-foreground)" }}>{o.seller_email}</div></td>
+                <td className="text-xs">{o.org_name} · {o.team_name}</td>
+                <td><span className="font-medium">{o.reward_name}</span>{o.reward_category && <span className="ml-2 chip !py-0.5 !text-[10px]">{o.reward_category}</span>}</td>
+                <td className="font-mono font-semibold" style={{ color: "var(--forest)" }}>{o.cost_points}</td>
                 <td>
                   <span className="chip !py-0.5 !text-[10px]"
-                    style={{ background: c.status === "uppfylld" ? "var(--forest)" : "var(--apricot, #fbe3c0)", color: c.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
-                    {c.status === "uppfylld" ? "Uppfylld ✓" : "Väntar"}
+                    style={{ background: o.status === "uppfylld" ? "var(--forest)" : "var(--apricot, #fbe3c0)", color: o.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
+                    {o.status === "uppfylld" ? "Uppfylld ✓" : "Väntar"}
                   </span>
                 </td>
                 <td className="text-right">
-                  {c.status === "begard" && (
+                  {o.status === "begard" && (
                     <button className="btn-primary !py-1 !px-2 text-xs" onClick={async () => {
-                      await fulfillFn({ data: { id: c.id } }); await reload();
+                      await fulfillFn({ data: { id: o.id } }); await reload();
                     }}>Markera uppfylld</button>
                   )}
                 </td>
               </tr>
             ))}
-            {visible.length === 0 && <tr><td colSpan={6} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga inlösningar i denna vy.</td></tr>}
+            {visible.length === 0 && <tr><td colSpan={7} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga beställningar i denna vy.</td></tr>}
           </tbody>
         </table>
+      </div>
+    </section>
+  );
+}
+
+interface CatalogReward {
+  id: string; name: string; description: string | null; cost_points: number;
+  category: string; image_url: string | null; active: boolean; sort_order: number;
+}
+
+function RewardsCatalogTab() {
+  const listFn = useServerFn(adminListRewards);
+  const createFn = useServerFn(adminCreateReward);
+  const updateFn = useServerFn(adminUpdateReward);
+  const deleteFn = useServerFn(adminDeleteReward);
+
+  const [rewards, setRewards] = useState<CatalogReward[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<CatalogReward | null>(null);
+  const [showNew, setShowNew] = useState(false);
+  const [draft, setDraft] = useState<CatalogReward>({ id: "", name: "", description: "", cost_points: 10, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
+
+  const reload = async () => {
+    const r = await listFn({ data: {} });
+    setRewards(r.rewards as CatalogReward[]);
+  };
+  useEffect(() => { (async () => { await reload(); setLoading(false); })(); /* eslint-disable-next-line */ }, []);
+
+  if (loading) return <div className="surface-card mt-6 p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>;
+
+  const grouped = rewards.reduce<Record<string, CatalogReward[]>>((acc, r) => {
+    (acc[r.category] ||= []).push(r); return acc;
+  }, {});
+  const categoryOrder = ["Småpriser", "Mellanpriser", "Storpriser", "Drömpriser"];
+  const categories = [...categoryOrder.filter(c => grouped[c]), ...Object.keys(grouped).filter(c => !categoryOrder.includes(c))];
+
+  const saveDraft = async () => {
+    await createFn({ data: {
+      name: draft.name.trim(), description: draft.description || null,
+      costPoints: draft.cost_points, category: draft.category.trim() || "Övrigt",
+      imageUrl: draft.image_url, active: draft.active, sortOrder: draft.sort_order,
+    }});
+    setShowNew(false);
+    setDraft({ id: "", name: "", description: "", cost_points: 10, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
+    await reload();
+  };
+
+  const saveEdit = async (r: CatalogReward) => {
+    await updateFn({ data: {
+      id: r.id, name: r.name.trim(), description: r.description || null,
+      costPoints: r.cost_points, category: r.category.trim() || "Övrigt",
+      imageUrl: r.image_url, active: r.active, sortOrder: r.sort_order,
+    }});
+    setEditing(null); await reload();
+  };
+
+  return (
+    <section className="surface-card mt-6 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Belöningskatalog</h2>
+          <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Global katalog — alla säljare ser samma belöningar. Köp dras från säljarens poäng (inte träd).
+          </p>
+        </div>
+        <button className="btn-primary" onClick={() => setShowNew(true)}>+ Ny belöning</button>
+      </div>
+
+      {showNew && (
+        <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input className="input-field" placeholder="Namn" value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} />
+            <select className="input-field" value={draft.category} onChange={e => setDraft({ ...draft, category: e.target.value })}>
+              {categoryOrder.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <input className="input-field font-mono" type="number" min={0} placeholder="Kostnad i poäng"
+              value={draft.cost_points} onChange={e => setDraft({ ...draft, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
+            <input className="input-field font-mono" type="number" placeholder="Sortering"
+              value={draft.sort_order} onChange={e => setDraft({ ...draft, sort_order: Number(e.target.value) || 0 })} />
+            <textarea className="input-field sm:col-span-2" rows={2} placeholder="Beskrivning (valfri)"
+              value={draft.description ?? ""} onChange={e => setDraft({ ...draft, description: e.target.value })} />
+          </div>
+          <div className="mt-3 flex justify-end gap-2">
+            <button className="btn-secondary" onClick={() => setShowNew(false)}>Avbryt</button>
+            <button className="btn-primary" disabled={!draft.name.trim()} onClick={saveDraft}>Skapa</button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 space-y-6">
+        {categories.map(cat => (
+          <div key={cat}>
+            <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>{cat}</h3>
+            <div className="mt-2 divide-y" style={{ borderColor: "var(--border)" }}>
+              {grouped[cat].map(r => (
+                <div key={r.id} className="py-3">
+                  {editing?.id === r.id ? (
+                    <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_auto_auto]">
+                      <input className="input-field !py-1 !text-sm" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
+                      <select className="input-field !py-1 !text-sm" value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })}>
+                        {categoryOrder.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} value={editing.cost_points}
+                        onChange={e => setEditing({ ...editing, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
+                      <button className="btn-primary !py-1 !px-2 text-xs" onClick={() => saveEdit(editing)}>Spara</button>
+                      <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(null)}>Avbryt</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">{r.name}</span>
+                          <span className="chip !py-0.5 !text-[10px] font-mono" style={{ background: "var(--mint)", color: "var(--forest)" }}>{r.cost_points} p</span>
+                          {!r.active && <span className="chip !py-0.5 !text-[10px]" style={{ background: "var(--muted)" }}>inaktiv</span>}
+                        </div>
+                        {r.description && <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{r.description}</div>}
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(r)}>Redigera</button>
+                        <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                          await updateFn({ data: { id: r.id, name: r.name, description: r.description, costPoints: r.cost_points, category: r.category, imageUrl: r.image_url, active: !r.active, sortOrder: r.sort_order } });
+                          await reload();
+                        }}>{r.active ? "Inaktivera" : "Aktivera"}</button>
+                        <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                          if (!confirm(`Ta bort belöningen "${r.name}"?`)) return;
+                          try { await deleteFn({ data: { id: r.id } }); await reload(); }
+                          catch (e) { alert((e as Error).message); }
+                        }}>Ta bort</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        {rewards.length === 0 && <p className="py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga belöningar än.</p>}
       </div>
     </section>
   );
