@@ -203,7 +203,78 @@ function AdminPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+interface Claim {
+  id: string; status: string; requested_at: string; fulfilled_at: string | null;
+  reward_name: string; threshold_trees: number; team_name: string; org_name: string;
+  seller_name: string; seller_email: string;
+}
+
+function ClaimsTab() {
+  const listFn = useServerFn(adminListClaims);
+  const fulfillFn = useServerFn(adminFulfillClaim);
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "begard" | "uppfylld">("begard");
+
+  const reload = async () => {
+    const r = await listFn({ data: {} });
+    setClaims(r.claims as Claim[]);
+  };
+  useEffect(() => { (async () => { await reload(); setLoading(false); })(); /* eslint-disable-next-line */ }, []);
+
+  const visible = claims.filter(c => filter === "all" ? true : c.status === filter);
+
+  if (loading) return <div className="surface-card mt-6 p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>;
+
+  return (
+    <section className="surface-card mt-6 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-xl font-semibold">Inlösningar av belöningar</h2>
+        <div className="flex gap-2">
+          {(["begard", "uppfylld", "all"] as const).map(f => (
+            <button key={f} onClick={() => setFilter(f)} className="chip"
+              style={{ cursor: "pointer", background: filter === f ? "var(--mint)" : undefined }}>
+              {f === "begard" ? "Väntar" : f === "uppfylld" ? "Uppfyllda" : "Alla"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+            <tr><th className="py-2">Datum</th><th>Säljare</th><th>Org · Team</th><th>Belöning</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            {visible.map(c => (
+              <tr key={c.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                <td className="py-3 font-mono text-xs">{new Date(c.requested_at).toLocaleString("sv-SE")}</td>
+                <td><div className="font-medium">{c.seller_name}</div><div className="font-mono text-[10px]" style={{ color: "var(--muted-foreground)" }}>{c.seller_email}</div></td>
+                <td className="text-xs">{c.org_name} · {c.team_name}</td>
+                <td><span className="font-medium">{c.reward_name}</span> <span className="font-mono text-xs" style={{ color: "var(--muted-foreground)" }}>({c.threshold_trees} träd)</span></td>
+                <td>
+                  <span className="chip !py-0.5 !text-[10px]"
+                    style={{ background: c.status === "uppfylld" ? "var(--forest)" : "var(--apricot, #fbe3c0)", color: c.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
+                    {c.status === "uppfylld" ? "Uppfylld ✓" : "Väntar"}
+                  </span>
+                </td>
+                <td className="text-right">
+                  {c.status === "begard" && (
+                    <button className="btn-primary !py-1 !px-2 text-xs" onClick={async () => {
+                      await fulfillFn({ data: { id: c.id } }); await reload();
+                    }}>Markera uppfylld</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {visible.length === 0 && <tr><td colSpan={6} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga inlösningar i denna vy.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
   return (
     <div className="surface-card p-6">
       <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>{label}</div>
