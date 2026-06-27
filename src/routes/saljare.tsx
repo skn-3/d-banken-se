@@ -515,13 +515,15 @@ function HomeView({
       )}
 
       {/* Registrera försäljning */}
-      <div className="sticky bottom-4 z-20">
-        <button onClick={onRegister}
-          className="btn-primary w-full !py-4 text-lg shadow-lg"
-          style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
-          🌱 Registrera försäljning
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="sticky bottom-4 z-20">
+          <button onClick={onRegister}
+            className="btn-primary w-full !py-4 text-lg shadow-lg"
+            style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
+            🌱 Registrera försäljning
+          </button>
+        </div>
+      )}
 
       <style>{`
         @keyframes smaarty-pop {
