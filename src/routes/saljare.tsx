@@ -281,6 +281,25 @@ function SellerPage() {
             </button>
           </div>
         )}
+        <EventBanner event={activeEvent} />
+        {celebration && (
+          <div className="fixed inset-x-0 top-20 z-50 flex justify-center px-4">
+            <div
+              className="max-w-md rounded-2xl px-5 py-4 text-center shadow-xl"
+              style={{
+                background: "linear-gradient(135deg, #1e9e6a 0%, #3fc78b 100%)",
+                color: "#fff",
+                animation: "smaarty-pop 500ms cubic-bezier(.2,.9,.3,1.6)",
+              }}
+            >
+              <div className="text-2xl">🎉</div>
+              <div className="mt-1 font-display text-lg font-semibold">
+                Du nådde {celebration.threshold} sålda träd!
+              </div>
+              <div className="mt-1 font-mono text-sm">+{celebration.bonus} bonuspoäng</div>
+            </div>
+          </div>
+        )}
         {loading ? (
           <div className="surface-card p-10 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>
         ) : !ctx?.isSeller ? (
