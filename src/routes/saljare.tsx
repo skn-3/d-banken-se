@@ -483,6 +483,62 @@ function HomeView({
           : <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>Varje träd räknas — kör på!</div>}
       </section>
 
+      {/* Helg-sprint */}
+      <section className="surface-card p-6" style={{ opacity: isWeekendNow ? 1 : 0.85 }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Helg-sprint</div>
+            <div className="mt-1 font-display text-lg font-semibold">
+              {isWeekendNow
+                ? <>Sälj {WEEKEND_SPRINT_GOAL} träd i helgen → <span style={{ color: "var(--primary)" }}>+10 poäng</span></>
+                : <>Helg-sprinten kommer i helgen</>}
+            </div>
+          </div>
+          <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
+            {Math.min(weekendTrees, WEEKEND_SPRINT_GOAL)} / {WEEKEND_SPRINT_GOAL}
+            {weekendTrees >= WEEKEND_SPRINT_GOAL && <span className="ml-2">⚡</span>}
+          </div>
+        </div>
+        <div className="mt-3 h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--mint)" }}>
+          <div className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${Math.min(100, (weekendTrees / WEEKEND_SPRINT_GOAL) * 100)}%`, background: "linear-gradient(90deg,#ffcf78,#ff9a3c)" }} />
+        </div>
+        <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
+          {isWeekendNow
+            ? (weekendTrees >= WEEKEND_SPRINT_GOAL
+                ? "Helg-sprinten är klar — snyggt jobbat! ⚡"
+                : "Lördag + söndag räknas. Bonusen ges en gång per helg.")
+            : "Spara energin till lördag–söndag och kör då. ✨"}
+        </div>
+      </section>
+
+      {/* Lagets veckomål */}
+      {teamGoal > 0 && (
+        <section className="surface-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Lagets veckomål</div>
+              <div className="mt-1 font-display text-lg font-semibold">
+                {teamWeekTrees >= teamGoal
+                  ? <>Målet nått! 🎉 Alla i laget fick <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>
+                  : <>Sälj {teamGoal} träd tillsammans → alla får <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>}
+              </div>
+            </div>
+            <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
+              {Math.min(teamWeekTrees, teamGoal)} / {teamGoal}
+            </div>
+          </div>
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--mint)" }}>
+            <div className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${Math.min(100, (teamWeekTrees / teamGoal) * 100)}%`, background: "var(--primary)" }} />
+          </div>
+          <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
+            Hela <strong>{ctx.team?.name}</strong> jobbar mot samma mål — peppa varandra!
+          </div>
+        </section>
+      )}
+
+
       {/* Topplista */}
       <section className="surface-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
