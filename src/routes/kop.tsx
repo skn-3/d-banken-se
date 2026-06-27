@@ -200,8 +200,8 @@ function KopPage() {
               </div>
             )}
 
-            <button onClick={pay} disabled={submitting} className="btn-primary mt-6 w-full">
-              {submitting ? "Bearbetar…" : "Bekräfta köp"}
+            <button onClick={pay} disabled={submitting} className="btn-primary mt-6 w-full whitespace-nowrap">
+              {submitting ? "Planterar…" : `🌱 Plantera ${count} ${count === 1 ? "träd" : "träd"}`}
             </button>
             <p className="mt-3 text-center text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>
               Betalning simuleras i detta byggsteg.
