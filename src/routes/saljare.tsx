@@ -759,15 +759,15 @@ function RegisterView({
   return (
     <section className="surface-card p-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold">Registrera försäljning</h1>
+        <h1 className="font-display text-2xl font-semibold">Registrera en plantering</h1>
         <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm">← Tillbaka</button>
       </div>
       <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-        Värdebeviset skickas till kundens e-post. Pris per träd: <span className="font-mono">35 kr</span>.
+        Varje träd gör skillnad 🌱 — fyll i mottagaren så skickas värdebeviset direkt till deras e-post. Pris per träd: <span className="font-mono">35 kr</span>.
       </p>
 
       <div className="mt-6">
-        <label className="mb-2 block text-sm font-medium">Antal träd</label>
+        <label className="mb-2 block text-sm font-medium">Antal träd att plantera</label>
         <div className="flex items-center gap-3">
           <button type="button" className="btn-secondary !px-4 !py-2" onClick={() => setCount(Math.max(1, count - 1))}>−</button>
           <input type="number" min={1} max={10000} value={count}
@@ -798,7 +798,7 @@ function RegisterView({
 
       <div className="mt-6 rounded-2xl p-5" style={{ background: "var(--mint-paper)", border: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>Totalt</span>
+          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>Att betala</span>
           <span className="font-mono text-2xl font-semibold" style={{ color: "var(--forest)" }}>{formatKr(total)}</span>
         </div>
       </div>
@@ -807,13 +807,15 @@ function RegisterView({
         <div className="mt-4 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--destructive)", color: "var(--destructive)" }}>{error}</div>
       )}
 
-      <button onClick={onSubmit} disabled={submitting} className="btn-primary mt-6 w-full">
-        {submitting ? "Bearbetar…" : "Bekräfta försäljning"}
+      <button onClick={onSubmit} disabled={submitting} className="btn-primary mt-6 w-full !py-4 text-lg"
+        style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
+        {submitting ? "Planterar…" : `🌱 Plantera ${count} ${count === 1 ? "träd" : "träd"}`}
       </button>
-      <p className="mt-2 text-center text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>Betalning simuleras.</p>
+      <p className="mt-2 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>Värdebeviset skickas direkt till mottagaren.</p>
     </section>
   );
 }
+
 
 function DoneView({
   certificate, certRef, emailSent, resultEmail, onContinue,
