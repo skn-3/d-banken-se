@@ -18,6 +18,18 @@ function weekdayMonStockholm(d: Date): number {
   const map: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
   return map[s] ?? 1;
 }
+function isoWeekStockholm(d: Date): string {
+  // ISO week label like "2026-W26" based on Europe/Stockholm calendar date
+  const dateStr = ymdStockholm(d); // YYYY-MM-DD in Stockholm
+  const [y, m, day] = dateStr.split("-").map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, day));
+  const dayOfWeek = utc.getUTCDay() || 7;
+  utc.setUTCDate(utc.getUTCDate() + 4 - dayOfWeek);
+  const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((utc.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${utc.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
 
 export const getSellerContext = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
