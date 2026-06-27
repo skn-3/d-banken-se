@@ -57,8 +57,6 @@ function KopPage() {
   const [error, setError] = useState<string | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
 
-  const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
-
   const pay = async () => {
     setError(null);
     if (!name.trim()) { setError("Ange mottagarens namn."); return; }
