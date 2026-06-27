@@ -196,6 +196,36 @@ export type Database = {
         }
         Relationships: []
       }
+      point_transactions: {
+        Row: {
+          created_at: string
+          delta: number
+          description: string | null
+          id: string
+          reference_id: string | null
+          seller_user_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          delta: number
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          seller_user_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          seller_user_id?: string
+          type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string
@@ -287,8 +317,9 @@ export type Database = {
           },
         ]
       }
-      reward_claims: {
+      reward_orders: {
         Row: {
+          cost_points: number
           fulfilled_at: string | null
           fulfilled_by: string | null
           id: string
@@ -298,6 +329,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          cost_points: number
           fulfilled_at?: string | null
           fulfilled_by?: string | null
           id?: string
@@ -307,6 +339,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          cost_points?: number
           fulfilled_at?: string | null
           fulfilled_by?: string | null
           id?: string
@@ -317,7 +350,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reward_claims_reward_id_fkey"
+            foreignKeyName: "reward_orders_reward_id_fkey"
             columns: ["reward_id"]
             isOneToOne: false
             referencedRelation: "rewards"
@@ -328,52 +361,44 @@ export type Database = {
       rewards: {
         Row: {
           active: boolean
-          category: string | null
+          category: string
+          cost_points: number
           created_at: string
           created_by: string | null
           description: string | null
           id: string
           image_url: string | null
           name: string
-          team_id: string
-          threshold_trees: number
+          sort_order: number
           updated_at: string
         }
         Insert: {
           active?: boolean
-          category?: string | null
+          category: string
+          cost_points: number
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           name: string
-          team_id: string
-          threshold_trees: number
+          sort_order?: number
           updated_at?: string
         }
         Update: {
           active?: boolean
-          category?: string | null
+          category?: string
+          cost_points?: number
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           name?: string
-          team_id?: string
-          threshold_trees?: number
+          sort_order?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "rewards_team_id_fkey"
-            columns: ["team_id"]
-            isOneToOne: false
-            referencedRelation: "teams"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       team_members: {
         Row: {
@@ -496,6 +521,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      purchase_reward: {
+        Args: { _reward_id: string }
+        Returns: {
+          cost_points: number
+          fulfilled_at: string | null
+          fulfilled_by: string | null
+          id: string
+          requested_at: string
+          reward_id: string
+          seller_user_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reward_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      seller_points_balance: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user" | "seller" | "team_leader"
