@@ -725,16 +725,17 @@ function HomeView({
         </section>
       )}
 
-      {/* Registrera försäljning */}
+      {/* Plantera träd — huvudknapp */}
       {!readOnly && (
         <div className="sticky bottom-4 z-20">
           <button onClick={onRegister}
-            className="btn-primary w-full !py-4 text-lg shadow-lg"
-            style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
-            🌱 Registrera försäljning
+            className="btn-primary w-full !py-5 text-lg shadow-lg"
+            style={{ boxShadow: "0 14px 36px -10px rgba(30,158,106,.6)" }}>
+            🌱 Plantera träd
           </button>
         </div>
       )}
+
 
       <style>{`
         @keyframes smaarty-pop {
