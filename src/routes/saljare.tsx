@@ -131,6 +131,7 @@ function MedalIcon({ rank }: { rank: number }) {
 function SellerPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { as: previewAs } = Route.useSearch();
   const ctxFn = useServerFn(getSellerContext);
   const purchaseFn = useServerFn(sellerCreatePurchase);
 
@@ -154,7 +155,7 @@ function SellerPage() {
   const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
   const reload = async () => {
-    const r = (await ctxFn()) as SellerCtx;
+    const r = (await ctxFn({ data: { targetUserId: previewAs } })) as SellerCtx;
     setCtx(r);
   };
 
@@ -162,16 +163,18 @@ function SellerPage() {
     if (authLoading) return;
     if (!user) { navigate({ to: "/auth" }); return; }
     let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
-        const r = (await ctxFn()) as SellerCtx;
+        const r = (await ctxFn({ data: { targetUserId: previewAs } })) as SellerCtx;
         if (!cancelled) setCtx(r);
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn]);
+  }, [user, authLoading, navigate, ctxFn, previewAs]);
+
 
   const submit = async () => {
     setError(null);
