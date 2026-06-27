@@ -7,7 +7,7 @@ import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { createPurchase } from "@/lib/purchases.functions";
 import { PlantingForm } from "@/components/planting-form";
 
-const PRICE_PER_TREE_ORE = 3500;
+
 
 export const Route = createFileRoute("/kop")({
   head: () => ({
