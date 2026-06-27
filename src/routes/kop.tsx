@@ -19,12 +19,6 @@ export const Route = createFileRoute("/kop")({
   component: KopPage,
 });
 
-const QUICK_PICKS = [5, 10, 25, 100];
-
-function formatKr(ore: number) {
-  return `${(ore / 100).toLocaleString("sv-SE")} kr`;
-}
-
 interface SnapshotCert {
   verification_id: string;
   recipient_name: string;
