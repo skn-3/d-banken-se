@@ -85,9 +85,26 @@ function SaljHjalpPage() {
                 </div>
                 <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
               </button>
+
+              <button
+                onClick={() => {
+                  if (user?.id) resetOnboarding(user.id);
+                  setShowIntro(true);
+                }}
+                className="surface-card flex items-center gap-4 p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>✨</div>
+                <div className="flex-1">
+                  <div className="font-display text-lg font-semibold">Visa introduktionen igen</div>
+                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>De korta välkomst-slidesen</div>
+                </div>
+                <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
+              </button>
             </div>
           </>
         )}
+
+        {showIntro && <Onboarding onClose={() => setShowIntro(false)} />}
 
         {view === "guide" && <SalesGuide onShowCustomer={() => setView("present")} onBack={() => setView("home")} />}
       </main>
