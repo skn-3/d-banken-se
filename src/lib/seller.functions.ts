@@ -19,15 +19,38 @@ function weekdayMonStockholm(d: Date): number {
   return map[s] ?? 1;
 }
 
-export const getSellerContext = createServerFn({ method: "GET" })
+export const getSellerContext = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input: unknown) => {
+    const v = (input ?? {}) as { targetUserId?: string };
+    return { targetUserId: typeof v.targetUserId === "string" && v.targetUserId.length > 0 ? v.targetUserId : undefined };
+  })
+  .handler(async ({ context, data }) => {
+    let targetUserId = context.userId;
+    let isPreview = false;
+    let previewName: string | null = null;
+    if (data.targetUserId && data.targetUserId !== context.userId) {
+      const { data: isAdmin } = await context.supabase.rpc("has_role", {
+        _user_id: context.userId,
+        _role: "admin",
+      });
+      if (!isAdmin) throw new Error("Forbidden: super-admin krävs för att förhandsvisa säljarvy.");
+      targetUserId = data.targetUserId;
+      isPreview = true;
+      const { data: prof } = await supabaseAdmin
+        .from("profiles")
+        .select("name, email")
+        .eq("user_id", targetUserId)
+        .maybeSingle();
+      previewName = prof?.name || prof?.email || "Säljare";
+    }
+
     const { data: member } = await supabaseAdmin
       .from("team_members")
       .select("id, team_id, role")
-      .eq("user_id", context.userId)
+      .eq("user_id", targetUserId)
       .maybeSingle();
-    if (!member) return { isSeller: false as const };
+    if (!member) return { isSeller: false as const, isPreview, previewName, previewUserId: isPreview ? targetUserId : undefined };
 
     const { data: team } = await supabaseAdmin
       .from("teams")
@@ -40,14 +63,12 @@ export const getSellerContext = createServerFn({ method: "GET" })
       .eq("id", team!.organization_id)
       .single();
 
-    // All members in this team
     const { data: teamMembers } = await supabaseAdmin
       .from("team_members")
       .select("user_id")
       .eq("team_id", member.team_id);
     const teamUserIds = (teamMembers ?? []).map((m) => m.user_id);
 
-    // All teams in this organization
     const { data: orgTeams } = await supabaseAdmin
       .from("teams")
       .select("id, name")
@@ -60,7 +81,6 @@ export const getSellerContext = createServerFn({ method: "GET" })
     const userTeam: Record<string, string> = {};
     (orgMembers ?? []).forEach((m) => { userTeam[m.user_id] = m.team_id; });
 
-    // All paid purchases for all sellers in org
     const orgUserIds = Object.keys(userTeam);
     const { data: allPurchases } = await supabaseAdmin
       .from("purchases")
@@ -68,15 +88,13 @@ export const getSellerContext = createServerFn({ method: "GET" })
       .in("registered_by_user_id", orgUserIds.length ? orgUserIds : ["00000000-0000-0000-0000-000000000000"])
       .eq("status", "paid");
 
-    // Seller's own purchases (recent list)
     const { data: myPurchases } = await supabaseAdmin
       .from("purchases")
       .select("id, tree_count, total_amount_ore, status, created_at, recipient_name, recipient_email")
-      .eq("registered_by_user_id", context.userId)
+      .eq("registered_by_user_id", targetUserId)
       .eq("status", "paid")
       .order("created_at", { ascending: false });
 
-    // Names for sellers in team
     const { data: profiles } = await supabaseAdmin
       .from("profiles")
       .select("user_id, name")
@@ -84,14 +102,12 @@ export const getSellerContext = createServerFn({ method: "GET" })
     const nameByUser: Record<string, string> = {};
     (profiles ?? []).forEach((p) => { nameByUser[p.user_id] = p.name || "Säljare"; });
 
-    // Date math (Stockholm)
     const now = new Date();
     const todayStr = ymdStockholm(now);
     const dow = weekdayMonStockholm(now);
     const mondayDate = new Date(now.getTime() - (dow - 1) * 86400000);
     const weekStartStr = ymdStockholm(mondayDate);
 
-    // Aggregations
     type Agg = { total: number; week: number; today: number };
     const perUser: Record<string, Agg> = {};
     const perTeam: Record<string, { total: number; week: number }> = {};
@@ -112,15 +128,14 @@ export const getSellerContext = createServerFn({ method: "GET" })
         if (dayStr >= weekStartStr) t.week += p.tree_count;
         perTeam[tid] = t;
       }
-      if (uid === context.userId) myDays.add(dayStr);
+      if (uid === targetUserId) myDays.add(dayStr);
     });
 
-    const my = perUser[context.userId] ?? { total: 0, week: 0, today: 0 };
+    const my = perUser[targetUserId] ?? { total: 0, week: 0, today: 0 };
 
-    // Streak: count back from today (or yesterday if today empty)
     const yesterday = ymdStockholm(new Date(now.getTime() - 86400000));
     let streak = 0;
-    let cursor = myDays.has(todayStr) ? todayStr : (myDays.has(yesterday) ? yesterday : null);
+    const cursor = myDays.has(todayStr) ? todayStr : (myDays.has(yesterday) ? yesterday : null);
     if (cursor) {
       const start = new Date(`${cursor}T12:00:00Z`);
       for (let i = 0; i < 365; i++) {
@@ -129,20 +144,11 @@ export const getSellerContext = createServerFn({ method: "GET" })
       }
     }
 
-    // Team leaderboards
     const teamSellersWeek = teamUserIds
-      .map((uid) => ({
-        userId: uid,
-        name: nameByUser[uid] ?? "Säljare",
-        trees: perUser[uid]?.week ?? 0,
-      }))
+      .map((uid) => ({ userId: uid, name: nameByUser[uid] ?? "Säljare", trees: perUser[uid]?.week ?? 0 }))
       .sort((a, b) => b.trees - a.trees);
     const teamSellersTotal = teamUserIds
-      .map((uid) => ({
-        userId: uid,
-        name: nameByUser[uid] ?? "Säljare",
-        trees: perUser[uid]?.total ?? 0,
-      }))
+      .map((uid) => ({ userId: uid, name: nameByUser[uid] ?? "Säljare", trees: perUser[uid]?.total ?? 0 }))
       .sort((a, b) => b.trees - a.trees);
 
     const orgTeamsWeek = (orgTeams ?? [])
@@ -156,14 +162,9 @@ export const getSellerContext = createServerFn({ method: "GET" })
       ? (perTeam[team!.id]?.total ?? 0)
       : 0;
 
-    // Veckans säljare (current leader of week within team, if >0)
     const weekLeader = teamSellersWeek[0];
-    const isWeekLeader = !!weekLeader && weekLeader.userId === context.userId && weekLeader.trees > 0;
-
-    // Eldsjäl: streak >= 3
+    const isWeekLeader = !!weekLeader && weekLeader.userId === targetUserId && weekLeader.trees > 0;
     const isEldsjal = streak >= 3;
-
-    // Lagmärke: team total >= 100
     const lagmarke = teamTotalAll >= 100;
 
     const badges = {
@@ -178,7 +179,10 @@ export const getSellerContext = createServerFn({ method: "GET" })
 
     return {
       isSeller: true as const,
-      userId: context.userId,
+      isPreview,
+      previewName,
+      previewUserId: isPreview ? targetUserId : undefined,
+      userId: targetUserId,
       role: member.role,
       team: { id: team!.id, name: team!.name },
       organization: { id: org!.id, name: org!.name, type: org!.type },

@@ -32,6 +32,9 @@ const BADGE_DEFS = [
 
 export const Route = createFileRoute("/saljare")({
   head: () => ({ meta: [{ title: "Smaarty — säljarvy" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    as: typeof s.as === "string" && s.as.length > 0 ? (s.as as string) : undefined,
+  }),
   component: SellerPage,
 });
 
@@ -39,6 +42,9 @@ type LbSeller = { userId: string; name: string; trees: number };
 type LbTeam = { teamId: string; name: string; trees: number };
 interface SellerCtx {
   isSeller: boolean;
+  isPreview?: boolean;
+  previewName?: string | null;
+  previewUserId?: string;
   userId?: string;
   role?: string;
   team?: { id: string; name: string };
@@ -125,6 +131,7 @@ function MedalIcon({ rank }: { rank: number }) {
 function SellerPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { as: previewAs } = Route.useSearch();
   const ctxFn = useServerFn(getSellerContext);
   const purchaseFn = useServerFn(sellerCreatePurchase);
 
@@ -148,7 +155,7 @@ function SellerPage() {
   const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
   const reload = async () => {
-    const r = (await ctxFn()) as SellerCtx;
+    const r = (await ctxFn({ data: { targetUserId: previewAs } })) as SellerCtx;
     setCtx(r);
   };
 
@@ -156,16 +163,18 @@ function SellerPage() {
     if (authLoading) return;
     if (!user) { navigate({ to: "/auth" }); return; }
     let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
-        const r = (await ctxFn()) as SellerCtx;
+        const r = (await ctxFn({ data: { targetUserId: previewAs } })) as SellerCtx;
         if (!cancelled) setCtx(r);
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn]);
+  }, [user, authLoading, navigate, ctxFn, previewAs]);
+
 
   const submit = async () => {
     setError(null);
@@ -206,13 +215,30 @@ function SellerPage() {
       <Blobs />
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-24 pt-4">
+        {ctx?.isPreview && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 shadow-sm"
+            style={{ borderColor: "var(--primary)", background: "rgba(30,158,106,0.08)" }}>
+            <div className="text-sm">
+              <span className="font-display font-semibold" style={{ color: "var(--forest)" }}>
+                👁 Förhandsvisning:
+              </span>{" "}
+              <span style={{ color: "var(--forest)" }}>{ctx.previewName ?? "Säljare"}</span>
+              <span className="ml-2 text-xs" style={{ color: "var(--muted-foreground)" }}>(read-only)</span>
+            </div>
+            <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => navigate({ to: "/admin" })}>
+              ← Tillbaka till admin
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="surface-card p-10 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>
         ) : !ctx?.isSeller ? (
           <div className="surface-card p-10 text-center">
             <h1 className="font-display text-2xl font-semibold">Ingen säljarprofil</h1>
             <p className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Ditt konto är inte kopplat till något säljarteam. Kontakta administratören.
+              {ctx?.isPreview
+                ? "Den valda användaren är inte kopplad till något säljarteam."
+                : "Ditt konto är inte kopplat till något säljarteam. Kontakta administratören."}
             </p>
           </div>
         ) : view === "done" && certificate ? (
@@ -223,7 +249,7 @@ function SellerPage() {
             resultEmail={resultEmail}
             onContinue={() => { setCertificate(null); setName(""); setEmail(""); setCount(10); setView("home"); }}
           />
-        ) : view === "register" ? (
+        ) : view === "register" && !ctx.isPreview ? (
           <RegisterView
             count={count} setCount={setCount}
             name={name} setName={setName}
@@ -238,6 +264,7 @@ function SellerPage() {
             lbScope={lbScope} setLbScope={setLbScope}
             lbKind={lbKind} setLbKind={setLbKind}
             onRegister={() => setView("register")}
+            readOnly={!!ctx.isPreview}
           />
         )}
       </main>
@@ -246,12 +273,13 @@ function SellerPage() {
 }
 
 function HomeView({
-  ctx, lbScope, setLbScope, lbKind, setLbKind, onRegister,
+  ctx, lbScope, setLbScope, lbKind, setLbKind, onRegister, readOnly = false,
 }: {
   ctx: SellerCtx;
   lbScope: "week" | "total"; setLbScope: (s: "week" | "total") => void;
   lbKind: "sellers" | "teams"; setLbKind: (k: "sellers" | "teams") => void;
   onRegister: () => void;
+  readOnly?: boolean;
 }) {
   const total = ctx.treeCount ?? 0;
   const week = ctx.weekTrees ?? 0;
@@ -487,13 +515,15 @@ function HomeView({
       )}
 
       {/* Registrera försäljning */}
-      <div className="sticky bottom-4 z-20">
-        <button onClick={onRegister}
-          className="btn-primary w-full !py-4 text-lg shadow-lg"
-          style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
-          🌱 Registrera försäljning
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="sticky bottom-4 z-20">
+          <button onClick={onRegister}
+            className="btn-primary w-full !py-4 text-lg shadow-lg"
+            style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
+            🌱 Registrera försäljning
+          </button>
+        </div>
+      )}
 
       <style>{`
         @keyframes smaarty-pop {

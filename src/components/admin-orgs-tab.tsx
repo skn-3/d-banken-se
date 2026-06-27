@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   listOrganizations, createOrganization, updateOrganization,
@@ -294,6 +295,14 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
                 <td className="font-mono font-semibold" style={{ color: "var(--forest)" }}>{s.tree_count.toLocaleString("sv-SE")}</td>
                 <td className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Link
+                      to="/saljare"
+                      search={{ as: s.user_id }}
+                      target="_blank"
+                      className="btn-secondary !py-1 !px-2 text-xs"
+                    >
+                      Visa säljarvy
+                    </Link>
                     <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => {
                       setPwFor(pwFor === s.user_id ? null : s.user_id);
                       setPwValue(""); setPwMsg(null);
