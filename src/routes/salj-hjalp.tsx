@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { getSellerContext } from "@/lib/seller.functions";
+import { useAuth } from "@/hooks/use-auth";
+import { Onboarding, resetOnboarding } from "@/components/onboarding";
 
 export const Route = createFileRoute("/salj-hjalp")({
   head: () => ({ meta: [{ title: "Smaarty — Sälj-hjälp" }] }),
