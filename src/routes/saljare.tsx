@@ -32,6 +32,9 @@ const BADGE_DEFS = [
 
 export const Route = createFileRoute("/saljare")({
   head: () => ({ meta: [{ title: "Smaarty — säljarvy" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    as: typeof s.as === "string" && s.as.length > 0 ? (s.as as string) : undefined,
+  }),
   component: SellerPage,
 });
 
