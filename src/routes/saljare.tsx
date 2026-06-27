@@ -462,6 +462,26 @@ function HomeView({
         </div>
       </section>
 
+      {/* Sälj-hjälp */}
+      <section>
+        <Link
+          to="/salj-hjalp"
+          search={previewId ? { as: previewId } : undefined}
+          className="surface-card flex items-center gap-4 p-5 transition hover:scale-[1.01] active:scale-[0.99]"
+        >
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>
+            💬
+          </div>
+          <div className="flex-1">
+            <div className="font-display text-lg font-semibold">Sälj-hjälp</div>
+            <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+              Guide för dig + snyggt material att visa kunden
+            </div>
+          </div>
+          <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
+        </Link>
+      </section>
+
       {/* Dagens utmaning */}
       <section className="surface-card p-6">
         <div className="flex items-center justify-between">
