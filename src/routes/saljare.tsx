@@ -52,14 +52,19 @@ interface SellerCtx {
   previewUserId?: string;
   userId?: string;
   role?: string;
-  team?: { id: string; name: string };
+  team?: { id: string; name: string; weeklyGoal?: number; bonusPoints?: number };
   organization?: { id: string; name: string; type: string };
   treeCount?: number;
   weekTrees?: number;
   todayTrees?: number;
+  weekendTrees?: number;
+  isWeekendNow?: boolean;
+  isoWeek?: string;
+  teamWeekTrees?: number;
   streak?: number;
   teamTotal?: number;
   badges?: Record<string, boolean>;
+
   leaderboards?: {
     sellersWeek: LbSeller[];
     sellersTotal: LbSeller[];
