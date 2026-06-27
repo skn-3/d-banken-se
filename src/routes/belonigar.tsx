@@ -193,7 +193,7 @@ function RewardsPage() {
                     <div className="grid gap-3">
                       {grouped[cat].map(r => (
                         <RewardCard key={r.id} reward={r} balance={balance} busy={busyId === r.id}
-                          readOnly={!!ctx.isPreview} onBuy={() => handleBuy(r)} />
+                          readOnly={false} onBuy={() => handleBuy(r)} />
                       ))}
                     </div>
                   </section>
