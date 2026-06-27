@@ -104,10 +104,9 @@ function RewardsPage() {
   }, [user, authLoading, navigate, ctxFn, previewAs]);
 
   const handleBuy = async (r: RewardRow) => {
-    if (ctx?.isPreview) return;
     setBusyId(r.id);
     try {
-      await buyFn({ data: { rewardId: r.id } });
+      await buyFn({ data: { rewardId: r.id, targetUserId: previewAs } });
       setConfetti(true);
       setToast(`🎉 Du köpte ${r.name}! Din lärare ordnar den.`);
       setTimeout(() => setConfetti(false), 2200);
