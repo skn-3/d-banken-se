@@ -383,5 +383,6 @@
   .plantform-step { transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease !important; }
   .plantform-chip:hover,
   .plantform-cta:hover { transform: none !important; }
+  .presentation-fade { animation: none !important; }
 }
 
