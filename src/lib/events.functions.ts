@@ -117,3 +117,35 @@ export const getSellerMilestones = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false });
     return { milestones: rows ?? [] };
   });
+
+export type SellerBonus = {
+  id: string;
+  delta: number;
+  description: string | null;
+  type: "bonus_milestone" | "bonus_sprint" | "bonus_team" | "bonus_streak" | "bonus_double";
+  created_at: string;
+};
+
+export const getSellerBonuses = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => {
+    const v = (input ?? {}) as { targetUserId?: string };
+    return { targetUserId: typeof v.targetUserId === "string" && v.targetUserId.length > 0 ? v.targetUserId : undefined };
+  })
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let userId = context.userId;
+    if (data.targetUserId && data.targetUserId !== context.userId) {
+      if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+      userId = data.targetUserId;
+    }
+    const { data: rows } = await supabaseAdmin
+      .from("point_transactions")
+      .select("id, delta, description, type, created_at")
+      .eq("seller_user_id", userId)
+      .in("type", ["bonus_milestone", "bonus_sprint", "bonus_team", "bonus_streak"])
+      .order("created_at", { ascending: false })
+      .limit(50);
+    return { bonuses: (rows ?? []) as SellerBonus[] };
+  });
+

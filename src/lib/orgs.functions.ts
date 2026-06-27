@@ -113,10 +113,11 @@ export const listTeams = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     const { data: teams, error } = await supabaseAdmin
       .from("teams")
-      .select("id, name, created_at")
+      .select("id, name, created_at, weekly_goal_trees, team_bonus_points")
       .eq("organization_id", data.organizationId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
+
 
     const teamIds = (teams ?? []).map((t) => t.id);
     const memberCounts = new Map<string, number>();
@@ -182,17 +183,24 @@ export const updateTeam = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       name: z.string().trim().min(1).max(200),
+      weeklyGoalTrees: z.number().int().min(0).max(100000).optional(),
+      teamBonusPoints: z.number().int().min(0).max(100000).optional(),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
+    const update: { name: string; weekly_goal_trees?: number; team_bonus_points?: number } = { name: data.name };
+    if (data.weeklyGoalTrees !== undefined) update.weekly_goal_trees = data.weeklyGoalTrees;
+    if (data.teamBonusPoints !== undefined) update.team_bonus_points = data.teamBonusPoints;
     const { error } = await supabaseAdmin
       .from("teams")
-      .update({ name: data.name })
+      .update(update)
       .eq("id", data.id);
+
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 // ---------- Sellers (team members) ----------
 

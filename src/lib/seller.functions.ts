@@ -18,6 +18,18 @@ function weekdayMonStockholm(d: Date): number {
   const map: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
   return map[s] ?? 1;
 }
+function isoWeekStockholm(d: Date): string {
+  // ISO week label like "2026-W26" based on Europe/Stockholm calendar date
+  const dateStr = ymdStockholm(d); // YYYY-MM-DD in Stockholm
+  const [y, m, day] = dateStr.split("-").map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, day));
+  const dayOfWeek = utc.getUTCDay() || 7;
+  utc.setUTCDate(utc.getUTCDate() + 4 - dayOfWeek);
+  const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((utc.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${utc.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
 
 export const getSellerContext = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -54,9 +66,12 @@ export const getSellerContext = createServerFn({ method: "POST" })
 
     const { data: team } = await supabaseAdmin
       .from("teams")
-      .select("id, name, organization_id")
+      .select("id, name, organization_id, weekly_goal_trees, team_bonus_points")
       .eq("id", member.team_id)
       .single();
+    const teamGoal = (team as { weekly_goal_trees?: number | null } | null)?.weekly_goal_trees ?? 0;
+    const teamBonus = (team as { team_bonus_points?: number | null } | null)?.team_bonus_points ?? 0;
+
     const { data: org } = await supabaseAdmin
       .from("organizations")
       .select("id, name, type")
@@ -108,18 +123,23 @@ export const getSellerContext = createServerFn({ method: "POST" })
     const mondayDate = new Date(now.getTime() - (dow - 1) * 86400000);
     const weekStartStr = ymdStockholm(mondayDate);
 
-    type Agg = { total: number; week: number; today: number };
+    type Agg = { total: number; week: number; today: number; weekend: number };
     const perUser: Record<string, Agg> = {};
     const perTeam: Record<string, { total: number; week: number }> = {};
     const myDays = new Set<string>();
     (allPurchases ?? []).forEach((p) => {
       const uid = p.registered_by_user_id as string;
       if (!uid) return;
-      const dayStr = ymdStockholm(new Date(p.created_at));
-      const a = perUser[uid] ?? { total: 0, week: 0, today: 0 };
+      const created = new Date(p.created_at);
+      const dayStr = ymdStockholm(created);
+      const a = perUser[uid] ?? { total: 0, week: 0, today: 0, weekend: 0 };
       a.total += p.tree_count;
       if (dayStr >= weekStartStr) a.week += p.tree_count;
       if (dayStr === todayStr) a.today += p.tree_count;
+      if (dayStr >= weekStartStr) {
+        const wd = weekdayMonStockholm(created);
+        if (wd === 6 || wd === 7) a.weekend += p.tree_count;
+      }
       perUser[uid] = a;
       const tid = userTeam[uid];
       if (tid) {
@@ -131,7 +151,13 @@ export const getSellerContext = createServerFn({ method: "POST" })
       if (uid === targetUserId) myDays.add(dayStr);
     });
 
-    const my = perUser[targetUserId] ?? { total: 0, week: 0, today: 0 };
+
+    const my = perUser[targetUserId] ?? { total: 0, week: 0, today: 0, weekend: 0 };
+    const todayWeekday = weekdayMonStockholm(now);
+    const isWeekendNow = todayWeekday === 6 || todayWeekday === 7;
+    const isoWeek = isoWeekStockholm(now);
+    const myTeamWeek = perTeam[team!.id]?.week ?? 0;
+
 
     const yesterday = ymdStockholm(new Date(now.getTime() - 86400000));
     let streak = 0;
@@ -184,11 +210,15 @@ export const getSellerContext = createServerFn({ method: "POST" })
       previewUserId: isPreview ? targetUserId : undefined,
       userId: targetUserId,
       role: member.role,
-      team: { id: team!.id, name: team!.name },
+      team: { id: team!.id, name: team!.name, weeklyGoal: teamGoal, bonusPoints: teamBonus },
       organization: { id: org!.id, name: org!.name, type: org!.type },
       treeCount: my.total,
       weekTrees: my.week,
       todayTrees: my.today,
+      weekendTrees: my.weekend,
+      isWeekendNow,
+      isoWeek,
+      teamWeekTrees: myTeamWeek,
       streak,
       badges,
       teamTotal: teamTotalAll,
@@ -201,6 +231,7 @@ export const getSellerContext = createServerFn({ method: "POST" })
       purchases: myPurchases ?? [],
     };
   });
+
 
 const PurchaseSchema = z.object({
   treeCount: z.number().int().min(1).max(10000),

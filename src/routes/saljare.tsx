@@ -6,8 +6,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { getSellerContext, sellerCreatePurchase } from "@/lib/seller.functions";
-import { getActiveEvent, getSellerMilestones, type ActiveEvent } from "@/lib/events.functions";
+import { getActiveEvent, getSellerBonuses, type ActiveEvent, type SellerBonus } from "@/lib/events.functions";
 import { EventBanner } from "@/components/event-banner";
+
+const WEEKEND_SPRINT_GOAL = 5;
+
 
 const PRICE_PER_TREE_ORE = 3500;
 const QUICK_PICKS = [5, 10, 25, 100];
@@ -49,14 +52,19 @@ interface SellerCtx {
   previewUserId?: string;
   userId?: string;
   role?: string;
-  team?: { id: string; name: string };
+  team?: { id: string; name: string; weeklyGoal?: number; bonusPoints?: number };
   organization?: { id: string; name: string; type: string };
   treeCount?: number;
   weekTrees?: number;
   todayTrees?: number;
+  weekendTrees?: number;
+  isWeekendNow?: boolean;
+  isoWeek?: string;
+  teamWeekTrees?: number;
   streak?: number;
   teamTotal?: number;
   badges?: Record<string, boolean>;
+
   leaderboards?: {
     sellersWeek: LbSeller[];
     sellersTotal: LbSeller[];
@@ -137,12 +145,12 @@ function SellerPage() {
   const ctxFn = useServerFn(getSellerContext);
   const purchaseFn = useServerFn(sellerCreatePurchase);
   const eventFn = useServerFn(getActiveEvent);
-  const milestonesFn = useServerFn(getSellerMilestones);
+  const bonusesFn = useServerFn(getSellerBonuses);
 
   const [ctx, setCtx] = useState<SellerCtx | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
-  const [celebration, setCelebration] = useState<{ threshold: number; bonus: number } | null>(null);
+  const [celebration, setCelebration] = useState<{ title: string; subtitle: string; bonus: number } | null>(null);
 
   const [view, setView] = useState<"home" | "register" | "done">("home");
   const [lbScope, setLbScope] = useState<"week" | "total">("week");
@@ -160,26 +168,42 @@ function SellerPage() {
 
   const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
-  const milestoneStorageKey = (uid: string) => `smaarty:milestones-seen:${uid}`;
+  const bonusStorageKey = (uid: string) => `smaarty:bonuses-seen:${uid}`;
 
-  const detectNewMilestone = async (uid: string) => {
+  const describeBonus = (b: SellerBonus): { title: string; subtitle: string } => {
+    const desc = b.description ?? "";
+    if (b.type === "bonus_milestone") {
+      const m = desc.match(/(\d+)/);
+      return { title: `Du nådde ${m ? m[1] : ""} sålda träd!`, subtitle: "Milstolpe-bonus" };
+    }
+    if (b.type === "bonus_sprint") {
+      return { title: "Helg-sprint klarad! 🎉", subtitle: `5 träd under helgen` };
+    }
+    if (b.type === "bonus_team") {
+      return { title: "Laget nådde veckomålet! 🎉", subtitle: "Alla i laget får bonus" };
+    }
+    if (b.type === "bonus_streak") {
+      const m = desc.match(/(\d+)/);
+      return { title: `${m ? m[1] : ""} dagar i rad!`, subtitle: "Streak-bonus" };
+    }
+    return { title: "Bonus!", subtitle: desc };
+  };
+
+  const detectNewBonus = async (uid: string) => {
     try {
-      const r = await milestonesFn({ data: { targetUserId: previewAs } });
-      const seenRaw = typeof window !== "undefined" ? window.localStorage.getItem(milestoneStorageKey(uid)) : null;
+      const r = await bonusesFn({ data: { targetUserId: previewAs } });
+      const seenRaw = typeof window !== "undefined" ? window.localStorage.getItem(bonusStorageKey(uid)) : null;
       const seen: string[] = seenRaw ? JSON.parse(seenRaw) : [];
-      const list = r.milestones as { id: string; delta: number; description: string | null }[];
+      const list = r.bonuses;
       const fresh = list.find((m) => !seen.includes(m.id));
       if (fresh) {
-        const match = (fresh.description ?? "").match(/(\d+)/);
-        setCelebration({ threshold: match ? Number(match[1]) : 0, bonus: fresh.delta });
-        const next = Array.from(new Set([...seen, ...list.map((m) => m.id)])).slice(-20);
-        window.localStorage.setItem(milestoneStorageKey(uid), JSON.stringify(next));
+        const { title, subtitle } = describeBonus(fresh);
+        setCelebration({ title, subtitle, bonus: fresh.delta });
+        const next = Array.from(new Set([...seen, ...list.map((m) => m.id)])).slice(-50);
+        window.localStorage.setItem(bonusStorageKey(uid), JSON.stringify(next));
         setTimeout(() => setCelebration(null), 6000);
-      } else if (list.length) {
-        // Initialize seen list silently on first visit
-        if (!seenRaw) {
-          window.localStorage.setItem(milestoneStorageKey(uid), JSON.stringify(list.map((m) => m.id)));
-        }
+      } else if (list.length && !seenRaw) {
+        window.localStorage.setItem(bonusStorageKey(uid), JSON.stringify(list.map((m) => m.id)));
       }
     } catch {/* ignore */}
   };
@@ -190,8 +214,9 @@ function SellerPage() {
     const ev = await eventFn({ data: {} });
     setActiveEvent(ev.event);
     const uid = r.userId ?? r.previewUserId;
-    if (uid) await detectNewMilestone(uid);
+    if (uid) await detectNewBonus(uid);
   };
+
 
   useEffect(() => {
     if (authLoading) return;
@@ -207,14 +232,14 @@ function SellerPage() {
         if (!cancelled) setActiveEvent(ev.event);
         const uid = r.userId ?? r.previewUserId;
         if (uid && !cancelled) {
-          // Mark existing milestones as seen on first load (no toast)
+          // Mark existing bonuses as seen on first load (no toast)
           try {
-            const mr = await milestonesFn({ data: { targetUserId: previewAs } });
-            const seenRaw = window.localStorage.getItem(milestoneStorageKey(uid));
+            const mr = await bonusesFn({ data: { targetUserId: previewAs } });
+            const seenRaw = window.localStorage.getItem(bonusStorageKey(uid));
             if (!seenRaw) {
               window.localStorage.setItem(
-                milestoneStorageKey(uid),
-                JSON.stringify((mr.milestones as { id: string }[]).map((m) => m.id)),
+                bonusStorageKey(uid),
+                JSON.stringify(mr.bonuses.map((m) => m.id)),
               );
             }
           } catch {/* ignore */}
@@ -224,7 +249,8 @@ function SellerPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn, eventFn, milestonesFn, previewAs]);
+  }, [user, authLoading, navigate, ctxFn, eventFn, bonusesFn, previewAs]);
+
 
 
   const submit = async () => {
@@ -293,10 +319,10 @@ function SellerPage() {
               }}
             >
               <div className="text-2xl">🎉</div>
-              <div className="mt-1 font-display text-lg font-semibold">
-                Du nådde {celebration.threshold} sålda träd!
-              </div>
+              <div className="mt-1 font-display text-lg font-semibold">{celebration.title}</div>
+              <div className="text-xs opacity-90">{celebration.subtitle}</div>
               <div className="mt-1 font-mono text-sm">+{celebration.bonus} bonuspoäng</div>
+
             </div>
           </div>
         )}
@@ -356,6 +382,12 @@ function HomeView({
   const today = ctx.todayTrees ?? 0;
   const streak = ctx.streak ?? 0;
   const teamTotal = ctx.teamTotal ?? 0;
+  const weekendTrees = ctx.weekendTrees ?? 0;
+  const isWeekendNow = !!ctx.isWeekendNow;
+  const teamGoal = ctx.team?.weeklyGoal ?? 0;
+  const teamBonusPts = ctx.team?.bonusPoints ?? 0;
+  const teamWeekTrees = ctx.teamWeekTrees ?? 0;
+
   const stage = getStage(total);
   const stageStart = stage.current.min;
   const stageEnd = stage.next?.min ?? stage.current.min;
@@ -450,6 +482,62 @@ function HomeView({
           ? <div className="mt-3 text-sm" style={{ color: "var(--forest)" }}>Klart! Du klarade dagens utmaning. ⭐</div>
           : <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>Varje träd räknas — kör på!</div>}
       </section>
+
+      {/* Helg-sprint */}
+      <section className="surface-card p-6" style={{ opacity: isWeekendNow ? 1 : 0.85 }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Helg-sprint</div>
+            <div className="mt-1 font-display text-lg font-semibold">
+              {isWeekendNow
+                ? <>Sälj {WEEKEND_SPRINT_GOAL} träd i helgen → <span style={{ color: "var(--primary)" }}>+10 poäng</span></>
+                : <>Helg-sprinten kommer i helgen</>}
+            </div>
+          </div>
+          <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
+            {Math.min(weekendTrees, WEEKEND_SPRINT_GOAL)} / {WEEKEND_SPRINT_GOAL}
+            {weekendTrees >= WEEKEND_SPRINT_GOAL && <span className="ml-2">⚡</span>}
+          </div>
+        </div>
+        <div className="mt-3 h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--mint)" }}>
+          <div className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${Math.min(100, (weekendTrees / WEEKEND_SPRINT_GOAL) * 100)}%`, background: "linear-gradient(90deg,#ffcf78,#ff9a3c)" }} />
+        </div>
+        <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
+          {isWeekendNow
+            ? (weekendTrees >= WEEKEND_SPRINT_GOAL
+                ? "Helg-sprinten är klar — snyggt jobbat! ⚡"
+                : "Lördag + söndag räknas. Bonusen ges en gång per helg.")
+            : "Spara energin till lördag–söndag och kör då. ✨"}
+        </div>
+      </section>
+
+      {/* Lagets veckomål */}
+      {teamGoal > 0 && (
+        <section className="surface-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Lagets veckomål</div>
+              <div className="mt-1 font-display text-lg font-semibold">
+                {teamWeekTrees >= teamGoal
+                  ? <>Målet nått! 🎉 Alla i laget fick <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>
+                  : <>Sälj {teamGoal} träd tillsammans → alla får <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>}
+              </div>
+            </div>
+            <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
+              {Math.min(teamWeekTrees, teamGoal)} / {teamGoal}
+            </div>
+          </div>
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--mint)" }}>
+            <div className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${Math.min(100, (teamWeekTrees / teamGoal) * 100)}%`, background: "var(--primary)" }} />
+          </div>
+          <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
+            Hela <strong>{ctx.team?.name}</strong> jobbar mot samma mål — peppa varandra!
+          </div>
+        </section>
+      )}
+
 
       {/* Topplista */}
       <section className="surface-card p-6">
