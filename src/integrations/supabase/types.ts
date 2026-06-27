@@ -465,27 +465,62 @@ export type Database = {
           },
         ]
       }
+      team_week_bonus: {
+        Row: {
+          awarded_at: string
+          id: string
+          iso_week: string
+          team_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          id?: string
+          iso_week: string
+          team_id: string
+        }
+        Update: {
+          awarded_at?: string
+          id?: string
+          iso_week?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_week_bonus_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string
           id: string
           name: string
           organization_id: string
+          team_bonus_points: number
           updated_at: string
+          weekly_goal_trees: number
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
           organization_id: string
+          team_bonus_points?: number
           updated_at?: string
+          weekly_goal_trees?: number
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
           organization_id?: string
+          team_bonus_points?: number
           updated_at?: string
+          weekly_goal_trees?: number
         }
         Relationships: [
           {
