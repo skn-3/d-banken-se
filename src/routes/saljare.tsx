@@ -145,12 +145,12 @@ function SellerPage() {
   const ctxFn = useServerFn(getSellerContext);
   const purchaseFn = useServerFn(sellerCreatePurchase);
   const eventFn = useServerFn(getActiveEvent);
-  const milestonesFn = useServerFn(getSellerMilestones);
+  const bonusesFn = useServerFn(getSellerBonuses);
 
   const [ctx, setCtx] = useState<SellerCtx | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
-  const [celebration, setCelebration] = useState<{ threshold: number; bonus: number } | null>(null);
+  const [celebration, setCelebration] = useState<{ title: string; subtitle: string; bonus: number } | null>(null);
 
   const [view, setView] = useState<"home" | "register" | "done">("home");
   const [lbScope, setLbScope] = useState<"week" | "total">("week");
@@ -168,26 +168,42 @@ function SellerPage() {
 
   const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
-  const milestoneStorageKey = (uid: string) => `smaarty:milestones-seen:${uid}`;
+  const bonusStorageKey = (uid: string) => `smaarty:bonuses-seen:${uid}`;
 
-  const detectNewMilestone = async (uid: string) => {
+  const describeBonus = (b: SellerBonus): { title: string; subtitle: string } => {
+    const desc = b.description ?? "";
+    if (b.type === "bonus_milestone") {
+      const m = desc.match(/(\d+)/);
+      return { title: `Du nådde ${m ? m[1] : ""} sålda träd!`, subtitle: "Milstolpe-bonus" };
+    }
+    if (b.type === "bonus_sprint") {
+      return { title: "Helg-sprint klarad! 🎉", subtitle: `5 träd under helgen` };
+    }
+    if (b.type === "bonus_team") {
+      return { title: "Laget nådde veckomålet! 🎉", subtitle: "Alla i laget får bonus" };
+    }
+    if (b.type === "bonus_streak") {
+      const m = desc.match(/(\d+)/);
+      return { title: `${m ? m[1] : ""} dagar i rad!`, subtitle: "Streak-bonus" };
+    }
+    return { title: "Bonus!", subtitle: desc };
+  };
+
+  const detectNewBonus = async (uid: string) => {
     try {
-      const r = await milestonesFn({ data: { targetUserId: previewAs } });
-      const seenRaw = typeof window !== "undefined" ? window.localStorage.getItem(milestoneStorageKey(uid)) : null;
+      const r = await bonusesFn({ data: { targetUserId: previewAs } });
+      const seenRaw = typeof window !== "undefined" ? window.localStorage.getItem(bonusStorageKey(uid)) : null;
       const seen: string[] = seenRaw ? JSON.parse(seenRaw) : [];
-      const list = r.milestones as { id: string; delta: number; description: string | null }[];
+      const list = r.bonuses;
       const fresh = list.find((m) => !seen.includes(m.id));
       if (fresh) {
-        const match = (fresh.description ?? "").match(/(\d+)/);
-        setCelebration({ threshold: match ? Number(match[1]) : 0, bonus: fresh.delta });
-        const next = Array.from(new Set([...seen, ...list.map((m) => m.id)])).slice(-20);
-        window.localStorage.setItem(milestoneStorageKey(uid), JSON.stringify(next));
+        const { title, subtitle } = describeBonus(fresh);
+        setCelebration({ title, subtitle, bonus: fresh.delta });
+        const next = Array.from(new Set([...seen, ...list.map((m) => m.id)])).slice(-50);
+        window.localStorage.setItem(bonusStorageKey(uid), JSON.stringify(next));
         setTimeout(() => setCelebration(null), 6000);
-      } else if (list.length) {
-        // Initialize seen list silently on first visit
-        if (!seenRaw) {
-          window.localStorage.setItem(milestoneStorageKey(uid), JSON.stringify(list.map((m) => m.id)));
-        }
+      } else if (list.length && !seenRaw) {
+        window.localStorage.setItem(bonusStorageKey(uid), JSON.stringify(list.map((m) => m.id)));
       }
     } catch {/* ignore */}
   };
@@ -198,8 +214,9 @@ function SellerPage() {
     const ev = await eventFn({ data: {} });
     setActiveEvent(ev.event);
     const uid = r.userId ?? r.previewUserId;
-    if (uid) await detectNewMilestone(uid);
+    if (uid) await detectNewBonus(uid);
   };
+
 
   useEffect(() => {
     if (authLoading) return;
