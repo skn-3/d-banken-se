@@ -123,18 +123,23 @@ export const getSellerContext = createServerFn({ method: "POST" })
     const mondayDate = new Date(now.getTime() - (dow - 1) * 86400000);
     const weekStartStr = ymdStockholm(mondayDate);
 
-    type Agg = { total: number; week: number; today: number };
+    type Agg = { total: number; week: number; today: number; weekend: number };
     const perUser: Record<string, Agg> = {};
     const perTeam: Record<string, { total: number; week: number }> = {};
     const myDays = new Set<string>();
     (allPurchases ?? []).forEach((p) => {
       const uid = p.registered_by_user_id as string;
       if (!uid) return;
-      const dayStr = ymdStockholm(new Date(p.created_at));
-      const a = perUser[uid] ?? { total: 0, week: 0, today: 0 };
+      const created = new Date(p.created_at);
+      const dayStr = ymdStockholm(created);
+      const a = perUser[uid] ?? { total: 0, week: 0, today: 0, weekend: 0 };
       a.total += p.tree_count;
       if (dayStr >= weekStartStr) a.week += p.tree_count;
       if (dayStr === todayStr) a.today += p.tree_count;
+      if (dayStr >= weekStartStr) {
+        const wd = weekdayMonStockholm(created);
+        if (wd === 6 || wd === 7) a.weekend += p.tree_count;
+      }
       perUser[uid] = a;
       const tid = userTeam[uid];
       if (tid) {
@@ -145,6 +150,7 @@ export const getSellerContext = createServerFn({ method: "POST" })
       }
       if (uid === targetUserId) myDays.add(dayStr);
     });
+
 
     const my = perUser[targetUserId] ?? { total: 0, week: 0, today: 0 };
 
