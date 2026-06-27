@@ -75,9 +75,38 @@ export const getSellerRewards = createServerFn({ method: "POST" })
 
 export const purchaseSellerReward = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ rewardId: z.string().uuid() }).parse(input))
+  .inputValidator((input: unknown) => z.object({
+    rewardId: z.string().uuid(),
+    targetUserId: z.string().uuid().optional(),
+  }).parse(input))
   .handler(async ({ context, data }) => {
-    // Use the user-scoped supabase client so auth.uid() is set inside the RPC.
+    // Admin preview: purchase on behalf of another seller
+    if (data.targetUserId && data.targetUserId !== context.userId) {
+      if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: reward, error: rErr } = await supabaseAdmin
+        .from("rewards").select("id, cost_points, active")
+        .eq("id", data.rewardId).maybeSingle();
+      if (rErr) throw new Error(rErr.message);
+      if (!reward || !reward.active) throw new Error("Belöning saknas eller är inaktiv");
+      const balance = await sellerBalance(data.targetUserId);
+      if (balance < reward.cost_points) throw new Error(`Saknar ${reward.cost_points - balance} poäng`);
+      const { data: order, error: oErr } = await supabaseAdmin.from("reward_orders").insert({
+        seller_user_id: data.targetUserId,
+        reward_id: reward.id,
+        cost_points: reward.cost_points,
+        status: "begard",
+      }).select().single();
+      if (oErr) throw new Error(oErr.message);
+      const { error: tErr } = await supabaseAdmin.from("point_transactions").insert({
+        seller_user_id: data.targetUserId,
+        delta: -reward.cost_points,
+        type: "spend",
+        reference_id: order.id,
+      });
+      if (tErr) throw new Error(tErr.message);
+      return { ok: true, order };
+    }
     const { data: order, error } = await context.supabase.rpc("purchase_reward", { _reward_id: data.rewardId });
     if (error) throw new Error(error.message);
     return { ok: true, order };

@@ -104,10 +104,9 @@ function RewardsPage() {
   }, [user, authLoading, navigate, ctxFn, previewAs]);
 
   const handleBuy = async (r: RewardRow) => {
-    if (ctx?.isPreview) return;
     setBusyId(r.id);
     try {
-      await buyFn({ data: { rewardId: r.id } });
+      await buyFn({ data: { rewardId: r.id, targetUserId: previewAs } });
       setConfetti(true);
       setToast(`🎉 Du köpte ${r.name}! Din lärare ordnar den.`);
       setTimeout(() => setConfetti(false), 2200);
@@ -194,7 +193,7 @@ function RewardsPage() {
                     <div className="grid gap-3">
                       {grouped[cat].map(r => (
                         <RewardCard key={r.id} reward={r} balance={balance} busy={busyId === r.id}
-                          readOnly={!!ctx.isPreview} onBuy={() => handleBuy(r)} />
+                          readOnly={false} onBuy={() => handleBuy(r)} />
                       ))}
                     </div>
                   </section>
