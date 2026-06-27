@@ -166,7 +166,9 @@ function SellerPage() {
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
   const [resultEmail, setResultEmail] = useState("");
   const [emailSent, setEmailSent] = useState(true);
+  const [plantingResult, setPlantingResult] = useState<{ trees: number; prevTotal: number; points: number } | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
+
 
   const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
