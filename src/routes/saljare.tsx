@@ -166,7 +166,9 @@ function SellerPage() {
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
   const [resultEmail, setResultEmail] = useState("");
   const [emailSent, setEmailSent] = useState(true);
+  const [plantingResult, setPlantingResult] = useState<{ trees: number; prevTotal: number; points: number } | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
+
 
   const total = useMemo(() => count * PRICE_PER_TREE_ORE, [count]);
 
@@ -275,6 +277,9 @@ function SellerPage() {
       setError("Ange en giltig e-postadress."); return;
     }
     setSubmitting(true);
+    const prevTotal = ctx?.treeCount ?? 0;
+    const multiplier = activeEvent?.multiplier ?? 1;
+    const treesPlanted = count;
     try {
       const res = await purchaseFn({
         data: { treeCount: count, recipientName: name.trim(), recipientEmail: email.trim() },
@@ -293,6 +298,7 @@ function SellerPage() {
       });
       setResultEmail(res.recipientEmail);
       setEmailSent(res.emailSent);
+      setPlantingResult({ trees: treesPlanted, prevTotal, points: treesPlanted * multiplier });
       setView("done");
       await reload();
     } catch (e) {
@@ -301,6 +307,7 @@ function SellerPage() {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
@@ -353,14 +360,17 @@ function SellerPage() {
                 : "Ditt konto är inte kopplat till något säljarteam. Kontakta administratören."}
             </p>
           </div>
-        ) : view === "done" && certificate ? (
+        ) : view === "done" && certificate && plantingResult ? (
           <DoneView
             certificate={certificate}
             certRef={certRef}
             emailSent={emailSent}
             resultEmail={resultEmail}
-            onContinue={() => { setCertificate(null); setName(""); setEmail(""); setCount(10); setView("home"); }}
+            result={plantingResult}
+            onContinue={() => { setCertificate(null); setPlantingResult(null); setName(""); setEmail(""); setCount(10); setView("home"); }}
+            onPlantMore={() => { setCertificate(null); setPlantingResult(null); setName(""); setEmail(""); setCount(10); setView("register"); }}
           />
+
         ) : view === "register" && !ctx.isPreview ? (
           <RegisterView
             count={count} setCount={setCount}
@@ -725,16 +735,17 @@ function HomeView({
         </section>
       )}
 
-      {/* Registrera försäljning */}
+      {/* Plantera träd — huvudknapp */}
       {!readOnly && (
         <div className="sticky bottom-4 z-20">
           <button onClick={onRegister}
-            className="btn-primary w-full !py-4 text-lg shadow-lg"
-            style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
-            🌱 Registrera försäljning
+            className="btn-primary w-full !py-5 text-lg shadow-lg"
+            style={{ boxShadow: "0 14px 36px -10px rgba(30,158,106,.6)" }}>
+            🌱 Plantera träd
           </button>
         </div>
       )}
+
 
       <style>{`
         @keyframes smaarty-pop {
@@ -759,15 +770,15 @@ function RegisterView({
   return (
     <section className="surface-card p-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold">Registrera försäljning</h1>
+        <h1 className="font-display text-2xl font-semibold">Registrera en plantering</h1>
         <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm">← Tillbaka</button>
       </div>
       <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-        Värdebeviset skickas till kundens e-post. Pris per träd: <span className="font-mono">35 kr</span>.
+        Varje träd gör skillnad 🌱 — fyll i mottagaren så skickas värdebeviset direkt till deras e-post. Pris per träd: <span className="font-mono">35 kr</span>.
       </p>
 
       <div className="mt-6">
-        <label className="mb-2 block text-sm font-medium">Antal träd</label>
+        <label className="mb-2 block text-sm font-medium">Antal träd att plantera</label>
         <div className="flex items-center gap-3">
           <button type="button" className="btn-secondary !px-4 !py-2" onClick={() => setCount(Math.max(1, count - 1))}>−</button>
           <input type="number" min={1} max={10000} value={count}
@@ -798,7 +809,7 @@ function RegisterView({
 
       <div className="mt-6 rounded-2xl p-5" style={{ background: "var(--mint-paper)", border: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>Totalt</span>
+          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>Att betala</span>
           <span className="font-mono text-2xl font-semibold" style={{ color: "var(--forest)" }}>{formatKr(total)}</span>
         </div>
       </div>
@@ -807,46 +818,180 @@ function RegisterView({
         <div className="mt-4 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--destructive)", color: "var(--destructive)" }}>{error}</div>
       )}
 
-      <button onClick={onSubmit} disabled={submitting} className="btn-primary mt-6 w-full">
-        {submitting ? "Bearbetar…" : "Bekräfta försäljning"}
+      <button onClick={onSubmit} disabled={submitting} className="btn-primary mt-6 w-full !py-4 text-lg"
+        style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
+        {submitting ? "Planterar…" : `🌱 Plantera ${count} ${count === 1 ? "träd" : "träd"}`}
       </button>
-      <p className="mt-2 text-center text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>Betalning simuleras.</p>
+      <p className="mt-2 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>Värdebeviset skickas direkt till mottagaren.</p>
     </section>
   );
 }
 
+
+function Confetti() {
+  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced) return null;
+  const colors = ["#1e9e6a", "#3fc78b", "#9FD9B6", "#FBE3C0", "#F6B27A", "#C7EAD4"];
+  const pieces = Array.from({ length: 60 }, (_, i) => {
+    const left = Math.random() * 100;
+    const delay = Math.random() * 0.6;
+    const duration = 1.8 + Math.random() * 1.6;
+    const size = 6 + Math.random() * 8;
+    const rot = Math.random() * 360;
+    const color = colors[i % colors.length];
+    const drift = (Math.random() - 0.5) * 120;
+    return (
+      <span
+        key={i}
+        style={{
+          position: "absolute",
+          left: `${left}%`,
+          top: "-20px",
+          width: size,
+          height: size * 0.4,
+          background: color,
+          borderRadius: 2,
+          transform: `rotate(${rot}deg)`,
+          animation: `smaarty-confetti ${duration}s cubic-bezier(.2,.7,.4,1) ${delay}s forwards`,
+          // @ts-expect-error CSS var
+          "--drift": `${drift}px`,
+        }}
+      />
+    );
+  });
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">{pieces}</div>
+  );
+}
+
 function DoneView({
-  certificate, certRef, emailSent, resultEmail, onContinue,
+  certificate, certRef, emailSent, resultEmail, result, onContinue, onPlantMore,
 }: {
   certificate: CertificateData;
   certRef: React.RefObject<HTMLDivElement | null>;
   emailSent: boolean;
   resultEmail: string;
+  result: { trees: number; prevTotal: number; points: number };
   onContinue: () => void;
+  onPlantMore: () => void;
 }) {
+  const [showCert, setShowCert] = useState(false);
+  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const newTotal = result.prevTotal + result.trees;
+  const prevStage = getStage(result.prevTotal);
+  const newStage = getStage(newTotal);
+  const grewStage = newStage.idx > prevStage.idx;
+  const co2Kg = Math.round(result.trees * 20); // ~20 kg CO2 / träd / år
+
   return (
-    <div className="space-y-6">
-      <div className="surface-card p-8 text-center">
-        <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--gradient-mint)" }}>
-          <span className="font-display text-2xl" style={{ color: "var(--forest)" }}>✓</span>
+    <div className="relative space-y-6">
+      <section className="relative overflow-hidden surface-card p-8 text-center"
+        style={{ background: "var(--gradient-mint)" }}>
+        <Confetti />
+
+        <div className="relative">
+          <div className="flex justify-center">
+            <img
+              src={newStage.current.image}
+              alt={newStage.current.name}
+              className="h-48 w-48 select-none"
+              style={{
+                animation: reduced
+                  ? undefined
+                  : (grewStage
+                      ? "smaarty-grow 900ms cubic-bezier(.2,.9,.3,1.6)"
+                      : "smaarty-cheer 1200ms ease-in-out"),
+              }}
+            />
+          </div>
+
+          {grewStage && (
+            <div className="mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold"
+              style={{ background: "var(--primary)", color: "#fff" }}>
+              ✨ Din planta växte till {newStage.current.name}!
+            </div>
+          )}
+
+          <h1 className="mt-4 font-display text-3xl font-semibold" style={{ color: "var(--forest)" }}>
+            Du planterade {result.trees} {result.trees === 1 ? "träd" : "träd"}! 🌱
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: "var(--forest)" }}>
+            Smaarty hejar: <em>"Snyggt jobbat — din planta växer!"</em>
+          </p>
+
+          <div className="mx-auto mt-5 inline-flex items-center gap-4 rounded-2xl bg-white/80 px-5 py-3 shadow-sm">
+            <div className="text-left">
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Poäng</div>
+              <div className="font-mono text-2xl font-semibold" style={{ color: "var(--primary)" }}>
+                +<CountUp value={result.points} duration={900} />
+              </div>
+            </div>
+            <div className="h-8 w-px" style={{ background: "var(--border)" }} />
+            <div className="text-left">
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Träd totalt</div>
+              <div className="font-mono text-2xl font-semibold" style={{ color: "var(--forest)" }}>
+                <CountUp value={newTotal} duration={900} />
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-4 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            🌍 {result.trees} {result.trees === 1 ? "träd" : "träd"} ≈ {co2Kg.toLocaleString("sv-SE")} kg koldioxid per år.
+          </p>
         </div>
-        <h1 className="font-display text-3xl font-semibold">
-          Tack! {certificate.tree_count} träd registrerade
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-          {emailSent
-            ? <>Värdebeviset har skickats till <span className="font-mono">{resultEmail}</span>.</>
-            : <>Köpet är registrerat. Mailet kunde inte skickas just nu.</>}
-        </p>
+      </section>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button onClick={onPlantMore} className="btn-primary !py-4 text-lg"
+          style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
+          🌱 Plantera fler
+        </button>
+        <button onClick={onContinue} className="btn-secondary !py-4 text-lg">
+          ← Tillbaka till hemmet
+        </button>
       </div>
-      <div className="flex justify-center overflow-x-auto">
-        <Certificate ref={certRef} data={certificate} />
+
+      <div className="surface-card p-5 text-sm" style={{ color: "var(--muted-foreground)" }}>
+        {emailSent
+          ? <>Värdebeviset har skickats till <span className="font-mono" style={{ color: "var(--forest)" }}>{resultEmail}</span>.</>
+          : <>Köpet är registrerat. Mailet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={() => setShowCert((v) => !v)} className="btn-secondary !py-2 !px-3 text-xs">
+            {showCert ? "Dölj värdebevis" : "Visa värdebevis"}
+          </button>
+          <button onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)} className="btn-secondary !py-2 !px-3 text-xs">
+            Ladda ner PDF
+          </button>
+          <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary !py-2 !px-3 text-xs">
+            Öppna publik sida
+          </Link>
+        </div>
+        <div className={showCert ? "mt-4 flex justify-center overflow-x-auto" : "h-0 overflow-hidden"}>
+          <Certificate ref={certRef} data={certificate} />
+        </div>
       </div>
-      <div className="flex flex-wrap justify-center gap-3">
-        <button onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)} className="btn-primary">Ladda ner PDF</button>
-        <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary">Öppna publik sida</Link>
-        <button onClick={onContinue} className="btn-secondary">Tillbaka till hemmet</button>
-      </div>
+
+      <style>{`
+        @keyframes smaarty-confetti {
+          0%   { transform: translate(0,0) rotate(0deg); opacity: 1; }
+          100% { transform: translate(var(--drift,0), 110vh) rotate(720deg); opacity: 0.9; }
+        }
+        @keyframes smaarty-grow {
+          0%   { transform: scale(0.4); opacity: 0; }
+          60%  { transform: scale(1.15); opacity: 1; }
+          100% { transform: scale(1); }
+        }
+        @keyframes smaarty-cheer {
+          0%, 100% { transform: translateY(0) rotate(0); }
+          25%      { transform: translateY(-8px) rotate(-4deg); }
+          50%      { transform: translateY(0) rotate(0); }
+          75%      { transform: translateY(-6px) rotate(4deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes smaarty-confetti { from,to { opacity: 0; } }
+        }
+      `}</style>
     </div>
   );
 }
+
