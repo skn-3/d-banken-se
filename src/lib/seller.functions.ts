@@ -152,7 +152,12 @@ export const getSellerContext = createServerFn({ method: "POST" })
     });
 
 
-    const my = perUser[targetUserId] ?? { total: 0, week: 0, today: 0 };
+    const my = perUser[targetUserId] ?? { total: 0, week: 0, today: 0, weekend: 0 };
+    const todayWeekday = weekdayMonStockholm(now);
+    const isWeekendNow = todayWeekday === 6 || todayWeekday === 7;
+    const isoWeek = isoWeekStockholm(now);
+    const myTeamWeek = perTeam[team!.id]?.week ?? 0;
+
 
     const yesterday = ymdStockholm(new Date(now.getTime() - 86400000));
     let streak = 0;
