@@ -360,14 +360,17 @@ function SellerPage() {
                 : "Ditt konto är inte kopplat till något säljarteam. Kontakta administratören."}
             </p>
           </div>
-        ) : view === "done" && certificate ? (
+        ) : view === "done" && certificate && plantingResult ? (
           <DoneView
             certificate={certificate}
             certRef={certRef}
             emailSent={emailSent}
             resultEmail={resultEmail}
-            onContinue={() => { setCertificate(null); setName(""); setEmail(""); setCount(10); setView("home"); }}
+            result={plantingResult}
+            onContinue={() => { setCertificate(null); setPlantingResult(null); setName(""); setEmail(""); setCount(10); setView("home"); }}
+            onPlantMore={() => { setCertificate(null); setPlantingResult(null); setName(""); setEmail(""); setCount(10); setView("register"); }}
           />
+
         ) : view === "register" && !ctx.isPreview ? (
           <RegisterView
             count={count} setCount={setCount}
