@@ -466,7 +466,7 @@ function HomeView({
       <section>
         <Link
           to="/salj-hjalp"
-          search={previewId ? { as: previewId } : undefined}
+          search={ctx.isPreview && ctx.previewUserId ? { as: ctx.previewUserId } : { as: undefined }}
           className="surface-card flex items-center gap-4 p-5 transition hover:scale-[1.01] active:scale-[0.99]"
         >
           <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>
