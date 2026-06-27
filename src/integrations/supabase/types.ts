@@ -287,6 +287,94 @@ export type Database = {
           },
         ]
       }
+      reward_claims: {
+        Row: {
+          fulfilled_at: string | null
+          fulfilled_by: string | null
+          id: string
+          requested_at: string
+          reward_id: string
+          seller_user_id: string
+          status: string
+        }
+        Insert: {
+          fulfilled_at?: string | null
+          fulfilled_by?: string | null
+          id?: string
+          requested_at?: string
+          reward_id: string
+          seller_user_id: string
+          status?: string
+        }
+        Update: {
+          fulfilled_at?: string | null
+          fulfilled_by?: string | null
+          id?: string
+          requested_at?: string
+          reward_id?: string
+          seller_user_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_claims_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards: {
+        Row: {
+          active: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          team_id: string
+          threshold_trees: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          team_id: string
+          threshold_trees: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          team_id?: string
+          threshold_trees?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           created_at: string
