@@ -927,7 +927,7 @@ function DoneView({
       <div className="surface-card p-5 text-sm" style={{ color: "var(--muted-foreground)" }}>
         {emailSent
           ? <>Värdebeviset har skickats till <span className="font-mono" style={{ color: "var(--forest)" }}>{resultEmail}</span>.</>
-          : <>Köpet är registrerat. Mailet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
+          : <>Planteringen är registrerad. Mejlet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
         <div className="mt-3 flex flex-wrap gap-2">
           <button onClick={() => setShowCert((v) => !v)} className="btn-secondary !py-2 !px-3 text-xs">
             {showCert ? "Dölj värdebevis" : "Visa värdebevis"}
