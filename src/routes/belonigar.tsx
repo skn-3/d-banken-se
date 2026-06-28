@@ -216,7 +216,7 @@ function RewardsPage() {
             {/* Egna beställningar */}
             {orders.length > 0 && (
               <section className="surface-card mt-8 p-6">
-                <h2 className="font-display text-xl font-semibold">Dina köp</h2>
+                <h2 className="font-display text-xl font-semibold">Dina inlösen</h2>
                 <div className="mt-4 divide-y" style={{ borderColor: "var(--border)" }}>
                   {orders.map(o => {
                     const r = rewardById.get(o.reward_id);
