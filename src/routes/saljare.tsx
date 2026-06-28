@@ -261,6 +261,11 @@ function SellerPage() {
         if (!cancelled) setActiveEvent(ev.event);
         const uid = r.userId ?? r.previewUserId;
         if (uid && !cancelled) {
+          setRewardGoalState(getRewardGoal(uid));
+          try {
+            const rw = await rewardsFn({ data: { targetUserId: previewAs } });
+            if (!cancelled && rw.isSeller) setRewardBalance(rw.balance ?? 0);
+          } catch {/* ignore */}
           // Mark existing bonuses as seen on first load (no toast)
           try {
             const mr = await bonusesFn({ data: { targetUserId: previewAs } });
