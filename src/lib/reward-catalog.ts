@@ -86,7 +86,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 10,
     description: "Ett booster pack för dig som gillar att öppna nya kort och jaga favoriter.",
     sort_order: 310,
-    image_url: null,
+    image_url: pokemonBoosterAsset.url,
   },
   {
     name: "Labubu",
@@ -102,7 +102,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 65,
     description: "En större box för dig som vill bygga samlingen med stil.",
     sort_order: 330,
-    image_url: null,
+    image_url: pokemonTrainerBoxAsset.url,
   },
   {
     name: "Lego Mechanic",
@@ -118,7 +118,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 180,
     description: "Bärbar högtalare för musik i rummet, på gården eller på utflykten.",
     sort_order: 410,
-    image_url: null,
+    image_url: jblFlipAsset.url,
   },
   {
     name: "AirPods Pro 2",
@@ -150,7 +150,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 750,
     description: "Elsparkcykel för snabba turer och frihetskänsla i vardagen.",
     sort_order: 530,
-    image_url: null,
+    image_url: xiaomiScooterAsset.url,
   },
   {
     name: "Nintendo Switch 2",
@@ -158,7 +158,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 900,
     description: "Ny spelkonsol för både handhållet och hemma i soffan.",
     sort_order: 540,
-    image_url: null,
+    image_url: nintendoSwitch2Asset.url,
   },
   {
     name: "PlayStation 5",
@@ -166,7 +166,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 1000,
     description: "Ett riktigt drömpris för stora spelkvällar och nästa nivå hemma.",
     sort_order: 550,
-    image_url: null,
+    image_url: playstation5Asset.url,
   },
 ];
 
