@@ -29,11 +29,11 @@ const DAILY_GOAL = 3;
 
 // Plantans tillväxt
 const STAGES = [
-  { key: "skott", name: "Skott", min: 0, image: skottAsset.url },
-  { key: "planta", name: "Planta", min: 10, image: plantaAsset.url },
-  { key: "ungt", name: "Ungt träd", min: 25, image: ungtAsset.url },
-  { key: "stort", name: "Stort träd", min: 50, image: stortAsset.url },
-  { key: "fullvuxet", name: "Fullvuxet träd", min: 100, image: fullvuxetAsset.url },
+  { key: "skott", name: "Skott", min: 0, image: skottAsset.url, smaarty: "skott" as const },
+  { key: "planta", name: "Planta", min: 10, image: plantaAsset.url, smaarty: "planta" as const },
+  { key: "ungt", name: "Ungt träd", min: 25, image: ungtAsset.url, smaarty: "ungt" as const },
+  { key: "stort", name: "Stort träd", min: 50, image: stortAsset.url, smaarty: "stort" as const },
+  { key: "fullvuxet", name: "Fullvuxet träd", min: 100, image: fullvuxetAsset.url, smaarty: "full" as const },
 ] as const;
 
 const BADGE_DEFS = [
@@ -465,9 +465,7 @@ function HomeView({
       <section className="surface-card p-8 text-center" style={{ background: "var(--gradient-mint)" }}>
         <div className="flex justify-center">
           <ProgressRing value={stageProgress} max={stageSpan} size={260} stroke={16}>
-            <img src={stage.current.image} alt={stage.current.name}
-              className="smaarty-idle h-44 w-44 select-none"
-              style={{ background: "transparent", animation: "smaarty-pop 600ms cubic-bezier(.2,.9,.3,1.4), smaarty-idle 3800ms ease-in-out 700ms infinite" }} />
+            <Smaarty stage={stage.current.smaarty} size={180} />
           </ProgressRing>
         </div>
         <div className="mt-4 font-display text-xl font-semibold" style={{ color: "var(--forest)" }}>
