@@ -451,8 +451,10 @@
   background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
   transform: translateX(-180%) rotate(10deg);
   animation: glimmer 4.5s infinite;
+  animation-delay: var(--glimmer-delay, 0s);
   pointer-events: none;
 }
+
 @keyframes glimmer {
   0%, 78%, 100% { transform: translateX(-180%) rotate(10deg); }
   88%           { transform: translateX(190%) rotate(10deg); }
