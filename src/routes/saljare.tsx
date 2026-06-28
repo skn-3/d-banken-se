@@ -714,7 +714,7 @@ function HomeView({
             const earned = !!ctx.badges?.[b.key];
             return (
               <div key={b.key} className="flex flex-col items-center text-center" title={b.desc}>
-                <span className={`badge ${earned ? "unlocked" : ""}`} style={{ animationDelay: `${i * 0.5}s` }}>
+                <span className={`badge ${earned ? "unlocked" : ""}`} style={{ ["--glimmer-delay" as string]: `${i * 0.5}s` } as React.CSSProperties}>
                   <img src={b.img} alt={b.name}
                     className="h-16 w-16 block transition"
                     style={{ background: "transparent", filter: earned ? "none" : "grayscale(1)", opacity: earned ? 1 : 0.4 }} />
