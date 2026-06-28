@@ -466,8 +466,8 @@ function HomeView({
         <div className="flex justify-center">
           <ProgressRing value={stageProgress} max={stageSpan} size={260} stroke={16}>
             <img src={stage.current.image} alt={stage.current.name}
-              className="h-44 w-44 select-none"
-              style={{ animation: "smaarty-pop 600ms cubic-bezier(.2,.9,.3,1.4)" }} />
+              className="smaarty-idle h-44 w-44 select-none"
+              style={{ background: "transparent", animation: "smaarty-pop 600ms cubic-bezier(.2,.9,.3,1.4), smaarty-idle 3800ms ease-in-out 700ms infinite" }} />
           </ProgressRing>
         </div>
         <div className="mt-4 font-display text-xl font-semibold" style={{ color: "var(--forest)" }}>
@@ -681,7 +681,7 @@ function HomeView({
               <div key={b.key} className="flex flex-col items-center text-center" title={b.desc}>
                 <img src={b.img} alt={b.name}
                   className="h-16 w-16 transition"
-                  style={{ filter: earned ? "none" : "grayscale(1)", opacity: earned ? 1 : 0.4 }} />
+                  style={{ background: "transparent", filter: earned ? "none" : "grayscale(1)", opacity: earned ? 1 : 0.4 }} />
                 <div className="mt-1 text-[10px] font-medium leading-tight" style={{ color: earned ? "var(--forest)" : "var(--muted-foreground)" }}>{b.name}</div>
               </div>
             );
@@ -763,6 +763,15 @@ function HomeView({
           0% { transform: scale(0.85); opacity: 0; }
           60% { transform: scale(1.05); opacity: 1; }
           100% { transform: scale(1); }
+        }
+        @keyframes smaarty-idle {
+          0%   { transform: translateY(0) scale(1); }
+          50%  { transform: translateY(-4px) scale(1.03); }
+          100% { transform: translateY(0) scale(1); }
+        }
+        .smaarty-idle { will-change: transform; transform-origin: 50% 60%; }
+        @media (prefers-reduced-motion: reduce) {
+          .smaarty-idle { animation: none !important; transform: none !important; }
         }
       `}</style>
     </div>
@@ -867,13 +876,14 @@ function DoneView({
             <img
               src={newStage.current.image}
               alt={newStage.current.name}
-              className="h-48 w-48 select-none"
+              className="smaarty-idle h-48 w-48 select-none"
               style={{
+                background: "transparent",
                 animation: reduced
                   ? undefined
                   : (grewStage
-                      ? "smaarty-grow 900ms cubic-bezier(.2,.9,.3,1.6)"
-                      : "smaarty-cheer 1200ms ease-in-out"),
+                      ? "smaarty-grow 900ms cubic-bezier(.2,.9,.3,1.6), smaarty-idle 3800ms ease-in-out 1000ms infinite"
+                      : "smaarty-cheer 1200ms ease-in-out, smaarty-idle 3800ms ease-in-out 1300ms infinite"),
               }}
             />
           </div>
