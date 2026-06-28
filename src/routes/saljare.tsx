@@ -738,7 +738,7 @@ function HomeView({
               )}
               {nextBadge.kind === "special" && (
                 <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
-                  Sälj flest träd i ditt lag denna vecka för att vinna.
+                  Plantera flest träd i ditt lag denna vecka.
                 </div>
               )}
             </div>
