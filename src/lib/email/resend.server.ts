@@ -54,7 +54,7 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
         <tr><td style="background:linear-gradient(155deg,#EAF7EE 0%,#C7EAD4 100%);padding:36px 40px;text-align:center;">
           <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid #1E9E6A;color:#1E9E6A;font-weight:700;font-size:22px;">SK</div>
           <h1 style="margin:18px 0 6px;font-size:24px;font-weight:600;color:#0B3D2E;">Tack, ${escapeHtml(a.recipientName)}!</h1>
-          <p style="margin:0;font-size:14px;color:#385248;">Du har bidragit till plantering av riktiga träd.</p>
+          <p style="margin:0;font-size:14px;color:#385248;">Träden planteras tillsammans med WeForest.</p>
         </td></tr>
         <tr><td style="padding:32px 40px 8px;">
           <div style="text-align:center;font-family:'Menlo','Courier New',monospace;font-size:48px;font-weight:600;color:#1E9E6A;line-height:1;">${a.treeCount.toLocaleString("sv-SE")}</div>
