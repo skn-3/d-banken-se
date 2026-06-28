@@ -312,16 +312,20 @@ function RewardsCatalogTab() {
   if (loading) return <div className="surface-card mt-6 p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>;
 
   const grouped = rewards.reduce<Record<string, CatalogReward[]>>((acc, r) => {
-    (acc[r.category] ||= []).push(r); return acc;
+    (acc[r.category] ||= []).push(r);
+    return acc;
   }, {});
-  const categoryOrder = ["Småpriser", "Mellanpriser", "Storpriser", "Drömpriser"];
-  const categories = [...categoryOrder.filter(c => grouped[c]), ...Object.keys(grouped).filter(c => !categoryOrder.includes(c))];
+  const categories = [...REWARD_CATEGORY_ORDER.filter(c => grouped[c]), ...Object.keys(grouped).filter(c => !REWARD_CATEGORY_ORDER.includes(c as never))];
 
   const saveDraft = async () => {
     await createFn({ data: {
-      name: draft.name.trim(), description: draft.description || null,
-      costPoints: draft.cost_points, category: draft.category.trim() || "Övrigt",
-      imageUrl: draft.image_url, active: draft.active, sortOrder: draft.sort_order,
+      name: draft.name.trim(),
+      description: draft.description || null,
+      costPoints: draft.cost_points,
+      category: draft.category.trim() || "Övrigt",
+      imageUrl: draft.image_url,
+      active: draft.active,
+      sortOrder: draft.sort_order,
     }});
     setShowNew(false);
     setDraft({ id: "", name: "", description: "", cost_points: 10, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
@@ -330,11 +334,17 @@ function RewardsCatalogTab() {
 
   const saveEdit = async (r: CatalogReward) => {
     await updateFn({ data: {
-      id: r.id, name: r.name.trim(), description: r.description || null,
-      costPoints: r.cost_points, category: r.category.trim() || "Övrigt",
-      imageUrl: r.image_url, active: r.active, sortOrder: r.sort_order,
+      id: r.id,
+      name: r.name.trim(),
+      description: r.description || null,
+      costPoints: r.cost_points,
+      category: r.category.trim() || "Övrigt",
+      imageUrl: r.image_url,
+      active: r.active,
+      sortOrder: r.sort_order,
     }});
-    setEditing(null); await reload();
+    setEditing(null);
+    await reload();
   };
 
   return (
@@ -343,7 +353,7 @@ function RewardsCatalogTab() {
         <div>
           <h2 className="font-display text-xl font-semibold">Belöningskatalog</h2>
           <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
-            Global katalog — alla säljare ser samma belöningar. Köp dras från säljarens poäng (inte träd).
+            Global katalog — alla säljare ser samma belöningar. Admin kan fylla bildplatsen per produkt med kvadratisk PNG.
           </p>
         </div>
         <button className="btn-primary" onClick={() => setShowNew(true)}>+ Ny belöning</button>
@@ -354,12 +364,14 @@ function RewardsCatalogTab() {
           <div className="grid gap-3 sm:grid-cols-2">
             <input className="input-field" placeholder="Namn" value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} />
             <select className="input-field" value={draft.category} onChange={e => setDraft({ ...draft, category: e.target.value })}>
-              {categoryOrder.map(c => <option key={c} value={c}>{c}</option>)}
+              {REWARD_CATEGORY_ORDER.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <input className="input-field font-mono" type="number" min={0} placeholder="Kostnad i poäng"
               value={draft.cost_points} onChange={e => setDraft({ ...draft, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
             <input className="input-field font-mono" type="number" placeholder="Sortering"
               value={draft.sort_order} onChange={e => setDraft({ ...draft, sort_order: Number(e.target.value) || 0 })} />
+            <input className="input-field sm:col-span-2" placeholder="Bild-URL (valfri)"
+              value={draft.image_url ?? ""} onChange={e => setDraft({ ...draft, image_url: e.target.value || null })} />
             <textarea className="input-field sm:col-span-2" rows={2} placeholder="Beskrivning (valfri)"
               value={draft.description ?? ""} onChange={e => setDraft({ ...draft, description: e.target.value })} />
           </div>
@@ -374,40 +386,67 @@ function RewardsCatalogTab() {
         {categories.map(cat => (
           <div key={cat}>
             <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>{cat}</h3>
-            <div className="mt-2 divide-y" style={{ borderColor: "var(--border)" }}>
+            <div className="mt-3 divide-y" style={{ borderColor: "var(--border)" }}>
               {grouped[cat].map(r => (
                 <div key={r.id} className="py-3">
                   {editing?.id === r.id ? (
-                    <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_auto_auto]">
-                      <input className="input-field !py-1 !text-sm" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
-                      <select className="input-field !py-1 !text-sm" value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })}>
-                        {categoryOrder.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                      <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} value={editing.cost_points}
-                        onChange={e => setEditing({ ...editing, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
-                      <button className="btn-primary !py-1 !px-2 text-xs" onClick={() => saveEdit(editing)}>Spara</button>
-                      <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(null)}>Avbryt</button>
+                    <div className="grid gap-3 lg:grid-cols-[80px_2fr_1fr_140px]">
+                      <div className="admin-reward-thumb">
+                        {editing.image_url ? <img src={editing.image_url} alt={editing.name} /> : <ImageIcon size={20} />}
+                      </div>
+                      <div className="grid gap-2">
+                        <input className="input-field !py-1 !text-sm" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
+                        <input className="input-field !py-1 !text-sm" placeholder="Bild-URL"
+                          value={editing.image_url ?? ""} onChange={e => setEditing({ ...editing, image_url: e.target.value || null })} />
+                        <textarea className="input-field !py-1 !text-sm" rows={2}
+                          value={editing.description ?? ""} onChange={e => setEditing({ ...editing, description: e.target.value })} />
+                      </div>
+                      <div className="grid gap-2">
+                        <select className="input-field !py-1 !text-sm" value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })}>
+                          {REWARD_CATEGORY_ORDER.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} value={editing.cost_points}
+                          onChange={e => setEditing({ ...editing, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" value={editing.sort_order}
+                          onChange={e => setEditing({ ...editing, sort_order: Number(e.target.value) || 0 })} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button className="btn-primary !py-1 !px-2 text-xs" onClick={() => saveEdit(editing)}>Spara</button>
+                        <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(null)}>Avbryt</button>
+                      </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium">{r.name}</span>
-                          <span className="chip !py-0.5 !text-[10px] font-mono" style={{ background: "var(--mint)", color: "var(--forest)" }}>{r.cost_points} p</span>
-                          {!r.active && <span className="chip !py-0.5 !text-[10px]" style={{ background: "var(--muted)" }}>inaktiv</span>}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="admin-reward-thumb shrink-0">
+                          {r.image_url ? <img src={r.image_url} alt={r.name} /> : <ImageIcon size={20} />}
                         </div>
-                        {r.description && <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{r.description}</div>}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{r.name}</span>
+                            <span className="chip !py-0.5 !text-[10px] font-mono" style={{ background: "var(--mint)", color: "var(--forest)" }}>{r.cost_points} p</span>
+                            {!r.active && <span className="chip !py-0.5 !text-[10px]" style={{ background: "var(--muted)" }}>inaktiv</span>}
+                          </div>
+                          {r.description && <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{r.description}</div>}
+                          <div className="mt-1 text-[11px] font-mono" style={{ color: "var(--muted-foreground)" }}>
+                            {r.image_url ? "Bild kopplad" : "Platshållare visas tills bild laddas upp"}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(r)}>Redigera</button>
                         <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
                           await updateFn({ data: { id: r.id, name: r.name, description: r.description, costPoints: r.cost_points, category: r.category, imageUrl: r.image_url, active: !r.active, sortOrder: r.sort_order } });
                           await reload();
                         }}>{r.active ? "Inaktivera" : "Aktivera"}</button>
                         <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
-                          if (!confirm(`Ta bort belöningen "${r.name}"?`)) return;
-                          try { await deleteFn({ data: { id: r.id } }); await reload(); }
-                          catch (e) { alert((e as Error).message); }
+                          if (!confirm(`Ta bort belöningen \"${r.name}\"?`)) return;
+                          try {
+                            await deleteFn({ data: { id: r.id } });
+                            await reload();
+                          } catch (e) {
+                            alert((e as Error).message);
+                          }
                         }}>Ta bort</button>
                       </div>
                     </div>
@@ -422,6 +461,7 @@ function RewardsCatalogTab() {
     </section>
   );
 }
+
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
