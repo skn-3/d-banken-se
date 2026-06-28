@@ -165,7 +165,7 @@ function RewardsPage() {
           <div>
             <div className="font-display text-3xl font-semibold" style={{ color: "var(--forest)" }}>Belöningar</div>
             <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Köp belöningar med dina poäng. Köp påverkar inte plantan eller topplistan.
+              Lös in dina poäng mot belöningar. Det påverkar inte plantan eller topplistan.
             </div>
           </div>
           <Link to="/saljare" search={previewAs ? { as: previewAs } : { as: undefined }} className="btn-secondary !py-2 !px-3 text-sm">← Hem</Link>
