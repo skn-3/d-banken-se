@@ -710,18 +710,21 @@ function HomeView({
       <section className="surface-card p-6">
         <h2 className="font-display text-xl font-semibold">Dina märken</h2>
         <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-7">
-          {BADGE_DEFS.map((b) => {
+          {BADGE_DEFS.map((b, i) => {
             const earned = !!ctx.badges?.[b.key];
             return (
               <div key={b.key} className="flex flex-col items-center text-center" title={b.desc}>
-                <img src={b.img} alt={b.name}
-                  className="h-16 w-16 transition"
-                  style={{ background: "transparent", filter: earned ? "none" : "grayscale(1)", opacity: earned ? 1 : 0.4 }} />
+                <span className={`badge ${earned ? "unlocked" : ""}`} style={{ animationDelay: `${i * 0.5}s` }}>
+                  <img src={b.img} alt={b.name}
+                    className="h-16 w-16 block transition"
+                    style={{ background: "transparent", filter: earned ? "none" : "grayscale(1)", opacity: earned ? 1 : 0.4 }} />
+                </span>
                 <div className="mt-1 text-[10px] font-medium leading-tight" style={{ color: earned ? "var(--forest)" : "var(--muted-foreground)" }}>{b.name}</div>
               </div>
             );
           })}
         </div>
+
       </section>
 
       {/* Mål-påminnelse */}
