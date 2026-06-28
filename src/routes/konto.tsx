@@ -10,7 +10,7 @@ export const Route = createFileRoute("/konto")({
   head: () => ({
     meta: [
       { title: "Min trädbank — SmartKlimat" },
-      { name: "description", content: "Översikt över träd, köp och värdebevis kopplade till din e-post." },
+      { name: "description", content: "Översikt över träd, planteringar och värdebevis kopplade till din e-post." },
     ],
   }),
   component: KontoPage,
