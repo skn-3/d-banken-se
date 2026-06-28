@@ -577,8 +577,8 @@ function HomeView({
               <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Lagets veckomål</div>
               <div className="mt-1 font-display text-lg font-semibold">
                 {teamWeekTrees >= teamGoal
-                  ? <>Målet nått! 🎉 Alla i laget fick <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>
-                  : <>Sälj {teamGoal} träd tillsammans → alla får <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>}
+                  ? <>Målet nått. Alla i laget fick <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>
+                  : <>Plantera {teamGoal} träd tillsammans → alla får <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>}
               </div>
             </div>
             <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
@@ -590,7 +590,7 @@ function HomeView({
               style={{ width: `${Math.min(100, (teamWeekTrees / teamGoal) * 100)}%`, background: "var(--primary)" }} />
           </div>
           <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
-            Hela <strong>{ctx.team?.name}</strong> jobbar mot samma mål — peppa varandra!
+            Hela <strong>{ctx.team?.name}</strong> jobbar mot samma mål — peppa varandra.
           </div>
         </section>
       )}
