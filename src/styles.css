@@ -442,4 +442,63 @@
   .wizard-step-in-right, .wizard-step-in-left { animation: none !important; }
 }
 
+/* === Rewards & badges live effects === */
+
+/* 1) Glimmer on unlocked badges */
+.badge { position: relative; overflow: hidden; border-radius: 50%; display: inline-block; }
+.badge.unlocked::after {
+  content: ''; position: absolute; top: -25%; left: 0; width: 55%; height: 150%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
+  transform: translateX(-180%) rotate(10deg);
+  animation: glimmer 4.5s infinite;
+  pointer-events: none;
+}
+@keyframes glimmer {
+  0%, 78%, 100% { transform: translateX(-180%) rotate(10deg); }
+  88%           { transform: translateX(190%) rotate(10deg); }
+}
+
+/* 2) Calm shine across the rewards banner */
+.belon { position: relative; overflow: hidden; }
+.belon::after {
+  content: ''; position: absolute; top: 0; left: 0; width: 60%; height: 100%;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%);
+  transform: translateX(-140%);
+  animation: sweep 8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sweep {
+  0%   { transform: translateX(-140%); }
+  25%  { transform: translateX(240%); }
+  100% { transform: translateX(240%); }
+}
+
+/* 3) Conic ray border for affordable rewards */
+@property --ray { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.rw { position: relative; }
+.rw.afford { border-color: transparent; }
+.rw.afford::before {
+  content: ''; position: absolute; inset: -2px; border-radius: 20px; z-index: 0;
+  background: conic-gradient(from var(--ray), transparent 0deg 285deg, #3CB680 320deg, #EAFBF1 340deg, #1E9E6A 360deg);
+  animation: travel 3s linear infinite;
+  pointer-events: none;
+}
+.rw > * { position: relative; z-index: 1; }
+@keyframes travel { to { --ray: 360deg; } }
+
+/* 4) Expand details with progress bar */
+.detail { max-height: 0; overflow: hidden; transition: max-height .45s cubic-bezier(.25,1,.5,1); }
+.rw.open .detail { max-height: 220px; }
+.pfill { width: 0; transition: width .8s cubic-bezier(.25,1,.5,1) .1s; }
+.rw.open .pfill { width: var(--pct); }
+
+@media (prefers-reduced-motion: reduce) {
+  .badge.unlocked::after,
+  .belon::after,
+  .rw.afford::before { animation: none !important; display: none; }
+  .rw.afford { border: 1px solid #1E9E6A !important; }
+  .detail, .pfill { transition: none !important; }
+}
+
+
 
