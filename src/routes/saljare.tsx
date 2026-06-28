@@ -15,10 +15,14 @@ import plantaAsset from "@/assets/stages/planta.png.asset.json";
 import ungtAsset from "@/assets/stages/ungt-trad.png.asset.json";
 import stortAsset from "@/assets/stages/stort-trad.png.asset.json";
 import fullvuxetAsset from "@/assets/stages/fullvuxet-trad.png.asset.json";
+import forstaTradetAsset from "@/assets/badges/forsta-tradet.png.asset.json";
+import gronTummeAsset from "@/assets/badges/gron-tumme.png.asset.json";
+import skogshjalteAsset from "@/assets/badges/skogshjalte.png.asset.json";
+import skogsmastareAsset from "@/assets/badges/skogsmastare.png.asset.json";
+import veckansSaljareAsset from "@/assets/badges/veckans-saljare.png.asset.json";
+import eldsjalAsset from "@/assets/badges/eldsjal.png.asset.json";
 
 const WEEKEND_SPRINT_GOAL = 5;
-
-
 const PRICE_PER_TREE_ORE = 3500;
 const QUICK_PICKS = [5, 10, 25, 100];
 const DAILY_GOAL = 3;
@@ -32,16 +36,16 @@ const STAGES = [
   { key: "fullvuxet", name: "Fullvuxet träd", min: 100, image: fullvuxetAsset.url },
 ] as const;
 
-
 const BADGE_DEFS = [
-  { key: "forstaTradet", name: "Första trädet", desc: "Sälj ditt första träd", img: "/smaarty/badges/forsta-tradet.svg", threshold: 1, kind: "total" as const },
-  { key: "gronTumme", name: "Grön tumme", desc: "Sälj 10 träd", img: "/smaarty/badges/gron-tumme.svg", threshold: 10, kind: "total" as const },
-  { key: "skogshjalte", name: "Skogshjälte", desc: "Sälj 50 träd", img: "/smaarty/badges/skogshjalte.svg", threshold: 50, kind: "total" as const },
-  { key: "skogsmastare", name: "Skogsmästare", desc: "Sälj 100 träd", img: "/smaarty/badges/skogsmastare.svg", threshold: 100, kind: "total" as const },
-  { key: "veckansSaljare", name: "Veckans säljare", desc: "Flest sålda träd i ditt lag denna vecka", img: "/smaarty/badges/veckans-saljare.svg", threshold: 1, kind: "special" as const },
-  { key: "eldsjal", name: "Eldsjäl", desc: "Sälj flera dagar i rad (minst 3)", img: "/smaarty/badges/eldsjal.svg", threshold: 3, kind: "streak" as const },
-  { key: "lagmarke", name: "Lagmärke", desc: "Laget når 100 sålda träd tillsammans", img: "/smaarty/badges/lagmarke.svg", threshold: 100, kind: "team" as const },
+  { key: "forstaTradet", name: "Första trädet", desc: "Sälj ditt första träd", img: forstaTradetAsset.url, threshold: 1, kind: "total" as const },
+  { key: "gronTumme", name: "Grön tumme", desc: "Sälj 10 träd", img: gronTummeAsset.url, threshold: 10, kind: "total" as const },
+  { key: "skogshjalte", name: "Skogshjälte", desc: "Sälj 50 träd", img: skogshjalteAsset.url, threshold: 50, kind: "total" as const },
+  { key: "skogsmastare", name: "Skogsmästare", desc: "Sälj 100 träd", img: skogsmastareAsset.url, threshold: 100, kind: "total" as const },
+  { key: "veckansSaljare", name: "Veckans säljare", desc: "Flest sålda träd i ditt lag denna vecka", img: veckansSaljareAsset.url, threshold: 1, kind: "special" as const },
+  { key: "eldsjal", name: "Eldsjäl", desc: "Sälj flera dagar i rad (minst 3)", img: eldsjalAsset.url, threshold: 3, kind: "streak" as const },
+  { key: "lagmarke", name: "Lagmärke", desc: "Laget når 100 sålda träd tillsammans", img: skogshjalteAsset.url, threshold: 100, kind: "team" as const },
 ] as const;
+
 
 export const Route = createFileRoute("/saljare")({
   head: () => ({ meta: [{ title: "Smaarty — säljarvy" }] }),
