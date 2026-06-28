@@ -1,12 +1,18 @@
 import airpodsPro2Asset from "@/assets/rewards/airpods-pro-2.png.asset.json";
 import appleWatchAsset from "@/assets/rewards/apple-watch.png.asset.json";
 import fortniteVbucksAsset from "@/assets/rewards/fortnite-vbucks.png.asset.json";
+import jblFlipAsset from "@/assets/rewards/jbl-flip.png.asset.json";
 import labubuAsset from "@/assets/rewards/labubu.png.asset.json";
 import metaQuestAsset from "@/assets/rewards/meta-quest.png.asset.json";
 import netflixCardAsset from "@/assets/rewards/netflix-card.png.asset.json";
+import nintendoSwitch2Asset from "@/assets/rewards/nintendo-switch-2.png.asset.json";
+import playstation5Asset from "@/assets/rewards/playstation-5.png.asset.json";
+import pokemonBoosterAsset from "@/assets/rewards/pokemon-booster.png.asset.json";
+import pokemonTrainerBoxAsset from "@/assets/rewards/pokemon-trainer-box.png.asset.json";
 import robuxCardAsset from "@/assets/rewards/robux-card.png.asset.json";
 import spotifyCardAsset from "@/assets/rewards/spotify-card.png.asset.json";
 import steamCardAsset from "@/assets/rewards/steam-card.png.asset.json";
+import xiaomiScooterAsset from "@/assets/rewards/xiaomi-scooter.png.asset.json";
 
 export const REWARD_CATEGORY_ORDER = [
   "Småpriser",
