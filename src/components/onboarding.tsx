@@ -90,11 +90,15 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           style={{ animation: "smaarty-slide-in 320ms ease-out both" }}
         >
           <div
-            className="mb-6 grid h-40 w-40 place-items-center rounded-full text-7xl shadow-sm"
+            className="mb-6 grid h-40 w-40 place-items-center rounded-full text-7xl shadow-sm overflow-hidden"
             style={{ background: s.bg, animation: "smaarty-bounce 1.4s ease-in-out infinite" }}
             aria-hidden
           >
-            {s.emoji}
+            {s.image ? (
+              <img src={s.image} alt="" className="h-36 w-36 object-contain select-none" />
+            ) : (
+              s.emoji
+            )}
           </div>
           <h2 className="font-display text-2xl font-semibold leading-tight">{s.title}</h2>
           <p className="mt-3 text-base" style={{ color: "var(--muted-foreground)" }}>
