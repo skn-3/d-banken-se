@@ -1,12 +1,18 @@
 import airpodsPro2Asset from "@/assets/rewards/airpods-pro-2.png.asset.json";
 import appleWatchAsset from "@/assets/rewards/apple-watch.png.asset.json";
 import fortniteVbucksAsset from "@/assets/rewards/fortnite-vbucks.png.asset.json";
+import jblFlipAsset from "@/assets/rewards/jbl-flip.png.asset.json";
 import labubuAsset from "@/assets/rewards/labubu.png.asset.json";
 import metaQuestAsset from "@/assets/rewards/meta-quest.png.asset.json";
 import netflixCardAsset from "@/assets/rewards/netflix-card.png.asset.json";
+import nintendoSwitch2Asset from "@/assets/rewards/nintendo-switch-2.png.asset.json";
+import playstation5Asset from "@/assets/rewards/playstation-5.png.asset.json";
+import pokemonBoosterAsset from "@/assets/rewards/pokemon-booster.png.asset.json";
+import pokemonTrainerBoxAsset from "@/assets/rewards/pokemon-trainer-box.png.asset.json";
 import robuxCardAsset from "@/assets/rewards/robux-card.png.asset.json";
 import spotifyCardAsset from "@/assets/rewards/spotify-card.png.asset.json";
 import steamCardAsset from "@/assets/rewards/steam-card.png.asset.json";
+import xiaomiScooterAsset from "@/assets/rewards/xiaomi-scooter.png.asset.json";
 
 export const REWARD_CATEGORY_ORDER = [
   "Småpriser",
@@ -80,7 +86,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 10,
     description: "Ett booster pack för dig som gillar att öppna nya kort och jaga favoriter.",
     sort_order: 310,
-    image_url: null,
+    image_url: pokemonBoosterAsset.url,
   },
   {
     name: "Labubu",
@@ -96,7 +102,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 65,
     description: "En större box för dig som vill bygga samlingen med stil.",
     sort_order: 330,
-    image_url: null,
+    image_url: pokemonTrainerBoxAsset.url,
   },
   {
     name: "Lego Mechanic",
@@ -112,7 +118,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 180,
     description: "Bärbar högtalare för musik i rummet, på gården eller på utflykten.",
     sort_order: 410,
-    image_url: null,
+    image_url: jblFlipAsset.url,
   },
   {
     name: "AirPods Pro 2",
@@ -144,7 +150,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 750,
     description: "Elsparkcykel för snabba turer och frihetskänsla i vardagen.",
     sort_order: 530,
-    image_url: null,
+    image_url: xiaomiScooterAsset.url,
   },
   {
     name: "Nintendo Switch 2",
@@ -152,7 +158,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 900,
     description: "Ny spelkonsol för både handhållet och hemma i soffan.",
     sort_order: 540,
-    image_url: null,
+    image_url: nintendoSwitch2Asset.url,
   },
   {
     name: "PlayStation 5",
@@ -160,7 +166,7 @@ export const REWARD_SEEDS: RewardSeed[] = [
     cost_points: 1000,
     description: "Ett riktigt drömpris för stora spelkvällar och nästa nivå hemma.",
     sort_order: 550,
-    image_url: null,
+    image_url: playstation5Asset.url,
   },
 ];
 
