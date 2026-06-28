@@ -283,7 +283,20 @@ function SellerPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading, navigate, ctxFn, eventFn, bonusesFn, previewAs]);
+  }, [user, authLoading, navigate, ctxFn, eventFn, bonusesFn, rewardsFn, previewAs]);
+
+  // Listen for goal changes from rewards page
+  useEffect(() => {
+    const uid = ctx?.userId ?? ctx?.previewUserId;
+    if (!uid) return;
+    const handler = () => setRewardGoalState(getRewardGoal(uid));
+    window.addEventListener("smaarty:reward-goal-changed", handler);
+    window.addEventListener("storage", handler);
+    return () => {
+      window.removeEventListener("smaarty:reward-goal-changed", handler);
+      window.removeEventListener("storage", handler);
+    };
+  }, [ctx?.userId, ctx?.previewUserId]);
 
   // First-login onboarding (only for real seller, not preview)
   useEffect(() => {
