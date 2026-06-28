@@ -37,13 +37,13 @@ const STAGES = [
 ] as const;
 
 const BADGE_DEFS = [
-  { key: "forstaTradet", name: "Första trädet", desc: "Sälj ditt första träd", img: forstaTradetAsset.url, threshold: 1, kind: "total" as const },
-  { key: "gronTumme", name: "Grön tumme", desc: "Sälj 10 träd", img: gronTummeAsset.url, threshold: 10, kind: "total" as const },
-  { key: "skogshjalte", name: "Skogshjälte", desc: "Sälj 50 träd", img: skogshjalteAsset.url, threshold: 50, kind: "total" as const },
-  { key: "skogsmastare", name: "Skogsmästare", desc: "Sälj 100 träd", img: skogsmastareAsset.url, threshold: 100, kind: "total" as const },
-  { key: "veckansSaljare", name: "Veckans säljare", desc: "Flest sålda träd i ditt lag denna vecka", img: veckansSaljareAsset.url, threshold: 1, kind: "special" as const },
-  { key: "eldsjal", name: "Eldsjäl", desc: "Sälj flera dagar i rad (minst 3)", img: eldsjalAsset.url, threshold: 3, kind: "streak" as const },
-  { key: "lagmarke", name: "Lagmärke", desc: "Laget når 100 sålda träd tillsammans", img: skogshjalteAsset.url, threshold: 100, kind: "team" as const },
+  { key: "forstaTradet", name: "Första trädet", desc: "Plantera ditt första träd", img: forstaTradetAsset.url, threshold: 1, kind: "total" as const },
+  { key: "gronTumme", name: "Grön tumme", desc: "Plantera 10 träd", img: gronTummeAsset.url, threshold: 10, kind: "total" as const },
+  { key: "skogshjalte", name: "Skogshjälte", desc: "Plantera 50 träd", img: skogshjalteAsset.url, threshold: 50, kind: "total" as const },
+  { key: "skogsmastare", name: "Skogsmästare", desc: "Plantera 100 träd", img: skogsmastareAsset.url, threshold: 100, kind: "total" as const },
+  { key: "veckansSaljare", name: "Veckans hjälte", desc: "Flest planterade träd i ditt lag denna vecka", img: veckansSaljareAsset.url, threshold: 1, kind: "special" as const },
+  { key: "eldsjal", name: "Eldsjäl", desc: "Plantera flera dagar i rad (minst 3)", img: eldsjalAsset.url, threshold: 3, kind: "streak" as const },
+  { key: "lagmarke", name: "Lagmärke", desc: "Laget når 100 planterade träd tillsammans", img: skogshjalteAsset.url, threshold: 100, kind: "team" as const },
 ] as const;
 
 
