@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import mascotAsset from "@/assets/mascot.png.asset.json";
 
 export const ONBOARDING_KEY = (uid: string) => `smaarty:onboarded:${uid}`;
 
@@ -30,16 +31,17 @@ type Slide = {
   bg: string;
   title: string;
   text: string;
+  image?: string;
 };
 
 const SLIDES: Slide[] = [
-  { emoji: "🌱", bg: "var(--mint)", title: "Välkommen till Smaarty! 🌱", text: "Här säljer du träd för din klass — och varje träd planteras på riktigt." },
+  { emoji: "🌱", image: mascotAsset.url, bg: "var(--mint)", title: "Välkommen till Smaarty! 🌱", text: "Här säljer du träd för din klass — och varje träd planteras på riktigt." },
   { emoji: "🌳", bg: "var(--sage, #cfe7d6)", title: "Din planta växer", text: "Ju fler träd du säljer, desto mer växer din planta. Från litet skott till stort träd — du bestämmer hur långt den når!" },
   { emoji: "✍️", bg: "var(--apricot, #ffd9b3)", title: "Sålt ett träd? Registrera det!", text: "Varje gång du säljer ett träd registrerar du det i appen. Då räknas det direkt — för dig och för din klass." },
   { emoji: "🏆", bg: "var(--mint)", title: "Samla märken & klättra tillsammans", text: "Lås upp märken när du når mål, och klättra på veckans topplista med din klass. Tillsammans planterar ni en hel skog!" },
   { emoji: "🎁", bg: "var(--apricot, #ffd9b3)", title: "Samla poäng, få belöningar", text: "För varje träd du säljer får du poäng. Spara dem och byt mot belöningar i butiken." },
   { emoji: "📘", bg: "var(--sage, #cfe7d6)", title: "Behöver du hjälp att sälja?", text: "Under Sälj-hjälp finns en guide som visar hur du gör — och material du kan visa kunden." },
-  { emoji: "🌳", bg: "var(--mint)", title: "Redo? Nu kör vi! 🌳", text: "Din skog väntar på dig." },
+  { emoji: "🌳", image: mascotAsset.url, bg: "var(--mint)", title: "Redo? Nu kör vi! 🌳", text: "Din skog väntar på dig." },
 ];
 
 export function Onboarding({ onClose }: { onClose: () => void }) {
