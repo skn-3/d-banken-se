@@ -56,9 +56,9 @@ function SaljHjalpPage() {
 
         {view === "home" && (
           <>
-            <h1 className="font-display text-3xl font-semibold">Sälj-hjälp 🌱</h1>
+            <h1 className="font-display text-3xl font-semibold">Sälj-hjälp</h1>
             <p className="mt-2" style={{ color: "var(--muted-foreground)" }}>
-              Här får du hjälp att sälja träd — och något fint att visa kunden.
+              Här får du hjälp när du pratar med kunden — och något fint att visa.
             </p>
 
             <div className="mt-6 grid gap-4">
@@ -68,7 +68,7 @@ function SaljHjalpPage() {
               >
                 <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>📘</div>
                 <div className="flex-1">
-                  <div className="font-display text-lg font-semibold">Så säljer du ett träd</div>
+                  <div className="font-display text-lg font-semibold">Så pratar du med kunden</div>
                   <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Fem enkla steg + tips</div>
                 </div>
                 <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
@@ -81,7 +81,7 @@ function SaljHjalpPage() {
                 <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--apricot, #ffd9b3)" }}>🌳</div>
                 <div className="flex-1">
                   <div className="font-display text-lg font-semibold">Visa kunden</div>
-                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Snyggt material att vända mot köparen</div>
+                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Snyggt material att vända mot kunden</div>
                 </div>
                 <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
               </button>
