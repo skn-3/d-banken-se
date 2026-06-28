@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { getSellerRewards, purchaseSellerReward } from "@/lib/rewards.functions";
 import { getActiveEvent, type ActiveEvent } from "@/lib/events.functions";
 import { EventBanner } from "@/components/event-banner";
+import { rewardEmoji, getRewardGoal, setRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 
 export const Route = createFileRoute("/belonigar")({
   head: () => ({ meta: [{ title: "Belöningar — Smaarty" }] }),
