@@ -214,11 +214,12 @@ function RewardsPage() {
             />
 
             {/* Saldo */}
-            <section className="surface-card mb-6 p-6 text-center" style={{ background: "var(--gradient-mint)" }}>
+            <section className="surface-card belon mb-6 p-6 text-center" style={{ background: "var(--gradient-mint)" }}>
               <div className="text-xs uppercase tracking-wider" style={{ color: "var(--forest)" }}>Ditt saldo</div>
               <div className="mt-2 font-mono text-5xl font-semibold" style={{ color: "var(--forest)" }}>{balance}</div>
               <div className="mt-1 text-sm" style={{ color: "var(--forest)" }}>poäng att handla för</div>
             </section>
+
 
             {/* Katalog */}
             {rewards.length === 0 ? (
