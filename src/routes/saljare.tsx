@@ -10,6 +10,11 @@ import { getActiveEvent, getSellerBonuses, type ActiveEvent, type SellerBonus } 
 import { EventBanner } from "@/components/event-banner";
 import { Onboarding, hasSeenOnboarding, markOnboardingSeen } from "@/components/onboarding";
 import { PlantingForm } from "@/components/planting-form";
+import skottAsset from "@/assets/stages/skott.png.asset.json";
+import plantaAsset from "@/assets/stages/planta.png.asset.json";
+import ungtAsset from "@/assets/stages/ungt-trad.png.asset.json";
+import stortAsset from "@/assets/stages/stort-trad.png.asset.json";
+import fullvuxetAsset from "@/assets/stages/fullvuxet-trad.png.asset.json";
 
 const WEEKEND_SPRINT_GOAL = 5;
 
@@ -20,12 +25,13 @@ const DAILY_GOAL = 3;
 
 // Plantans tillväxt
 const STAGES = [
-  { key: "skott", name: "Skott", min: 0, image: "/smaarty/stages/skott.svg" },
-  { key: "planta", name: "Planta", min: 10, image: "/smaarty/stages/planta.svg" },
-  { key: "ungt", name: "Ungt träd", min: 25, image: "/smaarty/stages/ungt-trad.svg" },
-  { key: "stort", name: "Stort träd", min: 50, image: "/smaarty/stages/stort-trad.svg" },
-  { key: "fullvuxet", name: "Fullvuxet träd", min: 100, image: "/smaarty/stages/fullvuxet-trad.svg" },
+  { key: "skott", name: "Skott", min: 0, image: skottAsset.url },
+  { key: "planta", name: "Planta", min: 10, image: plantaAsset.url },
+  { key: "ungt", name: "Ungt träd", min: 25, image: ungtAsset.url },
+  { key: "stort", name: "Stort träd", min: 50, image: stortAsset.url },
+  { key: "fullvuxet", name: "Fullvuxet träd", min: 100, image: fullvuxetAsset.url },
 ] as const;
+
 
 const BADGE_DEFS = [
   { key: "forstaTradet", name: "Första trädet", desc: "Sälj ditt första träd", img: "/smaarty/badges/forsta-tradet.svg", threshold: 1, kind: "total" as const },
