@@ -28,7 +28,7 @@ export function PlantingForm({
   count, setCount, name, setName, email, setEmail,
   error, submitting, onSubmit, topRight, footer,
   title = "Plantera träd",
-  intro = "Välj hur många träd du vill plantera och vem de planteras för. Personen får ett värdebevis på mejlen — inget konto behövs.",
+  intro = "Välj antal träd och vem de planteras för. Personen får sitt värdebevis på mejlen — inget konto behövs.",
 }: PlantingFormProps) {
   const [bump, setBump] = useState(0);
   const co2 = count * CO2_PER_TREE_KG;
