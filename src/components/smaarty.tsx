@@ -1,6 +1,16 @@
 import { useId } from "react";
 
-export function Smaarty({ size = 96, className = "" }: { size?: number; className?: string }) {
+export type SmaartyStage = "skott" | "planta" | "ungt" | "stort" | "full";
+
+export function Smaarty({
+  size = 96,
+  className = "",
+  stage = "skott",
+}: {
+  size?: number;
+  className?: string;
+  stage?: SmaartyStage;
+}) {
   const uid = useId().replace(/[:]/g, "");
   const bodyId = `smBody-${uid}`;
   const leafId = `smLeaf-${uid}`;
@@ -8,7 +18,7 @@ export function Smaarty({ size = 96, className = "" }: { size?: number; classNam
 
   return (
     <div className={`smaarty-float inline-block ${className}`} style={{ width: size, height: size }}>
-      <svg className="smaarty" viewBox="0 0 220 230" fill="none" aria-hidden="true" width="100%" height="100%">
+      <svg className="smaarty" viewBox="0 -15 220 245" fill="none" aria-hidden="true" width="100%" height="100%">
         <defs>
           <radialGradient id={bodyId} cx="40%" cy="32%" r="74%">
             <stop offset="0%" stopColor="#93D6B0" />
@@ -30,11 +40,52 @@ export function Smaarty({ size = 96, className = "" }: { size?: number; classNam
         <ellipse cx="110" cy="142" rx="61" ry="57" fill={`url(#${bodyId})`} />
         <path d="M55 158 A61 57 0 0 0 165 158 A61 57 0 0 1 55 158Z" fill="#2A8351" opacity=".22" />
         <ellipse cx="86" cy="114" rx="25" ry="16" fill="#fff" opacity=".22" />
-        <path d="M110 90 C110 74 110 64 110 56" stroke="#2E8B57" strokeWidth="6.5" strokeLinecap="round" />
-        <path d="M110 70 C100 57 83 57 73 66 C81 81 101 80 110 70Z" fill={`url(#${leafId})`} />
-        <path d="M110 70 C120 57 137 57 147 66 C139 81 119 80 110 70Z" fill={`url(#${leafId})`} />
-        <path d="M110 70 C108 64 106 60 102 57" stroke="#2E8B57" strokeWidth="1.4" strokeLinecap="round" opacity=".5" />
-        <path d="M110 70 C112 64 114 60 118 57" stroke="#2E8B57" strokeWidth="1.4" strokeLinecap="round" opacity=".5" />
+
+        {stage === "skott" && (
+          <g key="skott" className="smaarty-grow">
+            <path d="M110 90 C110 74 110 64 110 56" stroke="#2E8B57" strokeWidth="6.5" strokeLinecap="round" />
+            <path d="M110 70 C100 57 83 57 73 66 C81 81 101 80 110 70Z" fill={`url(#${leafId})`} />
+            <path d="M110 70 C120 57 137 57 147 66 C139 81 119 80 110 70Z" fill={`url(#${leafId})`} />
+          </g>
+        )}
+        {stage === "planta" && (
+          <g key="planta" className="smaarty-grow">
+            <path d="M110 92 C110 72 110 58 110 46" stroke="#2E8B57" strokeWidth="6.5" strokeLinecap="round" />
+            <path d="M110 74 C98 62 80 63 70 72 C79 86 100 84 110 74Z" fill={`url(#${leafId})`} />
+            <path d="M110 74 C122 62 140 63 150 72 C141 86 120 84 110 74Z" fill={`url(#${leafId})`} />
+            <path d="M110 60 C101 49 86 48 77 54 C84 67 101 67 110 60Z" fill={`url(#${leafId})`} />
+            <path d="M110 56 C119 45 134 44 143 50 C136 63 119 65 110 56Z" fill={`url(#${leafId})`} />
+          </g>
+        )}
+        {stage === "ungt" && (
+          <g key="ungt" className="smaarty-grow">
+            <path d="M110 92 L110 64" stroke="#6B4A2B" strokeWidth="7" strokeLinecap="round" />
+            <circle cx="110" cy="52" r="27" fill="#2E8B57" />
+            <circle cx="93" cy="58" r="18" fill="#3CB680" />
+            <circle cx="127" cy="56" r="18" fill="#1E9E6A" />
+            <circle cx="110" cy="42" r="18" fill="#4FB07E" />
+          </g>
+        )}
+        {stage === "stort" && (
+          <g key="stort" className="smaarty-grow">
+            <path d="M110 94 L110 56" stroke="#6B4A2B" strokeWidth="8" strokeLinecap="round" />
+            <circle cx="110" cy="44" r="35" fill="#2E8B57" />
+            <circle cx="83" cy="52" r="24" fill="#3CB680" />
+            <circle cx="137" cy="50" r="24" fill="#1E9E6A" />
+            <circle cx="110" cy="28" r="24" fill="#4FB07E" />
+          </g>
+        )}
+        {stage === "full" && (
+          <g key="full" className="smaarty-grow">
+            <path d="M110 96 L110 52" stroke="#6B4A2B" strokeWidth="9" strokeLinecap="round" />
+            <circle cx="110" cy="36" r="43" fill="#2E8B57" />
+            <circle cx="76" cy="48" r="28" fill="#3CB680" />
+            <circle cx="144" cy="46" r="28" fill="#1E9E6A" />
+            <circle cx="110" cy="16" r="28" fill="#4FB07E" />
+            <circle cx="92" cy="30" r="18" fill="#5BC288" />
+          </g>
+        )}
+
         <ellipse cx="80" cy="152" rx="12" ry="7.5" fill="#F4A86A" opacity=".68" />
         <ellipse cx="140" cy="152" rx="12" ry="7.5" fill="#F4A86A" opacity=".68" />
         <g className="smaarty-eye">
