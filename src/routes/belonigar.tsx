@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
+import { Gift, Image as ImageIcon, Sparkles, Target } from "lucide-react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { useAuth } from "@/hooks/use-auth";
 import { getSellerRewards, purchaseSellerReward } from "@/lib/rewards.functions";
 import { getActiveEvent, type ActiveEvent } from "@/lib/events.functions";
 import { EventBanner } from "@/components/event-banner";
 import { rewardEmoji, getRewardGoal, setRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
+import { REWARD_CATEGORY_EMOJI, REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
 
 export const Route = createFileRoute("/belonigar")({
   head: () => ({ meta: [{ title: "Belöningar — Smaarty" }] }),
@@ -44,11 +46,6 @@ type Ctx = {
   orders?: OrderRow[];
 };
 
-const CATEGORY_ORDER = ["Småpriser", "Mellanpriser", "Storpriser", "Drömpriser"];
-const CATEGORY_EMOJI: Record<string, string> = {
-  Småpriser: "🍬", Mellanpriser: "🎬", Storpriser: "🎧", Drömpriser: "✨",
-};
-
 function Confetti({ show }: { show: boolean }) {
   if (!show) return null;
   const pieces = Array.from({ length: 28 });
@@ -63,16 +60,51 @@ function Confetti({ show }: { show: boolean }) {
         const color = colors[i % colors.length];
         const rot = Math.random() * 360;
         return (
-          <span key={i}
+          <span
+            key={i}
             style={{
-              position: "absolute", left: `${left}%`, top: "-20px",
-              width: size, height: size, background: color, borderRadius: 2,
+              position: "absolute",
+              left: `${left}%`,
+              top: "-20px",
+              width: size,
+              height: size,
+              background: color,
+              borderRadius: 2,
               transform: `rotate(${rot}deg)`,
               animation: `smaarty-confetti ${dur}s cubic-bezier(.2,.7,.4,1) ${delay}s forwards`,
-            }} />
+            }}
+          />
         );
       })}
       <style>{`@keyframes smaarty-confetti { to { transform: translateY(110vh) rotate(720deg); opacity: 0.3; } }`}</style>
+    </div>
+  );
+}
+
+function RewardArtwork({ reward, canAfford }: { reward: RewardRow; canAfford: boolean }) {
+  const fallback = rewardEmoji(reward.name, reward.category);
+
+  return (
+    <div className="reward-art-frame">
+      <div className={`reward-art-glow ${canAfford ? "is-afford" : ""}`} aria-hidden />
+      <div className="reward-art-shell">
+        {reward.image_url ? (
+          <img
+            src={reward.image_url}
+            alt={reward.name}
+            className="reward-art-image"
+            loading="lazy"
+          />
+        ) : (
+          <div className="reward-art-placeholder">
+            <div className="reward-art-placeholder-icon" aria-hidden>
+              <ImageIcon size={22} />
+            </div>
+            <div className="reward-art-placeholder-emoji" aria-hidden>{fallback}</div>
+            <div className="reward-art-placeholder-text">Bild kommer snart</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -116,7 +148,9 @@ function RewardsPage() {
         if (!cancelled) setCtx(r);
         const ev = await eventFn({ data: {} });
         if (!cancelled) setActiveEvent(ev.event);
-      } finally { if (!cancelled) setLoading(false); }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, [user, authLoading, navigate, ctxFn, eventFn, previewAs]);
@@ -133,7 +167,9 @@ function RewardsPage() {
     } catch (e) {
       setToast((e as Error).message);
       setTimeout(() => setToast(null), 4500);
-    } finally { setBusyId(null); }
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const toggleGoal = (r: RewardRow) => {
@@ -156,17 +192,21 @@ function RewardsPage() {
   const grouped = useMemo(() => {
     const acc: Record<string, RewardRow[]> = {};
     for (const r of rewards) (acc[r.category] ||= []).push(r);
-    for (const k of Object.keys(acc)) acc[k].sort((a, b) => a.cost_points - b.cost_points);
+    for (const k of Object.keys(acc)) acc[k].sort((a, b) => a.cost_points - b.cost_points || a.sort_order - b.sort_order);
     return acc;
   }, [rewards]);
-  const categories = [...CATEGORY_ORDER.filter(c => grouped[c]?.length), ...Object.keys(grouped).filter(c => !CATEGORY_ORDER.includes(c))];
+
+  const categories = [
+    ...REWARD_CATEGORY_ORDER.filter(c => grouped[c]?.length),
+    ...Object.keys(grouped).filter(c => !REWARD_CATEGORY_ORDER.includes(c as never)),
+  ];
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
       <Blobs />
       <SiteHeader />
       <Confetti show={confetti} />
-      <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-24 pt-4">
+      <main className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-24 pt-4">
         {ctx?.isPreview && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 shadow-sm"
             style={{ borderColor: "var(--primary)", background: "rgba(30,158,106,0.08)" }}>
@@ -175,20 +215,20 @@ function RewardsPage() {
               <span style={{ color: "var(--forest)" }}>{ctx.previewName ?? "Säljare"}</span>
               <span className="ml-2 text-xs" style={{ color: "var(--muted-foreground)" }}>(read-only)</span>
             </div>
-            <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => navigate({ to: "/admin" })}>← Tillbaka till admin</button>
+            <button className="btn-secondary !px-3 !py-1 text-xs" onClick={() => navigate({ to: "/admin" })}>← Tillbaka till admin</button>
           </div>
         )}
 
         <EventBanner event={activeEvent} />
 
-        <header className="mb-6 flex items-center justify-between">
+        <header className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <div className="font-display text-3xl font-semibold" style={{ color: "var(--forest)" }}>Belöningar</div>
+            <h1 className="font-display text-3xl font-semibold" style={{ color: "var(--forest)" }}>Belöningar</h1>
             <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>
               Lös in dina poäng mot belöningar. Det påverkar inte plantan eller topplistan.
             </div>
           </div>
-          <Link to="/saljare" search={previewAs ? { as: previewAs } : { as: undefined }} className="btn-secondary !py-2 !px-3 text-sm">← Hem</Link>
+          <Link to="/saljare" search={previewAs ? { as: previewAs } : { as: undefined }} className="btn-secondary !px-3 !py-2 text-sm whitespace-nowrap">← Hem</Link>
         </header>
 
         {loading ? (
@@ -202,44 +242,53 @@ function RewardsPage() {
           </div>
         ) : (
           <>
-            {/* Måltavla */}
-            <GoalCard goal={goal} balance={balance}
+            <GoalCard
+              goal={goal}
+              balance={balance}
               onRedeem={() => {
                 if (!goal) return;
                 const r = rewardById.get(goal.rewardId);
                 if (r) handleBuy(r);
               }}
-              onClear={() => { if (goalUid) { setRewardGoal(goalUid, null); setGoalState(null); } }}
+              onClear={() => {
+                if (goalUid) {
+                  setRewardGoal(goalUid, null);
+                  setGoalState(null);
+                }
+              }}
               busy={!!goal && busyId === goal.rewardId}
             />
 
-            {/* Saldo */}
-            <section className="surface-card belon mb-6 p-6 text-center" style={{ background: "var(--gradient-mint)" }}>
+            <section className="surface-card belon mb-8 p-6 text-center" style={{ background: "var(--gradient-mint)" }}>
               <div className="text-xs uppercase tracking-wider" style={{ color: "var(--forest)" }}>Ditt saldo</div>
               <div className="mt-2 font-mono text-5xl font-semibold" style={{ color: "var(--forest)" }}>{balance}</div>
               <div className="mt-1 text-sm" style={{ color: "var(--forest)" }}>poäng att handla för</div>
             </section>
 
-
-            {/* Katalog */}
             {rewards.length === 0 ? (
               <div className="surface-card p-10 text-center">
                 <div className="text-4xl">🎁</div>
                 <h2 className="mt-3 font-display text-xl">Inga belöningar ännu</h2>
               </div>
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-10">
                 {categories.map(cat => (
                   <section key={cat}>
-                    <h2 className="mb-3 flex items-center gap-2 font-display text-xl font-semibold" style={{ color: "var(--forest)" }}>
-                      <span>{CATEGORY_EMOJI[cat] ?? "🎁"}</span> {cat}
+                    <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-semibold" style={{ color: "var(--forest)" }}>
+                      <span>{REWARD_CATEGORY_EMOJI[cat] ?? "🎁"}</span> {cat}
                     </h2>
-                    <div className="grid gap-3">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       {grouped[cat].map(r => (
-                        <RewardCard key={r.id} reward={r} balance={balance} busy={busyId === r.id}
-                          readOnly={false} onBuy={() => handleBuy(r)}
+                        <RewardCard
+                          key={r.id}
+                          reward={r}
+                          balance={balance}
+                          busy={busyId === r.id}
+                          readOnly={false}
+                          onBuy={() => handleBuy(r)}
                           isGoal={goal?.rewardId === r.id}
-                          onToggleGoal={() => toggleGoal(r)} />
+                          onToggleGoal={() => toggleGoal(r)}
+                        />
                       ))}
                     </div>
                   </section>
@@ -247,8 +296,6 @@ function RewardsPage() {
               </div>
             )}
 
-
-            {/* Egna beställningar */}
             {orders.length > 0 && (
               <section className="surface-card mt-8 p-6">
                 <h2 className="font-display text-xl font-semibold">Dina inlösen</h2>
@@ -264,7 +311,7 @@ function RewardsPage() {
                           </div>
                         </div>
                         <span className="chip !py-0.5 !text-[10px]"
-                          style={{ background: o.status === "uppfylld" ? "var(--forest)" : "var(--apricot, #fbe3c0)", color: o.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
+                          style={{ background: o.status === "uppfylld" ? "var(--forest)" : "var(--apricot)", color: o.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
                           {o.status === "uppfylld" ? "Uppfylld ✓" : "Väntar på lärare"}
                         </span>
                       </div>
@@ -292,12 +339,16 @@ function RewardsPage() {
 }
 
 function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGoal }: {
-  reward: RewardRow; balance: number; busy: boolean; readOnly: boolean;
-  onBuy: () => void; isGoal?: boolean; onToggleGoal?: () => void;
+  reward: RewardRow;
+  balance: number;
+  busy: boolean;
+  readOnly: boolean;
+  onBuy: () => void;
+  isGoal?: boolean;
+  onToggleGoal?: () => void;
 }) {
   const canAfford = balance >= reward.cost_points;
   const missing = Math.max(0, reward.cost_points - balance);
-  const emoji = rewardEmoji(reward.name, reward.category);
   const pct = Math.max(0, Math.min(100, (balance / Math.max(1, reward.cost_points)) * 100));
   const [open, setOpen] = useState(false);
 
@@ -305,60 +356,65 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
 
   return (
     <article
-      className={`surface-card rw p-4 cursor-pointer ${canAfford ? "afford" : ""} ${open ? "open" : ""}`}
+      className={`surface-card rw reward-card cursor-pointer p-4 ${canAfford ? "afford" : ""} ${open ? "open" : ""}`}
       onClick={() => setOpen(o => !o)}
       style={{
-        background: canAfford ? "var(--card)" : "var(--mint-paper)",
-        opacity: canAfford ? 1 : 0.9,
+        background: canAfford ? "var(--card)" : "linear-gradient(180deg, var(--card) 0%, var(--mint-paper) 100%)",
+        opacity: canAfford ? 1 : 0.96,
         outline: isGoal ? "2px solid var(--primary)" : undefined,
         ["--pct" as string]: `${pct}%`,
-      } as React.CSSProperties}>
-      <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl"
-          style={{ background: canAfford ? "var(--mint)" : "rgba(0,0,0,0.04)" }}>
-          <span aria-hidden>{emoji}</span>
-        </div>
+      } as React.CSSProperties}
+    >
+      <RewardArtwork reward={reward} canAfford={canAfford} />
+
+      <div className="mt-4 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="font-medium" style={{ color: "var(--forest)" }}>{reward.name}</div>
-          {onToggleGoal && (
-            <button
-              type="button"
-              onClick={(e) => { stop(e); onToggleGoal(); }}
-              disabled={readOnly}
-              className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition"
-              style={{
-                background: isGoal ? "var(--primary)" : "var(--mint-paper)",
-                color: isGoal ? "#fff" : "var(--forest)",
-                opacity: readOnly ? 0.6 : 1,
-              }}
-            >
-              {isGoal ? "Ditt mål ✓" : "Sätt som mål"}
-            </button>
-          )}
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <div className="font-mono text-lg font-semibold" style={{ color: "var(--forest)" }}>{reward.cost_points} p</div>
-          <button
-            onClick={(e) => { stop(e); onBuy(); }}
-            disabled={!canAfford || busy || readOnly}
-            className={canAfford ? "btn-primary !py-1 !px-3 text-xs" : "btn-secondary !py-1 !px-3 text-xs"}
-            title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
-            style={!canAfford ? { cursor: "not-allowed", opacity: 0.6 } : undefined}
-          >
-            {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
-          </button>
+          <div className="line-clamp-2 font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>{reward.name}</div>
+          <div className="mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-mono"
+            style={{ background: "var(--mint-paper)", color: "var(--forest)" }}>
+            <Sparkles size={12} /> {reward.cost_points} p
+          </div>
         </div>
       </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {onToggleGoal && (
+          <button
+            type="button"
+            onClick={(e) => { stop(e); onToggleGoal(); }}
+            disabled={readOnly}
+            className="btn-secondary !px-3 !py-1.5 text-xs whitespace-nowrap"
+            style={{
+              background: isGoal ? "var(--primary)" : undefined,
+              color: isGoal ? "#fff" : undefined,
+              borderColor: isGoal ? "var(--primary)" : undefined,
+              opacity: readOnly ? 0.6 : 1,
+            }}
+          >
+            {isGoal ? "Ditt mål ✓" : "Sätt som mål"}
+          </button>
+        )}
+        <button
+          onClick={(e) => { stop(e); onBuy(); }}
+          disabled={!canAfford || busy || readOnly}
+          className={canAfford ? "btn-primary !px-3 !py-1.5 text-xs whitespace-nowrap" : "btn-secondary !px-3 !py-1.5 text-xs whitespace-nowrap"}
+          title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
+          style={!canAfford ? { cursor: "not-allowed", opacity: 0.7 } : undefined}
+        >
+          {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
+        </button>
+      </div>
+
       <div className="detail">
         <div className="mt-4 border-t pt-3" style={{ borderColor: "var(--border)" }}>
           {reward.description && (
-            <div className="mb-3 text-xs" style={{ color: "var(--muted-foreground)" }}>{reward.description}</div>
+            <div className="mb-3 text-sm" style={{ color: "var(--muted-foreground)" }}>{reward.description}</div>
           )}
-          <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "rgba(0,0,0,0.06)" }}>
+          <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: "rgba(11,61,46,0.08)" }}>
             <div className="pfill h-full rounded-full"
               style={{ background: canAfford ? "linear-gradient(90deg,#1e9e6a,#3fc78b)" : "linear-gradient(90deg,#ffcf78,#1e9e6a)" }} />
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono" style={{ color: "var(--forest)" }}>
+          <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-mono" style={{ color: "var(--forest)" }}>
             <span>{balance} / {reward.cost_points} poäng</span>
             <span style={{ color: canAfford ? "var(--primary)" : "var(--muted-foreground)" }}>
               {canAfford ? "Du har råd! 🎉" : `${missing} poäng kvar`}
@@ -370,10 +426,12 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
   );
 }
 
-
 function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
-  goal: RewardGoal | null; balance: number;
-  onRedeem: () => void; onClear: () => void; busy: boolean;
+  goal: RewardGoal | null;
+  balance: number;
+  onRedeem: () => void;
+  onClear: () => void;
+  busy: boolean;
 }) {
   if (!goal) {
     return (
@@ -389,6 +447,7 @@ function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
       </section>
     );
   }
+
   const pct = Math.max(0, Math.min(100, (balance / Math.max(1, goal.cost)) * 100));
   const remaining = Math.max(0, goal.cost - balance);
   const ready = balance >= goal.cost;
@@ -419,7 +478,7 @@ function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
           {ready ? "Klar att lösa in! 🎉" : `${remaining} poäng kvar`}
         </div>
         {ready && (
-          <button onClick={onRedeem} disabled={busy} className="btn-primary !py-1.5 !px-4 text-sm">
+          <button onClick={onRedeem} disabled={busy} className="btn-primary !px-4 !py-1.5 text-sm">
             {busy ? "Löser in…" : "Lös in nu"}
           </button>
         )}
@@ -431,5 +490,3 @@ function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
     </section>
   );
 }
-
-
