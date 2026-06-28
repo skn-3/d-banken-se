@@ -524,11 +524,11 @@ function HomeView({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Dagens utmaning</div>
-            <div className="mt-1 font-display text-lg font-semibold">Sälj {DAILY_GOAL} träd idag</div>
+            <div className="mt-1 font-display text-lg font-semibold">Plantera {DAILY_GOAL} träd idag</div>
           </div>
           <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
             {Math.min(today, DAILY_GOAL)} / {DAILY_GOAL}
-            {today >= DAILY_GOAL && <span className="ml-2">🎉</span>}
+            {today >= DAILY_GOAL && <span className="ml-2">⭐</span>}
           </div>
         </div>
         <div className="mt-3 h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--mint)" }}>
@@ -536,8 +536,8 @@ function HomeView({
             style={{ width: `${Math.min(100, (today / DAILY_GOAL) * 100)}%`, background: "var(--primary)" }} />
         </div>
         {today >= DAILY_GOAL
-          ? <div className="mt-3 text-sm" style={{ color: "var(--forest)" }}>Klart! Du klarade dagens utmaning. ⭐</div>
-          : <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>Varje träd räknas — kör på!</div>}
+          ? <div className="mt-3 text-sm" style={{ color: "var(--forest)" }}>Klart för idag. Fint jobbat.</div>
+          : <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>Ett träd i taget — det räcker långt.</div>}
       </section>
 
       {/* Helg-sprint */}
