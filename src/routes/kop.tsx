@@ -13,7 +13,7 @@ export const Route = createFileRoute("/kop")({
   head: () => ({
     meta: [
       { title: "Plantera träd — SmartKlimat" },
-      { name: "description", content: "Registrera en plantering åt en kund. Inloggning krävs inte." },
+      { name: "description", content: "Plantera träd åt en kund. Inget konto behövs." },
     ],
   }),
   component: KopPage,
