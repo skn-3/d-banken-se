@@ -5,12 +5,13 @@ import {
   listOrganizations, createOrganization, updateOrganization,
   listTeams, createTeam, updateTeam,
   listSellers, createSeller, removeSeller,
+  bulkInviteSellers, resendInvite,
 } from "@/lib/orgs.functions";
 import { adminSetPassword } from "@/lib/admin.functions";
 
 interface Org { id: string; name: string; type: string; team_count: number; tree_count: number }
 interface Team { id: string; name: string; member_count: number; tree_count: number; weekly_goal_trees?: number | null; team_bonus_points?: number | null }
-interface Seller { member_id: string; user_id: string; role: string; name: string; email: string; tree_count: number }
+interface Seller { member_id: string; user_id: string; role: string; name: string; email: string; tree_count: number; activated?: boolean }
 
 export function AdminOrgsTab() {
   const listOrgs = useServerFn(listOrganizations);
@@ -241,6 +242,8 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
   const listSellersFn = useServerFn(listSellers);
   const createSellerFn = useServerFn(createSeller);
   const removeSellerFn = useServerFn(removeSeller);
+  const bulkInviteFn = useServerFn(bulkInviteSellers);
+  const resendInviteFn = useServerFn(resendInvite);
   const setPasswordFn = useServerFn(adminSetPassword);
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [pwFor, setPwFor] = useState<string | null>(null);
@@ -248,9 +251,18 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
   const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"seller" | "team_leader">("seller");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [resendMsg, setResendMsg] = useState<Record<string, string>>({});
+
+  // Bulk invite
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkRole, setBulkRole] = useState<"seller" | "team_leader">("seller");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkResults, setBulkResults] = useState<Array<{ email: string; ok: boolean; error?: string; emailOk?: boolean }> | null>(null);
 
   const reload = async () => {
     const r = await listSellersFn({ data: { teamId: team.id } });
@@ -258,6 +270,8 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
   };
 
   useEffect(() => { reload(); /* eslint-disable-next-line */ }, [team.id]);
+
+  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/aktivera` : "https://example.com/aktivera";
 
   const add = async () => {
     setMsg(null); setInviteLink(null);
@@ -267,21 +281,28 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
     setBusy(true);
     try {
       const res = await createSellerFn({
-        data: {
-          teamId: team.id,
-          name: name.trim(),
-          email: email.trim(),
-          role: "seller",
-          redirectTo: `${window.location.origin}/reset-password`,
-        },
+        data: { teamId: team.id, name: name.trim(), email: email.trim(), role, redirectTo, sendEmail: true },
       });
       setName(""); setEmail("");
-      setMsg("Säljare tillagd.");
+      setMsg(res.emailOk ? "Inbjudan skickad via mejl." : `Säljare tillagd, men mejl misslyckades: ${res.emailError ?? ""}`);
       if (res.actionLink) setInviteLink(res.actionLink);
       await reload();
     } catch (e) {
       setMsg((e as Error).message);
     } finally { setBusy(false); }
+  };
+
+  const runBulk = async () => {
+    const emails = bulkText.split(/[\s,;\n]+/).map(s => s.trim()).filter(s => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s));
+    if (!emails.length) { setBulkResults([{ email: "(ingen)", ok: false, error: "Inga giltiga e-postadresser hittades." }]); return; }
+    setBulkBusy(true); setBulkResults(null);
+    try {
+      const r = await bulkInviteFn({ data: { teamId: team.id, role: bulkRole, emails, redirectTo } });
+      setBulkResults(r.results);
+      await reload();
+    } catch (e) {
+      setBulkResults([{ email: "(fel)", ok: false, error: (e as Error).message }]);
+    } finally { setBulkBusy(false); }
   };
 
   return (
@@ -293,17 +314,63 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
       </p>
 
       <div className="mt-6">
-        <h3 className="font-display text-lg font-semibold">Lägg till säljare</h3>
-        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg font-semibold">Bjud in säljare</h3>
+          <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => { setBulkOpen(v => !v); setBulkResults(null); }}>
+            {bulkOpen ? "Stäng bulk" : "Bjud in flera (bulk)"}
+          </button>
+        </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto]">
           <input className="input-field" placeholder="Namn" value={name} onChange={e => setName(e.target.value)} />
           <input className="input-field" placeholder="E-post" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <button className="btn-primary" disabled={busy} onClick={add}>{busy ? "Lägger till…" : "+ Säljare"}</button>
+          <select className="input-field" value={role} onChange={e => setRole(e.target.value as "seller" | "team_leader")}>
+            <option value="seller">Säljare</option>
+            <option value="team_leader">Team-ledare</option>
+          </select>
+          <button className="btn-primary" disabled={busy} onClick={add}>{busy ? "Bjuder in…" : "Bjud in"}</button>
         </div>
         {msg && <div className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>{msg}</div>}
         {inviteLink && (
           <div className="mt-2 rounded-lg border p-3 text-xs" style={{ borderColor: "var(--border)" }}>
-            <div className="mb-1" style={{ color: "var(--muted-foreground)" }}>Inbjudningslänk (skicka manuellt om mail inte når fram):</div>
+            <div className="mb-1" style={{ color: "var(--muted-foreground)" }}>Aktiveringslänk (skicka manuellt om mail inte når fram):</div>
             <a href={inviteLink} target="_blank" rel="noreferrer" className="underline break-all" style={{ color: "var(--primary)" }}>{inviteLink}</a>
+          </div>
+        )}
+
+        {bulkOpen && (
+          <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
+            <div className="text-sm font-medium">Klistra in flera e-postadresser</div>
+            <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              En per rad, eller separerade med komma/mellanslag. Namn gissas från e-postdelen före @ och kan ändras senare.
+            </p>
+            <textarea
+              className="input-field mt-3 min-h-32 font-mono text-xs"
+              placeholder="anna@mockfjards.se&#10;erik@mockfjards.se&#10;lisa@mockfjards.se"
+              value={bulkText}
+              onChange={e => setBulkText(e.target.value)}
+            />
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <select className="input-field !py-2 !text-sm" value={bulkRole} onChange={e => setBulkRole(e.target.value as "seller" | "team_leader")}>
+                <option value="seller">Säljare</option>
+                <option value="team_leader">Team-ledare</option>
+              </select>
+              <button className="btn-primary" disabled={bulkBusy} onClick={runBulk}>
+                {bulkBusy ? "Bjuder in…" : "Bjud in alla"}
+              </button>
+            </div>
+            {bulkResults && (
+              <div className="mt-3 max-h-60 overflow-y-auto rounded-lg border p-3 text-xs" style={{ borderColor: "var(--border)" }}>
+                {bulkResults.map((r, i) => (
+                  <div key={i} className="flex items-center justify-between border-b py-1 last:border-b-0" style={{ borderColor: "var(--border)" }}>
+                    <span className="font-mono">{r.email}</span>
+                    {r.ok
+                      ? <span style={{ color: "var(--forest)" }}>✓ {r.emailOk ? "Inbjuden + mejl skickat" : "Inbjuden (mejl misslyckades)"}</span>
+                      : <span style={{ color: "var(--destructive)" }}>✗ {r.error}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -311,7 +378,7 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
       <div className="mt-6 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-            <tr><th className="py-2">Namn</th><th>E-post</th><th>Träd</th><th></th></tr>
+            <tr><th className="py-2">Namn</th><th>E-post</th><th>Status</th><th>Träd</th><th></th></tr>
           </thead>
           <tbody>
             {sellers.map(s => (
@@ -319,17 +386,27 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
               <tr className="border-t" style={{ borderColor: "var(--border)" }}>
                 <td className="py-3">{s.name || <span style={{ color: "var(--muted-foreground)" }}>—</span>}</td>
                 <td className="font-mono text-xs">{s.email}</td>
+                <td>
+                  {s.activated
+                    ? <span className="chip !py-0.5 !text-xs" style={{ background: "rgba(30,158,106,0.12)", color: "var(--forest)" }}>Aktiverad</span>
+                    : <span className="chip !py-0.5 !text-xs" style={{ background: "rgba(234,179,8,0.15)", color: "#92760a" }}>Inbjuden</span>}
+                  {resendMsg[s.user_id] && <div className="mt-1 text-[10px]" style={{ color: "var(--muted-foreground)" }}>{resendMsg[s.user_id]}</div>}
+                </td>
                 <td className="font-mono font-semibold" style={{ color: "var(--forest)" }}>{s.tree_count.toLocaleString("sv-SE")}</td>
                 <td className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Link
-                      to="/saljare"
-                      search={{ as: s.user_id }}
-                      target="_blank"
-                      className="btn-secondary !py-1 !px-2 text-xs"
-                    >
-                      Visa säljarvy
-                    </Link>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {!s.activated && (
+                      <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                        setResendMsg(m => ({ ...m, [s.user_id]: "Skickar…" }));
+                        try {
+                          const r = await resendInviteFn({ data: { teamId: team.id, email: s.email, name: s.name || undefined, redirectTo } });
+                          setResendMsg(m => ({ ...m, [s.user_id]: r.emailOk ? "Skickat ✓" : `Misslyckades: ${r.emailError ?? ""}` }));
+                        } catch (e) {
+                          setResendMsg(m => ({ ...m, [s.user_id]: (e as Error).message }));
+                        }
+                      }}>Skicka igen</button>
+                    )}
+                    <Link to="/saljare" search={{ as: s.user_id }} target="_blank" className="btn-secondary !py-1 !px-2 text-xs">Visa säljarvy</Link>
                     <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => {
                       setPwFor(pwFor === s.user_id ? null : s.user_id);
                       setPwValue(""); setPwMsg(null);
@@ -344,7 +421,7 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
               </tr>
               {pwFor === s.user_id && (
                 <tr key={s.member_id + "-pw"}>
-                  <td colSpan={4} className="pb-3">
+                  <td colSpan={5} className="pb-3">
                     <div className="rounded-lg border p-3" style={{ borderColor: "var(--border)" }}>
                       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
                         <input className="input-field !py-1 !text-sm" type="text" placeholder="Nytt lösenord (minst 8 tecken)"
@@ -368,7 +445,7 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
               )}
               </Fragment>
             ))}
-            {sellers.length === 0 && <tr><td colSpan={4} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga säljare än.</td></tr>}
+            {sellers.length === 0 && <tr><td colSpan={5} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga säljare än.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -376,5 +453,6 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
     </section>
   );
 }
+
 
 

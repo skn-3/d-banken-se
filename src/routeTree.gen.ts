@@ -16,6 +16,7 @@ import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
 import { Route as BelonigarRouteImport } from './routes/belonigar'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AktiveraRouteImport } from './routes/aktivera'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VIdRouteImport } from './routes/v.$id'
@@ -55,6 +56,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AktiveraRoute = AktiveraRouteImport.update({
+  id: '/aktivera',
+  path: '/aktivera',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -74,6 +80,7 @@ const VIdRoute = VIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/belonigar': typeof BelonigarRoute
   '/konto': typeof KontoRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/belonigar': typeof BelonigarRoute
   '/konto': typeof KontoRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/belonigar': typeof BelonigarRoute
   '/konto': typeof KontoRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/aktivera'
     | '/auth'
     | '/belonigar'
     | '/konto'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/aktivera'
     | '/auth'
     | '/belonigar'
     | '/konto'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/aktivera'
     | '/auth'
     | '/belonigar'
     | '/konto'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AktiveraRoute: typeof AktiveraRoute
   AuthRoute: typeof AuthRoute
   BelonigarRoute: typeof BelonigarRoute
   KontoRoute: typeof KontoRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aktivera': {
+      id: '/aktivera'
+      path: '/aktivera'
+      fullPath: '/aktivera'
+      preLoaderRoute: typeof AktiveraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AktiveraRoute: AktiveraRoute,
   AuthRoute: AuthRoute,
   BelonigarRoute: BelonigarRoute,
   KontoRoute: KontoRoute,
