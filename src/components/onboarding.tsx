@@ -130,7 +130,7 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           </button>
           {last ? (
             <button type="button" onClick={onClose} className="btn-primary !px-6 !py-2.5 text-sm">
-              Kom igång 🌳
+              Kom igång
             </button>
           ) : (
             <button
