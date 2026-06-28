@@ -235,8 +235,16 @@ function SellerPage() {
     const ev = await eventFn({ data: {} });
     setActiveEvent(ev.event);
     const uid = r.userId ?? r.previewUserId;
-    if (uid) await detectNewBonus(uid);
+    if (uid) {
+      await detectNewBonus(uid);
+      setRewardGoalState(getRewardGoal(uid));
+      try {
+        const rw = await rewardsFn({ data: { targetUserId: previewAs } });
+        if (rw.isSeller) setRewardBalance(rw.balance ?? 0);
+      } catch { /* ignore */ }
+    }
   };
+
 
 
   useEffect(() => {
