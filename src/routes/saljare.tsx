@@ -7,6 +7,8 @@ import { Certificate, snapshotToTemplate, type CertificateData } from "@/compone
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { getSellerContext, sellerCreatePurchase } from "@/lib/seller.functions";
 import { getActiveEvent, getSellerBonuses, type ActiveEvent, type SellerBonus } from "@/lib/events.functions";
+import { getSellerRewards } from "@/lib/rewards.functions";
+import { getRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 import { EventBanner } from "@/components/event-banner";
 import { Onboarding, hasSeenOnboarding, markOnboardingSeen } from "@/components/onboarding";
 import { PlantingForm } from "@/components/planting-form";
