@@ -764,6 +764,15 @@ function HomeView({
           60% { transform: scale(1.05); opacity: 1; }
           100% { transform: scale(1); }
         }
+        @keyframes smaarty-idle {
+          0%   { transform: translateY(0) scale(1); }
+          50%  { transform: translateY(-4px) scale(1.03); }
+          100% { transform: translateY(0) scale(1); }
+        }
+        .smaarty-idle { will-change: transform; transform-origin: 50% 60%; }
+        @media (prefers-reduced-motion: reduce) {
+          .smaarty-idle { animation: none !important; transform: none !important; }
+        }
       `}</style>
     </div>
   );
