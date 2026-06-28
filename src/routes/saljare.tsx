@@ -625,7 +625,7 @@ function HomeView({
         <div className="mt-4 space-y-2">
           {lbKind === "sellers"
             ? sellers.length === 0
-              ? <div className="py-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga försäljningar än — du kan bli först!</div>
+              ? <div className="py-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga planteringar än — du kan bli först.</div>
               : sellers.map((s, i) => {
                   const me = s.userId === ctx.userId;
                   const w = (s.trees / maxSeller) * 100;
