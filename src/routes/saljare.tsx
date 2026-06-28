@@ -724,6 +724,38 @@ function HomeView({
         </div>
       </section>
 
+      {/* Mål-påminnelse */}
+      {rewardGoal && (() => {
+        const pct = Math.max(0, Math.min(100, (rewardBalance / Math.max(1, rewardGoal.cost)) * 100));
+        const ready = rewardBalance >= rewardGoal.cost;
+        return (
+          <Link
+            to="/belonigar"
+            search={ctx.isPreview && ctx.previewUserId ? { as: ctx.previewUserId } : { as: undefined }}
+            className="surface-card block p-3 transition hover:shadow-md"
+            style={{ background: "var(--mint-paper)", borderTop: "2px solid #d4af37" }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl" aria-hidden>{rewardGoal.emoji}</span>
+              <div className="min-w-0 flex-1 text-xs" style={{ color: "var(--forest)" }}>
+                Du sparar mot <strong>{rewardGoal.name}</strong> — <span className="font-mono">{rewardBalance}/{rewardGoal.cost}</span>
+              </div>
+              <span className="text-xs" style={{ color: ready ? "var(--primary)" : "var(--muted-foreground)" }}>
+                {ready ? "Klar! 🎉" : `${rewardGoal.cost - rewardBalance} kvar`}
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.7)" }}>
+              <div className="goal-mini-bar h-full rounded-full"
+                style={{ width: `${pct}%`, background: ready ? "var(--primary)" : "linear-gradient(90deg,#ffcf78,#1e9e6a)" }} />
+            </div>
+            <style>{`
+              .goal-mini-bar { transition: width 800ms cubic-bezier(.2,.9,.3,1.2); }
+              @media (prefers-reduced-motion: reduce) { .goal-mini-bar { transition: none; } }
+            `}</style>
+          </Link>
+        );
+      })()}
+
       {/* Belöningar-CTA */}
       <Link
         to="/belonigar"
