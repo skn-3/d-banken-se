@@ -214,11 +214,12 @@ function RewardsPage() {
             />
 
             {/* Saldo */}
-            <section className="surface-card mb-6 p-6 text-center" style={{ background: "var(--gradient-mint)" }}>
+            <section className="surface-card belon mb-6 p-6 text-center" style={{ background: "var(--gradient-mint)" }}>
               <div className="text-xs uppercase tracking-wider" style={{ color: "var(--forest)" }}>Ditt saldo</div>
               <div className="mt-2 font-mono text-5xl font-semibold" style={{ color: "var(--forest)" }}>{balance}</div>
               <div className="mt-1 text-sm" style={{ color: "var(--forest)" }}>poäng att handla för</div>
             </section>
+
 
             {/* Katalog */}
             {rewards.length === 0 ? (
@@ -297,52 +298,78 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
   const canAfford = balance >= reward.cost_points;
   const missing = Math.max(0, reward.cost_points - balance);
   const emoji = rewardEmoji(reward.name, reward.category);
+  const pct = Math.max(0, Math.min(100, (balance / Math.max(1, reward.cost_points)) * 100));
+  const [open, setOpen] = useState(false);
+
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
-    <article className="surface-card flex items-center gap-4 p-4"
+    <article
+      className={`surface-card rw p-4 cursor-pointer ${canAfford ? "afford" : ""} ${open ? "open" : ""}`}
+      onClick={() => setOpen(o => !o)}
       style={{
         background: canAfford ? "var(--card)" : "var(--mint-paper)",
-        opacity: canAfford ? 1 : 0.85,
+        opacity: canAfford ? 1 : 0.9,
         outline: isGoal ? "2px solid var(--primary)" : undefined,
-      }}>
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl"
-        style={{ background: canAfford ? "var(--mint)" : "rgba(0,0,0,0.04)" }}>
-        <span aria-hidden>{emoji}</span>
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="font-medium" style={{ color: "var(--forest)" }}>{reward.name}</div>
-        {reward.description && <div className="mt-0.5 text-xs" style={{ color: "var(--muted-foreground)" }}>{reward.description}</div>}
-        {onToggleGoal && (
+        ["--pct" as string]: `${pct}%`,
+      } as React.CSSProperties}>
+      <div className="flex items-center gap-4">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl"
+          style={{ background: canAfford ? "var(--mint)" : "rgba(0,0,0,0.04)" }}>
+          <span aria-hidden>{emoji}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium" style={{ color: "var(--forest)" }}>{reward.name}</div>
+          {onToggleGoal && (
+            <button
+              type="button"
+              onClick={(e) => { stop(e); onToggleGoal(); }}
+              disabled={readOnly}
+              className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition"
+              style={{
+                background: isGoal ? "var(--primary)" : "var(--mint-paper)",
+                color: isGoal ? "#fff" : "var(--forest)",
+                opacity: readOnly ? 0.6 : 1,
+              }}
+            >
+              {isGoal ? "Ditt mål ✓" : "Sätt som mål"}
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <div className="font-mono text-lg font-semibold" style={{ color: "var(--forest)" }}>{reward.cost_points} p</div>
           <button
-            type="button"
-            onClick={onToggleGoal}
-            disabled={readOnly}
-            className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition"
-            style={{
-              background: isGoal ? "var(--primary)" : "var(--mint-paper)",
-              color: isGoal ? "#fff" : "var(--forest)",
-              opacity: readOnly ? 0.6 : 1,
-            }}
+            onClick={(e) => { stop(e); onBuy(); }}
+            disabled={!canAfford || busy || readOnly}
+            className={canAfford ? "btn-primary !py-1 !px-3 text-xs" : "btn-secondary !py-1 !px-3 text-xs"}
+            title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
+            style={!canAfford ? { cursor: "not-allowed", opacity: 0.6 } : undefined}
           >
-            {isGoal ? "Ditt mål ✓" : "Sätt som mål"}
+            {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
           </button>
-        )}
+        </div>
       </div>
-      <div className="flex flex-col items-end gap-1">
-        <div className="font-mono text-lg font-semibold" style={{ color: "var(--forest)" }}>{reward.cost_points} p</div>
-        <button
-          onClick={onBuy}
-          disabled={!canAfford || busy || readOnly}
-          className={canAfford ? "btn-primary !py-1 !px-3 text-xs" : "btn-secondary !py-1 !px-3 text-xs"}
-          title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
-          style={!canAfford ? { cursor: "not-allowed", opacity: 0.6 } : undefined}
-        >
-          {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
-        </button>
+      <div className="detail">
+        <div className="mt-4 border-t pt-3" style={{ borderColor: "var(--border)" }}>
+          {reward.description && (
+            <div className="mb-3 text-xs" style={{ color: "var(--muted-foreground)" }}>{reward.description}</div>
+          )}
+          <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "rgba(0,0,0,0.06)" }}>
+            <div className="pfill h-full rounded-full"
+              style={{ background: canAfford ? "linear-gradient(90deg,#1e9e6a,#3fc78b)" : "linear-gradient(90deg,#ffcf78,#1e9e6a)" }} />
+          </div>
+          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono" style={{ color: "var(--forest)" }}>
+            <span>{balance} / {reward.cost_points} poäng</span>
+            <span style={{ color: canAfford ? "var(--primary)" : "var(--muted-foreground)" }}>
+              {canAfford ? "Du har råd! 🎉" : `${missing} poäng kvar`}
+            </span>
+          </div>
+        </div>
       </div>
     </article>
   );
 }
+
 
 function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
   goal: RewardGoal | null; balance: number;
