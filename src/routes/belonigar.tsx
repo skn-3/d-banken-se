@@ -405,4 +405,4 @@ function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
   );
 }
 
-}
+
