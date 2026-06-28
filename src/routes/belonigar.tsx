@@ -136,6 +136,18 @@ function RewardsPage() {
     } finally { setBusyId(null); }
   };
 
+  const toggleGoal = (r: RewardRow) => {
+    if (!goalUid) return;
+    if (goal?.rewardId === r.id) {
+      setRewardGoal(goalUid, null);
+      setGoalState(null);
+    } else {
+      const next: RewardGoal = { rewardId: r.id, name: r.name, cost: r.cost_points, emoji: rewardEmoji(r.name, r.category) };
+      setRewardGoal(goalUid, next);
+      setGoalState(next);
+    }
+  };
+
   const balance = ctx?.balance ?? 0;
   const rewards = ctx?.rewards ?? [];
   const orders = ctx?.orders ?? [];
