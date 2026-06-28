@@ -430,6 +430,8 @@ function SellerPage() {
             lbKind={lbKind} setLbKind={setLbKind}
             onRegister={() => setView("register")}
             readOnly={!!ctx.isPreview}
+            rewardGoal={rewardGoal}
+            rewardBalance={rewardBalance}
           />
         )}
       </main>
