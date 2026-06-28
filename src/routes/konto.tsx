@@ -127,9 +127,9 @@ function KontoPage() {
               </div>
               {!customer && (
                 <p className="mt-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                  Vi hittade inga köp för den här e-posten ännu.
+                  Vi hittade inga planteringar för den här e-posten ännu.
                   <br />
-                  <button onClick={() => navigate({ to: "/kop" })} className="mt-3 btn-primary">Registrera ett köp</button>
+                  <button onClick={() => navigate({ to: "/kop" })} className="mt-3 btn-primary">Plantera ett träd</button>
                 </p>
               )}
             </div>
