@@ -466,8 +466,8 @@ function HomeView({
         <div className="flex justify-center">
           <ProgressRing value={stageProgress} max={stageSpan} size={260} stroke={16}>
             <img src={stage.current.image} alt={stage.current.name}
-              className="h-44 w-44 select-none"
-              style={{ animation: "smaarty-pop 600ms cubic-bezier(.2,.9,.3,1.4)" }} />
+              className="smaarty-idle h-44 w-44 select-none"
+              style={{ background: "transparent", animation: "smaarty-pop 600ms cubic-bezier(.2,.9,.3,1.4), smaarty-idle 3800ms ease-in-out 700ms infinite" }} />
           </ProgressRing>
         </div>
         <div className="mt-4 font-display text-xl font-semibold" style={{ color: "var(--forest)" }}>
