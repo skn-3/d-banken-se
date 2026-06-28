@@ -290,24 +290,43 @@ function RewardsPage() {
   );
 }
 
-function RewardCard({ reward, balance, busy, readOnly, onBuy }: {
-  reward: RewardRow; balance: number; busy: boolean; readOnly: boolean; onBuy: () => void;
+function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGoal }: {
+  reward: RewardRow; balance: number; busy: boolean; readOnly: boolean;
+  onBuy: () => void; isGoal?: boolean; onToggleGoal?: () => void;
 }) {
   const canAfford = balance >= reward.cost_points;
   const missing = Math.max(0, reward.cost_points - balance);
+  const emoji = rewardEmoji(reward.name, reward.category);
 
   return (
     <article className="surface-card flex items-center gap-4 p-4"
-      style={{ background: canAfford ? "var(--card)" : "var(--mint-paper)", opacity: canAfford ? 1 : 0.85 }}>
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl"
+      style={{
+        background: canAfford ? "var(--card)" : "var(--mint-paper)",
+        opacity: canAfford ? 1 : 0.85,
+        outline: isGoal ? "2px solid var(--primary)" : undefined,
+      }}>
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl"
         style={{ background: canAfford ? "var(--mint)" : "rgba(0,0,0,0.04)" }}>
-        {reward.image_url
-          ? <img src={reward.image_url} alt="" className="h-10 w-10 rounded-xl object-cover" />
-          : <span>🎁</span>}
+        <span aria-hidden>{emoji}</span>
       </div>
       <div className="min-w-0 flex-1">
         <div className="font-medium" style={{ color: "var(--forest)" }}>{reward.name}</div>
         {reward.description && <div className="mt-0.5 text-xs" style={{ color: "var(--muted-foreground)" }}>{reward.description}</div>}
+        {onToggleGoal && (
+          <button
+            type="button"
+            onClick={onToggleGoal}
+            disabled={readOnly}
+            className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition"
+            style={{
+              background: isGoal ? "var(--primary)" : "var(--mint-paper)",
+              color: isGoal ? "#fff" : "var(--forest)",
+              opacity: readOnly ? 0.6 : 1,
+            }}
+          >
+            {isGoal ? "Ditt mål ✓" : "Sätt som mål"}
+          </button>
+        )}
       </div>
       <div className="flex flex-col items-end gap-1">
         <div className="font-mono text-lg font-semibold" style={{ color: "var(--forest)" }}>{reward.cost_points} p</div>
@@ -323,4 +342,67 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy }: {
       </div>
     </article>
   );
+}
+
+function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
+  goal: RewardGoal | null; balance: number;
+  onRedeem: () => void; onClear: () => void; busy: boolean;
+}) {
+  if (!goal) {
+    return (
+      <section className="surface-card mb-6 p-5 text-center"
+        style={{ background: "var(--mint-paper)", border: "1px dashed var(--primary)" }}>
+        <div className="text-2xl">🎯</div>
+        <div className="mt-1 font-display text-base font-semibold" style={{ color: "var(--forest)" }}>
+          Välj en belöning att spara mot
+        </div>
+        <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+          Tryck "Sätt som mål" på en belöning så ser du hur nära du är.
+        </div>
+      </section>
+    );
+  }
+  const pct = Math.max(0, Math.min(100, (balance / Math.max(1, goal.cost)) * 100));
+  const remaining = Math.max(0, goal.cost - balance);
+  const ready = balance >= goal.cost;
+
+  return (
+    <section className="surface-card mb-6 overflow-hidden p-5"
+      style={{
+        background: "linear-gradient(135deg, var(--mint-paper) 0%, #fbe3c0 100%)",
+        borderTop: "3px solid #d4af37",
+      }}>
+      <div className="flex items-center gap-4">
+        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/70 text-4xl shadow-sm">
+          <span aria-hidden>{goal.emoji}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>🎯 Ditt mål</div>
+          <div className="truncate font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>{goal.name}</div>
+          <div className="font-mono text-xs" style={{ color: "var(--forest)" }}>{balance} / {goal.cost} poäng</div>
+        </div>
+        <button onClick={onClear} className="text-xs underline" style={{ color: "var(--muted-foreground)" }}>Ta bort</button>
+      </div>
+      <div className="mt-4 h-4 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.7)" }}>
+        <div className="goal-bar h-full rounded-full"
+          style={{ width: `${pct}%`, background: ready ? "linear-gradient(90deg,#1e9e6a,#3fc78b)" : "linear-gradient(90deg,#ffcf78,#1e9e6a)" }} />
+      </div>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm" style={{ color: "var(--forest)" }}>
+          {ready ? "Klar att lösa in! 🎉" : `${remaining} poäng kvar`}
+        </div>
+        {ready && (
+          <button onClick={onRedeem} disabled={busy} className="btn-primary !py-1.5 !px-4 text-sm">
+            {busy ? "Löser in…" : "Lös in nu"}
+          </button>
+        )}
+      </div>
+      <style>{`
+        .goal-bar { transition: width 900ms cubic-bezier(.2,.9,.3,1.2); }
+        @media (prefers-reduced-motion: reduce) { .goal-bar { transition: none; } }
+      `}</style>
+    </section>
+  );
+}
+
 }
