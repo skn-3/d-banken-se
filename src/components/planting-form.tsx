@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import skottAsset from "@/assets/stages/skott.png.asset.json";
+
 
 const PRICE_PER_TREE_KR = 35;
 const CO2_PER_TREE_KG = 20;
