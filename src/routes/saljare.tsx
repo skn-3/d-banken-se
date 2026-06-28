@@ -547,7 +547,7 @@ function HomeView({
             <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Helg-sprint</div>
             <div className="mt-1 font-display text-lg font-semibold">
               {isWeekendNow
-                ? <>Sälj {WEEKEND_SPRINT_GOAL} träd i helgen → <span style={{ color: "var(--primary)" }}>+10 poäng</span></>
+                ? <>Plantera {WEEKEND_SPRINT_GOAL} träd i helgen → <span style={{ color: "var(--primary)" }}>+10 poäng</span></>
                 : <>Helg-sprinten kommer i helgen</>}
             </div>
           </div>
