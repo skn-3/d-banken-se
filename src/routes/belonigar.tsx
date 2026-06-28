@@ -91,6 +91,13 @@ function RewardsPage() {
   const [confetti, setConfetti] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
+  const [goal, setGoalState] = useState<RewardGoal | null>(null);
+
+  const goalUid = previewAs ?? user?.id ?? null;
+
+  useEffect(() => {
+    setGoalState(getRewardGoal(goalUid));
+  }, [goalUid]);
 
   const reload = async () => {
     setCtx((await ctxFn({ data: { targetUserId: previewAs } })) as Ctx);
