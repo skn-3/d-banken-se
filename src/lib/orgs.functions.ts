@@ -415,7 +415,7 @@ export const bulkInviteSellers = createServerFn({ method: "POST" })
         if (!userId) throw new Error("Inget användar-ID");
 
         await supabaseAdmin.from("profiles").upsert(
-          { user_id: userId, name: existing ? undefined : nameGuess, email, account_type: "saljare" },
+          { user_id: userId, name: nameGuess, email, account_type: "saljare" },
           { onConflict: "user_id" },
         );
 
