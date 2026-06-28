@@ -22,6 +22,7 @@ import skogsmastareAsset from "@/assets/badges/skogsmastare.png.asset.json";
 import veckansSaljareAsset from "@/assets/badges/veckans-saljare.png.asset.json";
 import eldsjalAsset from "@/assets/badges/eldsjal.png.asset.json";
 
+const WEEKEND_SPRINT_GOAL = 5;
 const PRICE_PER_TREE_ORE = 3500;
 const QUICK_PICKS = [5, 10, 25, 100];
 const DAILY_GOAL = 3;
