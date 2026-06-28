@@ -876,13 +876,14 @@ function DoneView({
             <img
               src={newStage.current.image}
               alt={newStage.current.name}
-              className="h-48 w-48 select-none"
+              className="smaarty-idle h-48 w-48 select-none"
               style={{
+                background: "transparent",
                 animation: reduced
                   ? undefined
                   : (grewStage
-                      ? "smaarty-grow 900ms cubic-bezier(.2,.9,.3,1.6)"
-                      : "smaarty-cheer 1200ms ease-in-out"),
+                      ? "smaarty-grow 900ms cubic-bezier(.2,.9,.3,1.6), smaarty-idle 3800ms ease-in-out 1000ms infinite"
+                      : "smaarty-cheer 1200ms ease-in-out, smaarty-idle 3800ms ease-in-out 1300ms infinite"),
               }}
             />
           </div>
