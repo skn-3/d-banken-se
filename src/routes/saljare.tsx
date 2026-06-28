@@ -681,7 +681,7 @@ function HomeView({
               <div key={b.key} className="flex flex-col items-center text-center" title={b.desc}>
                 <img src={b.img} alt={b.name}
                   className="h-16 w-16 transition"
-                  style={{ filter: earned ? "none" : "grayscale(1)", opacity: earned ? 1 : 0.4 }} />
+                  style={{ background: "transparent", filter: earned ? "none" : "grayscale(1)", opacity: earned ? 1 : 0.4 }} />
                 <div className="mt-1 text-[10px] font-medium leading-tight" style={{ color: earned ? "var(--forest)" : "var(--muted-foreground)" }}>{b.name}</div>
               </div>
             );
