@@ -161,8 +161,11 @@ function SellerPage() {
   const purchaseFn = useServerFn(sellerCreatePurchase);
   const eventFn = useServerFn(getActiveEvent);
   const bonusesFn = useServerFn(getSellerBonuses);
+  const rewardsFn = useServerFn(getSellerRewards);
 
   const [ctx, setCtx] = useState<SellerCtx | null>(null);
+  const [rewardBalance, setRewardBalance] = useState<number>(0);
+  const [rewardGoal, setRewardGoalState] = useState<RewardGoal | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
   const [celebration, setCelebration] = useState<{ title: string; subtitle: string; bonus: number } | null>(null);
