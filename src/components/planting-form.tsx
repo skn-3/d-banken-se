@@ -44,7 +44,7 @@ export function PlantingForm({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <img
-            src="/smaarty/stages/skott.svg"
+            src={skottAsset.url}
             alt=""
             aria-hidden="true"
             className="plantform-mascot h-12 w-12 sm:h-14 sm:w-14"
