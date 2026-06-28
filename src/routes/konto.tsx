@@ -167,13 +167,13 @@ function KontoPage() {
 
             <div className="mt-8 surface-card p-8">
               <div className="flex items-baseline justify-between">
-                <h2 className="font-display text-2xl font-semibold">Köphistorik</h2>
+                <h2 className="font-display text-2xl font-semibold">Planteringshistorik</h2>
                 <span className="text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>
                   {purchases.length} {purchases.length === 1 ? "post" : "poster"}
                 </span>
               </div>
               {purchases.length === 0 ? (
-                <p className="mt-6 text-sm" style={{ color: "var(--muted-foreground)" }}>Inga köp än.</p>
+                <p className="mt-6 text-sm" style={{ color: "var(--muted-foreground)" }}>Inga planteringar än.</p>
               ) : (
                 <div className="mt-6 divide-y" style={{ borderColor: "var(--border)" }}>
                   {purchases.map((p) => (
