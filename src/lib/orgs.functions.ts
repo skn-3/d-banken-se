@@ -204,6 +204,53 @@ export const updateTeam = createServerFn({ method: "POST" })
 
 // ---------- Sellers (team members) ----------
 
+async function getAuthUserByEmail(email: string) {
+  const lower = email.toLowerCase();
+  // listUsers is paginated; scan up to a few pages.
+  for (let page = 1; page <= 5; page++) {
+    const { data } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+    const found = data?.users?.find((u) => (u.email ?? "").toLowerCase() === lower);
+    if (found) return found;
+    if (!data?.users || data.users.length < 1000) break;
+  }
+  return null;
+}
+
+async function sendInviteEmailFor(args: {
+  email: string;
+  name?: string | null;
+  teamId: string;
+  redirectTo: string;
+}) {
+  const { renderInviteEmail, sendEmail } = await import("@/lib/email/resend.server");
+  const { data: link, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+    type: "recovery",
+    email: args.email,
+    options: { redirectTo: args.redirectTo },
+  });
+  if (linkErr) throw new Error(`Kunde inte skapa länk: ${linkErr.message}`);
+  const actionLink = link?.properties?.action_link ?? null;
+  if (!actionLink) throw new Error("Ingen aktiveringslänk kunde genereras.");
+
+  const { data: team } = await supabaseAdmin
+    .from("teams").select("name, organization_id").eq("id", args.teamId).maybeSingle();
+  let orgName: string | null = null;
+  if (team?.organization_id) {
+    const { data: org } = await supabaseAdmin
+      .from("organizations").select("name").eq("id", team.organization_id).maybeSingle();
+    orgName = org?.name ?? null;
+  }
+
+  const { subject, html } = renderInviteEmail({
+    recipientName: args.name ?? null,
+    teamName: team?.name ?? null,
+    orgName,
+    activationUrl: actionLink,
+  });
+  const res = await sendEmail({ to: args.email, subject, html });
+  return { actionLink, emailOk: res.ok === true, emailError: res.ok ? null : ((res as { error?: string }).error ?? "Mejl skickades inte") };
+}
+
 export const listSellers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ teamId: z.string().uuid() }).parse(input))
@@ -235,6 +282,16 @@ export const listSellers = createServerFn({ method: "POST" })
       treesByUser.set(p.registered_by_user_id, (treesByUser.get(p.registered_by_user_id) ?? 0) + p.tree_count);
     });
 
+    // Activation status: check auth.users.last_sign_in_at
+    const activatedMap = new Map<string, boolean>();
+    for (let page = 1; page <= 5; page++) {
+      const { data: usersPage } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+      (usersPage?.users ?? []).forEach((u) => {
+        if (userIds.includes(u.id)) activatedMap.set(u.id, !!u.last_sign_in_at);
+      });
+      if (!usersPage?.users || usersPage.users.length < 1000) break;
+    }
+
     const profMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
     return {
       sellers: (members ?? []).map((m) => ({
@@ -244,6 +301,7 @@ export const listSellers = createServerFn({ method: "POST" })
         name: profMap.get(m.user_id)?.name ?? "",
         email: profMap.get(m.user_id)?.email ?? "",
         tree_count: treesByUser.get(m.user_id) ?? 0,
+        activated: activatedMap.get(m.user_id) ?? false,
         created_at: m.created_at,
       })),
     };
@@ -258,6 +316,7 @@ export const createSeller = createServerFn({ method: "POST" })
       email: z.string().trim().email().max(255),
       role: z.enum(["seller", "team_leader"]).default("seller"),
       redirectTo: z.string().url(),
+      sendEmail: z.boolean().optional().default(true),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -266,8 +325,7 @@ export const createSeller = createServerFn({ method: "POST" })
 
     // Find or create auth user
     let userId: string | null = null;
-    const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    const existing = list?.users?.find((u) => (u.email ?? "").toLowerCase() === email);
+    const existing = await getAuthUserByEmail(email);
     if (existing) {
       userId = existing.id;
     } else {
@@ -281,12 +339,10 @@ export const createSeller = createServerFn({ method: "POST" })
     }
     if (!userId) throw new Error("Kunde inte hämta användar-ID");
 
-    // Ensure profile (trigger handle_new_user normally does it; safe upsert)
     await supabaseAdmin
       .from("profiles")
       .upsert({ user_id: userId, name: data.name, email, account_type: "saljare" }, { onConflict: "user_id" });
 
-    // Check existing team membership
     const { data: existingMember } = await supabaseAdmin
       .from("team_members")
       .select("id, team_id")
@@ -302,7 +358,6 @@ export const createSeller = createServerFn({ method: "POST" })
       if (mErr) throw new Error(`Kunde inte lägga till i team: ${mErr.message}`);
     }
 
-    // Add user_roles seller (idempotent)
     await supabaseAdmin
       .from("user_roles")
       .upsert(
@@ -310,20 +365,103 @@ export const createSeller = createServerFn({ method: "POST" })
         { onConflict: "user_id,role", ignoreDuplicates: true },
       );
 
-    // Generate password recovery link so seller can set their own password
     let actionLink: string | null = null;
-    try {
-      const { data: link } = await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo: data.redirectTo },
-      });
-      actionLink = link?.properties?.action_link ?? null;
-    } catch {
-      // non-fatal
+    let emailOk = false;
+    let emailError: string | null = null;
+    if (data.sendEmail) {
+      try {
+        const r = await sendInviteEmailFor({ email, name: data.name, teamId: data.teamId, redirectTo: data.redirectTo });
+        actionLink = r.actionLink;
+        emailOk = r.emailOk;
+        emailError = r.emailError;
+      } catch (e) {
+        emailError = (e as Error).message;
+      }
     }
 
-    return { userId, actionLink };
+    return { userId, actionLink, emailOk, emailError };
+  });
+
+export const bulkInviteSellers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      teamId: z.string().uuid(),
+      role: z.enum(["seller", "team_leader"]).default("seller"),
+      emails: z.array(z.string().trim().email().max(255)).min(1).max(200),
+      redirectTo: z.string().url(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const results: Array<{ email: string; ok: boolean; error?: string; emailOk?: boolean }> = [];
+    const seen = new Set<string>();
+    for (const raw of data.emails) {
+      const email = raw.toLowerCase();
+      if (seen.has(email)) continue;
+      seen.add(email);
+      try {
+        const nameGuess = email.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+        const existing = await getAuthUserByEmail(email);
+        let userId = existing?.id ?? null;
+        if (!userId) {
+          const { data: created, error: cErr } = await supabaseAdmin.auth.admin.createUser({
+            email, email_confirm: true,
+            user_metadata: { name: nameGuess, account_type: "saljare" },
+          });
+          if (cErr) throw new Error(cErr.message);
+          userId = created.user?.id ?? null;
+        }
+        if (!userId) throw new Error("Inget användar-ID");
+
+        await supabaseAdmin.from("profiles").upsert(
+          { user_id: userId, name: existing ? undefined : nameGuess, email, account_type: "saljare" },
+          { onConflict: "user_id" },
+        );
+
+        const { data: existingMember } = await supabaseAdmin
+          .from("team_members").select("id, team_id").eq("user_id", userId).maybeSingle();
+        if (existingMember && existingMember.team_id !== data.teamId) {
+          throw new Error("Redan i annat team");
+        }
+        if (!existingMember) {
+          const { error: mErr } = await supabaseAdmin
+            .from("team_members").insert({ team_id: data.teamId, user_id: userId, role: data.role });
+          if (mErr) throw new Error(mErr.message);
+        }
+        await supabaseAdmin.from("user_roles").upsert(
+          { user_id: userId, role: (data.role === "team_leader" ? "team_leader" : "seller") as "seller" },
+          { onConflict: "user_id,role", ignoreDuplicates: true },
+        );
+
+        const r = await sendInviteEmailFor({ email, name: nameGuess, teamId: data.teamId, redirectTo: data.redirectTo });
+        results.push({ email, ok: true, emailOk: r.emailOk, error: r.emailError ?? undefined });
+      } catch (e) {
+        results.push({ email, ok: false, error: (e as Error).message });
+      }
+    }
+    return { results };
+  });
+
+export const resendInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      teamId: z.string().uuid(),
+      email: z.string().trim().email().max(255),
+      name: z.string().trim().max(120).optional(),
+      redirectTo: z.string().url(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const r = await sendInviteEmailFor({
+      email: data.email.toLowerCase(),
+      name: data.name ?? null,
+      teamId: data.teamId,
+      redirectTo: data.redirectTo,
+    });
+    return r;
   });
 
 export const removeSeller = createServerFn({ method: "POST" })
