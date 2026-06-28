@@ -281,10 +281,10 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy }: {
           onClick={onBuy}
           disabled={!canAfford || busy || readOnly}
           className={canAfford ? "btn-primary !py-1 !px-3 text-xs" : "btn-secondary !py-1 !px-3 text-xs"}
-          title={readOnly ? "Förhandsvisning — köp avstängt" : !canAfford ? `Saknar ${missing} poäng` : undefined}
+          title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
           style={!canAfford ? { cursor: "not-allowed", opacity: 0.6 } : undefined}
         >
-          {busy ? "Köper…" : canAfford ? `Köp för ${reward.cost_points} p` : `Saknar ${missing} p`}
+          {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
         </button>
       </div>
     </article>
