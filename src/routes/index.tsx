@@ -5,9 +5,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "SmartKlimat — Klimatkompensation, byggd som teknik" },
-      { name: "description", content: "Planera träd och bygg upp ditt klimatkonto. SmartKlimat är bryggan mellan dig och riktig trädplantering." },
+      { name: "description", content: "Plantera träd och bygg upp ditt klimatkonto. Träden planteras genom WeForest." },
       { property: "og:title", content: "SmartKlimat — Klimatkompensation, byggd som teknik" },
-      { property: "og:description", content: "Planera träd och bygg upp ditt klimatkonto." },
+      { property: "og:description", content: "Plantera träd och bygg upp ditt klimatkonto." },
     ],
   }),
   component: Index,
@@ -22,7 +22,7 @@ function Index() {
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-6 pb-32 pt-16 text-center sm:pt-24">
         <span className="chip mb-8">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--primary)" }} />
-          Klimatkompensation på riktigt
+          Träd planteras genom WeForest
         </span>
 
         <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl" style={{ color: "var(--forest)" }}>
@@ -34,8 +34,7 @@ function Index() {
         </h1>
 
         <p className="mt-8 max-w-xl text-lg leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-          Köp träd. Få dem planterade. Följ ditt klimatkonto växa — som ett banksaldo,
-          fast i skog.
+          Plantera träd och följ ditt klimatkonto växa — som ett banksaldo, fast i skog.
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">

@@ -37,13 +37,13 @@ const STAGES = [
 ] as const;
 
 const BADGE_DEFS = [
-  { key: "forstaTradet", name: "Första trädet", desc: "Sälj ditt första träd", img: forstaTradetAsset.url, threshold: 1, kind: "total" as const },
-  { key: "gronTumme", name: "Grön tumme", desc: "Sälj 10 träd", img: gronTummeAsset.url, threshold: 10, kind: "total" as const },
-  { key: "skogshjalte", name: "Skogshjälte", desc: "Sälj 50 träd", img: skogshjalteAsset.url, threshold: 50, kind: "total" as const },
-  { key: "skogsmastare", name: "Skogsmästare", desc: "Sälj 100 träd", img: skogsmastareAsset.url, threshold: 100, kind: "total" as const },
-  { key: "veckansSaljare", name: "Veckans säljare", desc: "Flest sålda träd i ditt lag denna vecka", img: veckansSaljareAsset.url, threshold: 1, kind: "special" as const },
-  { key: "eldsjal", name: "Eldsjäl", desc: "Sälj flera dagar i rad (minst 3)", img: eldsjalAsset.url, threshold: 3, kind: "streak" as const },
-  { key: "lagmarke", name: "Lagmärke", desc: "Laget når 100 sålda träd tillsammans", img: skogshjalteAsset.url, threshold: 100, kind: "team" as const },
+  { key: "forstaTradet", name: "Första trädet", desc: "Plantera ditt första träd", img: forstaTradetAsset.url, threshold: 1, kind: "total" as const },
+  { key: "gronTumme", name: "Grön tumme", desc: "Plantera 10 träd", img: gronTummeAsset.url, threshold: 10, kind: "total" as const },
+  { key: "skogshjalte", name: "Skogshjälte", desc: "Plantera 50 träd", img: skogshjalteAsset.url, threshold: 50, kind: "total" as const },
+  { key: "skogsmastare", name: "Skogsmästare", desc: "Plantera 100 träd", img: skogsmastareAsset.url, threshold: 100, kind: "total" as const },
+  { key: "veckansSaljare", name: "Veckans hjälte", desc: "Flest planterade träd i ditt lag denna vecka", img: veckansSaljareAsset.url, threshold: 1, kind: "special" as const },
+  { key: "eldsjal", name: "Eldsjäl", desc: "Plantera flera dagar i rad (minst 3)", img: eldsjalAsset.url, threshold: 3, kind: "streak" as const },
+  { key: "lagmarke", name: "Lagmärke", desc: "Laget når 100 planterade träd tillsammans", img: skogshjalteAsset.url, threshold: 100, kind: "team" as const },
 ] as const;
 
 
@@ -189,19 +189,19 @@ function SellerPage() {
     const desc = b.description ?? "";
     if (b.type === "bonus_milestone") {
       const m = desc.match(/(\d+)/);
-      return { title: `Du nådde ${m ? m[1] : ""} sålda träd!`, subtitle: "Milstolpe-bonus" };
+      return { title: `Du nådde ${m ? m[1] : ""} planterade träd`, subtitle: "Milstolpe-bonus" };
     }
     if (b.type === "bonus_sprint") {
-      return { title: "Helg-sprint klarad! 🎉", subtitle: `5 träd under helgen` };
+      return { title: "Helg-sprint klarad", subtitle: `5 träd under helgen` };
     }
     if (b.type === "bonus_team") {
-      return { title: "Laget nådde veckomålet! 🎉", subtitle: "Alla i laget får bonus" };
+      return { title: "Laget nådde veckomålet", subtitle: "Alla i laget får bonus" };
     }
     if (b.type === "bonus_streak") {
       const m = desc.match(/(\d+)/);
-      return { title: `${m ? m[1] : ""} dagar i rad!`, subtitle: "Streak-bonus" };
+      return { title: `${m ? m[1] : ""} dagar i rad`, subtitle: "Streak-bonus" };
     }
-    return { title: "Bonus!", subtitle: desc };
+    return { title: "Bonus", subtitle: desc };
   };
 
   const detectNewBonus = async (uid: string) => {
@@ -524,11 +524,11 @@ function HomeView({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Dagens utmaning</div>
-            <div className="mt-1 font-display text-lg font-semibold">Sälj {DAILY_GOAL} träd idag</div>
+            <div className="mt-1 font-display text-lg font-semibold">Plantera {DAILY_GOAL} träd idag</div>
           </div>
           <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
             {Math.min(today, DAILY_GOAL)} / {DAILY_GOAL}
-            {today >= DAILY_GOAL && <span className="ml-2">🎉</span>}
+            {today >= DAILY_GOAL && <span className="ml-2">⭐</span>}
           </div>
         </div>
         <div className="mt-3 h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--mint)" }}>
@@ -536,8 +536,8 @@ function HomeView({
             style={{ width: `${Math.min(100, (today / DAILY_GOAL) * 100)}%`, background: "var(--primary)" }} />
         </div>
         {today >= DAILY_GOAL
-          ? <div className="mt-3 text-sm" style={{ color: "var(--forest)" }}>Klart! Du klarade dagens utmaning. ⭐</div>
-          : <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>Varje träd räknas — kör på!</div>}
+          ? <div className="mt-3 text-sm" style={{ color: "var(--forest)" }}>Klart för idag. Fint jobbat.</div>
+          : <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>Ett träd i taget — det räcker långt.</div>}
       </section>
 
       {/* Helg-sprint */}
@@ -547,7 +547,7 @@ function HomeView({
             <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Helg-sprint</div>
             <div className="mt-1 font-display text-lg font-semibold">
               {isWeekendNow
-                ? <>Sälj {WEEKEND_SPRINT_GOAL} träd i helgen → <span style={{ color: "var(--primary)" }}>+10 poäng</span></>
+                ? <>Plantera {WEEKEND_SPRINT_GOAL} träd i helgen → <span style={{ color: "var(--primary)" }}>+10 poäng</span></>
                 : <>Helg-sprinten kommer i helgen</>}
             </div>
           </div>
@@ -577,8 +577,8 @@ function HomeView({
               <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Lagets veckomål</div>
               <div className="mt-1 font-display text-lg font-semibold">
                 {teamWeekTrees >= teamGoal
-                  ? <>Målet nått! 🎉 Alla i laget fick <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>
-                  : <>Sälj {teamGoal} träd tillsammans → alla får <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>}
+                  ? <>Målet nått. Alla i laget fick <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>
+                  : <>Plantera {teamGoal} träd tillsammans → alla får <span style={{ color: "var(--primary)" }}>+{teamBonusPts} poäng</span></>}
               </div>
             </div>
             <div className="font-mono text-lg" style={{ color: "var(--forest)" }}>
@@ -590,7 +590,7 @@ function HomeView({
               style={{ width: `${Math.min(100, (teamWeekTrees / teamGoal) * 100)}%`, background: "var(--primary)" }} />
           </div>
           <div className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>
-            Hela <strong>{ctx.team?.name}</strong> jobbar mot samma mål — peppa varandra!
+            Hela <strong>{ctx.team?.name}</strong> jobbar mot samma mål — peppa varandra.
           </div>
         </section>
       )}
@@ -625,7 +625,7 @@ function HomeView({
         <div className="mt-4 space-y-2">
           {lbKind === "sellers"
             ? sellers.length === 0
-              ? <div className="py-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga försäljningar än — du kan bli först!</div>
+              ? <div className="py-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga planteringar än — du kan bli först.</div>
               : sellers.map((s, i) => {
                   const me = s.userId === ctx.userId;
                   const w = (s.trees / maxSeller) * 100;
@@ -738,7 +738,7 @@ function HomeView({
               )}
               {nextBadge.kind === "special" && (
                 <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
-                  Sälj flest träd i ditt lag denna vecka för att vinna.
+                  Plantera flest träd i ditt lag denna vecka.
                 </div>
               )}
             </div>
@@ -927,7 +927,7 @@ function DoneView({
       <div className="surface-card p-5 text-sm" style={{ color: "var(--muted-foreground)" }}>
         {emailSent
           ? <>Värdebeviset har skickats till <span className="font-mono" style={{ color: "var(--forest)" }}>{resultEmail}</span>.</>
-          : <>Köpet är registrerat. Mailet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
+          : <>Planteringen är registrerad. Mejlet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
         <div className="mt-3 flex flex-wrap gap-2">
           <button onClick={() => setShowCert((v) => !v)} className="btn-secondary !py-2 !px-3 text-xs">
             {showCert ? "Dölj värdebevis" : "Visa värdebevis"}

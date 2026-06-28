@@ -56,9 +56,9 @@ function SaljHjalpPage() {
 
         {view === "home" && (
           <>
-            <h1 className="font-display text-3xl font-semibold">Sälj-hjälp 🌱</h1>
+            <h1 className="font-display text-3xl font-semibold">Sälj-hjälp</h1>
             <p className="mt-2" style={{ color: "var(--muted-foreground)" }}>
-              Här får du hjälp att sälja träd — och något fint att visa kunden.
+              Här får du hjälp när du pratar med kunden — och något fint att visa.
             </p>
 
             <div className="mt-6 grid gap-4">
@@ -68,7 +68,7 @@ function SaljHjalpPage() {
               >
                 <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>📘</div>
                 <div className="flex-1">
-                  <div className="font-display text-lg font-semibold">Så säljer du ett träd</div>
+                  <div className="font-display text-lg font-semibold">Så pratar du med kunden</div>
                   <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Fem enkla steg + tips</div>
                 </div>
                 <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
@@ -81,7 +81,7 @@ function SaljHjalpPage() {
                 <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--apricot, #ffd9b3)" }}>🌳</div>
                 <div className="flex-1">
                   <div className="font-display text-lg font-semibold">Visa kunden</div>
-                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Snyggt material att vända mot köparen</div>
+                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Snyggt material att vända mot kunden</div>
                 </div>
                 <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
               </button>
@@ -114,18 +114,18 @@ function SaljHjalpPage() {
 
 const STEPS = [
   { emoji: "👋", title: "Le och säg hej", text: "”Hej! Jag heter [namn] och jag går i klass [klass].”" },
-  { emoji: "🌱", title: "Berätta vad du gör", text: "”Jag säljer träd för min klass. Varje träd planteras på riktigt och hjälper klimatet.”" },
-  { emoji: "🌍", title: "Visa varför det är bra", text: "Öppna ”Visa kunden”-materialet. ”Ett träd suger upp ungefär 20 kg koldioxid varje år.”" },
-  { emoji: "🤝", title: "Fråga snällt", text: "”Vill du vara med och köpa ett träd? Det kostar 35 kronor, och du får ett fint värdebevis.”" },
-  { emoji: "💚", title: "Säg tack — oavsett svar", text: "”Tack så mycket!” eller ”Tack ändå, ha en fin dag!”" },
+  { emoji: "🌱", title: "Berätta vad du gör", text: "”Jag är med och planterar träd för min klass. Träden planteras genom WeForest.”" },
+  { emoji: "🌍", title: "Visa varför det är bra", text: "Öppna ”Visa kunden”-materialet. ”Ett träd binder ungefär 20 kg koldioxid per år.”" },
+  { emoji: "🤝", title: "Fråga vänligt", text: "”Vill du vara med och plantera ett träd? 35 kr per träd, och du får ett personligt värdebevis.”" },
+  { emoji: "💚", title: "Säg tack — oavsett svar", text: "”Tack så mycket!” eller ”Tack ändå, ha en fin dag.”" },
 ];
 
 function SalesGuide({ onShowCustomer, onBack }: { onShowCustomer: () => void; onBack: () => void }) {
   return (
     <div>
       <button onClick={onBack} className="text-sm" style={{ color: "var(--muted-foreground)" }}>← Sälj-hjälp</button>
-      <h1 className="mt-2 font-display text-3xl font-semibold">Så säljer du ett träd 🌱</h1>
-      <p className="mt-2" style={{ color: "var(--muted-foreground)" }}>Följ de här stegen — du klarar det här!</p>
+      <h1 className="mt-2 font-display text-3xl font-semibold">Så pratar du med kunden</h1>
+      <p className="mt-2" style={{ color: "var(--muted-foreground)" }}>Följ stegen i din egen takt.</p>
 
       <ol className="mt-6 grid gap-4">
         {STEPS.map((s, i) => (
@@ -143,9 +143,9 @@ function SalesGuide({ onShowCustomer, onBack }: { onShowCustomer: () => void; on
       <div className="mt-6 surface-card p-5">
         <div className="font-display text-lg font-semibold">Bra att tänka på</div>
         <ul className="mt-3 space-y-2 text-sm">
-          <li>💛 Var snäll och lugn — tjata aldrig.</li>
-          <li>🙂 Det är okej om någon säger nej. Då säger du bara tack och går vidare.</li>
-          <li>🎉 Ha kul! Du gör något riktigt bra för klimatet.</li>
+          <li>💛 Var lugn och vänlig — tjata aldrig.</li>
+          <li>🙂 Det är okej om någon säger nej. Säg tack och gå vidare.</li>
+          <li>🌳 Varje träd räknas — också det du inte fick.</li>
         </ul>
       </div>
 

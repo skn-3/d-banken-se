@@ -118,7 +118,7 @@ function RewardsPage() {
     try {
       await buyFn({ data: { rewardId: r.id, targetUserId: previewAs } });
       setConfetti(true);
-      setToast(`🎉 Du köpte ${r.name}! Din lärare ordnar den.`);
+      setToast(`Klart — du löste in ${r.name}. Din lärare ordnar resten.`);
       setTimeout(() => setConfetti(false), 2200);
       setTimeout(() => setToast(null), 4500);
       await reload();
@@ -165,7 +165,7 @@ function RewardsPage() {
           <div>
             <div className="font-display text-3xl font-semibold" style={{ color: "var(--forest)" }}>Belöningar</div>
             <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Köp belöningar med dina poäng. Köp påverkar inte plantan eller topplistan.
+              Lös in dina poäng mot belöningar. Det påverkar inte plantan eller topplistan.
             </div>
           </div>
           <Link to="/saljare" search={previewAs ? { as: previewAs } : { as: undefined }} className="btn-secondary !py-2 !px-3 text-sm">← Hem</Link>
@@ -216,7 +216,7 @@ function RewardsPage() {
             {/* Egna beställningar */}
             {orders.length > 0 && (
               <section className="surface-card mt-8 p-6">
-                <h2 className="font-display text-xl font-semibold">Dina köp</h2>
+                <h2 className="font-display text-xl font-semibold">Dina inlösen</h2>
                 <div className="mt-4 divide-y" style={{ borderColor: "var(--border)" }}>
                   {orders.map(o => {
                     const r = rewardById.get(o.reward_id);
@@ -281,10 +281,10 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy }: {
           onClick={onBuy}
           disabled={!canAfford || busy || readOnly}
           className={canAfford ? "btn-primary !py-1 !px-3 text-xs" : "btn-secondary !py-1 !px-3 text-xs"}
-          title={readOnly ? "Förhandsvisning — köp avstängt" : !canAfford ? `Saknar ${missing} poäng` : undefined}
+          title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
           style={!canAfford ? { cursor: "not-allowed", opacity: 0.6 } : undefined}
         >
-          {busy ? "Köper…" : canAfford ? `Köp för ${reward.cost_points} p` : `Saknar ${missing} p`}
+          {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
         </button>
       </div>
     </article>

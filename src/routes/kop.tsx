@@ -13,7 +13,7 @@ export const Route = createFileRoute("/kop")({
   head: () => ({
     meta: [
       { title: "Plantera träd — SmartKlimat" },
-      { name: "description", content: "Registrera en plantering åt en kund. Inloggning krävs inte." },
+      { name: "description", content: "Plantera träd åt en kund. Inget konto behövs." },
     ],
   }),
   component: KopPage,
@@ -93,12 +93,12 @@ function KopPage() {
                 <span className="font-display text-2xl" style={{ color: "var(--forest)" }}>✓</span>
               </div>
               <h1 className="font-display text-3xl font-semibold">
-                Tack! {certificate.tree_count} träd planterade
+                Tack! {certificate.tree_count} {certificate.tree_count === 1 ? "träd planterat" : "träd planterade"}
               </h1>
               <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
                 {emailSent
                   ? <>Värdebeviset har skickats till <span className="font-mono">{resultEmail}</span>.</>
-                  : <>Köpet är registrerat. Mailet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
+                  : <>Planteringen är registrerad. Mejlet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
               </p>
               <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
                 Verifierings-ID: <span className="font-mono">{certificate.verification_id}</span>
@@ -120,7 +120,7 @@ function KopPage() {
                   setCertificate(null); setName(""); setEmail(""); setCount(10);
                 }}
                 className="btn-secondary"
-              >Registrera ett till köp</button>
+              >Plantera fler träd</button>
             </div>
           </div>
         ) : (
@@ -134,7 +134,7 @@ function KopPage() {
               footer={
                 <>
                   <p className="mt-3 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
-                    Betalning simuleras i detta steg.
+                    35 kr per träd. Betalning simuleras i detta steg.
                   </p>
                   <p className="mt-2 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
                     <button onClick={() => navigate({ to: "/auth" })} className="underline" style={{ color: "var(--primary)" }}>
