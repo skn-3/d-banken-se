@@ -118,7 +118,7 @@ function RewardsPage() {
     try {
       await buyFn({ data: { rewardId: r.id, targetUserId: previewAs } });
       setConfetti(true);
-      setToast(`🎉 Du köpte ${r.name}! Din lärare ordnar den.`);
+      setToast(`Klart — du löste in ${r.name}. Din lärare ordnar resten.`);
       setTimeout(() => setConfetti(false), 2200);
       setTimeout(() => setToast(null), 4500);
       await reload();
