@@ -386,3 +386,58 @@
   .presentation-fade { animation: none !important; }
 }
 
+/* === Smaarty live SVG === */
+.smaarty-float { animation: smaarty-float 3.6s ease-in-out infinite; transform-origin: 50% 70%; }
+@keyframes smaarty-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-7px) scale(1.025); }
+}
+.smaarty-eye { transform-box: fill-box; transform-origin: center; animation: smaarty-blink 4.4s infinite; }
+@keyframes smaarty-blink {
+  0%, 90% { transform: scaleY(1); }
+  93.5%   { transform: scaleY(0.08); }
+  97%, 100% { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .smaarty-float, .smaarty-eye { animation: none !important; }
+}
+
+/* === Wizard === */
+.wizard-step-in-right  { animation: wizard-in-right 350ms cubic-bezier(.2,.8,.2,1) both; }
+.wizard-step-in-left   { animation: wizard-in-left  350ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes wizard-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes wizard-in-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.wizard-dot {
+  width: 8px; height: 8px; border-radius: 999px;
+  background: #D9EBE0; transition: all 250ms ease;
+}
+.wizard-dot.is-active { background: var(--primary); width: 22px; }
+.wizard-dot.is-done   { background: var(--sage); }
+.wizard-bubble {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border-radius: 18px;
+  background: var(--mint-paper);
+  border: 1px solid #D9EBE0;
+  color: var(--forest);
+  font-size: 0.98rem;
+  line-height: 1.35;
+  position: relative;
+  max-width: 22rem;
+}
+.wizard-bubble::before {
+  content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 12px; height: 12px; background: var(--mint-paper);
+  border-left: 1px solid #D9EBE0; border-top: 1px solid #D9EBE0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wizard-step-in-right, .wizard-step-in-left { animation: none !important; }
+}
+
+
