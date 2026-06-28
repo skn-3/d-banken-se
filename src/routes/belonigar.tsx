@@ -202,6 +202,17 @@ function RewardsPage() {
           </div>
         ) : (
           <>
+            {/* Måltavla */}
+            <GoalCard goal={goal} balance={balance}
+              onRedeem={() => {
+                if (!goal) return;
+                const r = rewardById.get(goal.rewardId);
+                if (r) handleBuy(r);
+              }}
+              onClear={() => { if (goalUid) { setRewardGoal(goalUid, null); setGoalState(null); } }}
+              busy={!!goal && busyId === goal.rewardId}
+            />
+
             {/* Saldo */}
             <section className="surface-card mb-6 p-6 text-center" style={{ background: "var(--gradient-mint)" }}>
               <div className="text-xs uppercase tracking-wider" style={{ color: "var(--forest)" }}>Ditt saldo</div>
@@ -225,13 +236,16 @@ function RewardsPage() {
                     <div className="grid gap-3">
                       {grouped[cat].map(r => (
                         <RewardCard key={r.id} reward={r} balance={balance} busy={busyId === r.id}
-                          readOnly={false} onBuy={() => handleBuy(r)} />
+                          readOnly={false} onBuy={() => handleBuy(r)}
+                          isGoal={goal?.rewardId === r.id}
+                          onToggleGoal={() => toggleGoal(r)} />
                       ))}
                     </div>
                   </section>
                 ))}
               </div>
             )}
+
 
             {/* Egna beställningar */}
             {orders.length > 0 && (
