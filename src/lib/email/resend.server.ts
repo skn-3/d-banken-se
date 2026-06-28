@@ -73,7 +73,7 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
           <p style="margin:16px 0 0;font-size:12px;color:#7A8F84;">Eller öppna direkt: <a href="${a.verifyUrl}" style="color:#1E9E6A;">${a.verifyUrl}</a></p>
         </td></tr>
         <tr><td style="background:#F8FBF6;padding:20px 40px;text-align:center;font-size:11px;color:#7A8F84;">
-          SmartKlimat · Bryggan mellan dig och riktig trädplantering
+          SmartKlimat · Träd som planteras genom WeForest
         </td></tr>
       </table>
     </td></tr>
