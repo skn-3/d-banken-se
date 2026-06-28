@@ -189,19 +189,19 @@ function SellerPage() {
     const desc = b.description ?? "";
     if (b.type === "bonus_milestone") {
       const m = desc.match(/(\d+)/);
-      return { title: `Du nådde ${m ? m[1] : ""} sålda träd!`, subtitle: "Milstolpe-bonus" };
+      return { title: `Du nådde ${m ? m[1] : ""} planterade träd`, subtitle: "Milstolpe-bonus" };
     }
     if (b.type === "bonus_sprint") {
-      return { title: "Helg-sprint klarad! 🎉", subtitle: `5 träd under helgen` };
+      return { title: "Helg-sprint klarad", subtitle: `5 träd under helgen` };
     }
     if (b.type === "bonus_team") {
-      return { title: "Laget nådde veckomålet! 🎉", subtitle: "Alla i laget får bonus" };
+      return { title: "Laget nådde veckomålet", subtitle: "Alla i laget får bonus" };
     }
     if (b.type === "bonus_streak") {
       const m = desc.match(/(\d+)/);
-      return { title: `${m ? m[1] : ""} dagar i rad!`, subtitle: "Streak-bonus" };
+      return { title: `${m ? m[1] : ""} dagar i rad`, subtitle: "Streak-bonus" };
     }
-    return { title: "Bonus!", subtitle: desc };
+    return { title: "Bonus", subtitle: desc };
   };
 
   const detectNewBonus = async (uid: string) => {
