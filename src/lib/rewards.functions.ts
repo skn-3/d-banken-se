@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { REWARD_SEEDS } from "@/lib/reward-catalog";
 
 async function isAdminUser(userId: string): Promise<boolean> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -17,6 +18,45 @@ async function sellerBalance(userId: string): Promise<number> {
   return (data ?? []).reduce((s, r) => s + (r.delta ?? 0), 0);
 }
 
+async function ensureRewardCatalog() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: existing, error: readError } = await supabaseAdmin
+    .from("rewards")
+    .select("id, name, image_url");
+  if (readError) throw new Error(readError.message);
+
+  const byName = new Map((existing ?? []).map((reward) => [reward.name, reward]));
+  const missing = REWARD_SEEDS.filter((seed) => !byName.has(seed.name));
+
+  if (missing.length > 0) {
+    const { error: insertError } = await supabaseAdmin.from("rewards").insert(
+      missing.map((seed) => ({
+        name: seed.name,
+        description: seed.description,
+        cost_points: seed.cost_points,
+        category: seed.category,
+        image_url: seed.image_url,
+        active: true,
+        sort_order: seed.sort_order,
+      })),
+    );
+    if (insertError) throw new Error(insertError.message);
+  }
+
+  const imagePatches = REWARD_SEEDS.filter((seed) => {
+    const current = byName.get(seed.name);
+    return current && !current.image_url && seed.image_url;
+  });
+
+  for (const seed of imagePatches) {
+    const { error: updateError } = await supabaseAdmin
+      .from("rewards")
+      .update({ image_url: seed.image_url })
+      .eq("name", seed.name);
+    if (updateError) throw new Error(updateError.message);
+  }
+}
+
 /* ---------------- Seller view ---------------- */
 
 export const getSellerRewards = createServerFn({ method: "POST" })
@@ -27,6 +67,8 @@ export const getSellerRewards = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    await ensureRewardCatalog();
 
     let targetUserId = context.userId;
     let isPreview = false;
@@ -62,13 +104,21 @@ export const getSellerRewards = createServerFn({ method: "POST" })
       previewName,
       balance,
       rewards: (rewards ?? []).map(r => ({
-        id: r.id, name: r.name, description: r.description,
-        cost_points: r.cost_points, category: r.category,
-        image_url: r.image_url, sort_order: r.sort_order,
+        id: r.id,
+        name: r.name,
+        description: r.description,
+        cost_points: r.cost_points,
+        category: r.category,
+        image_url: r.image_url,
+        sort_order: r.sort_order,
       })),
       orders: (orders ?? []).map(o => ({
-        id: o.id, reward_id: o.reward_id, cost_points: o.cost_points,
-        status: o.status, requested_at: o.requested_at, fulfilled_at: o.fulfilled_at,
+        id: o.id,
+        reward_id: o.reward_id,
+        cost_points: o.cost_points,
+        status: o.status,
+        requested_at: o.requested_at,
+        fulfilled_at: o.fulfilled_at,
       })),
     };
   });
@@ -80,7 +130,6 @@ export const purchaseSellerReward = createServerFn({ method: "POST" })
     targetUserId: z.string().uuid().optional(),
   }).parse(input))
   .handler(async ({ context, data }) => {
-    // Admin preview: purchase on behalf of another seller
     if (data.targetUserId && data.targetUserId !== context.userId) {
       if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -107,6 +156,7 @@ export const purchaseSellerReward = createServerFn({ method: "POST" })
       if (tErr) throw new Error(tErr.message);
       return { ok: true, order };
     }
+
     const { data: order, error } = await context.supabase.rpc("purchase_reward", { _reward_id: data.rewardId });
     if (error) throw new Error(error.message);
     return { ok: true, order };
@@ -130,6 +180,7 @@ export const adminListRewards = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     if (!(await isAdminUser(context.userId))) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await ensureRewardCatalog();
     const { data: rewards } = await supabaseAdmin
       .from("rewards").select("*")
       .order("sort_order", { ascending: true });

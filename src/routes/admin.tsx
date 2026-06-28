@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
@@ -9,6 +10,8 @@ import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions"
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
 import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward, adminUpdateReward, adminDeleteReward } from "@/lib/rewards.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
+import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — SmartKlimat" }] }),
