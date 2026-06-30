@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SiteHeader, Blobs } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, Blobs, TAGLINE } from "@/components/site-chrome";
+import logo3d from "@/assets/logos/smartklimat-3d.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
