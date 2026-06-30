@@ -42,6 +42,14 @@ export type RewardSeed = {
 
 export const REWARD_SEEDS: RewardSeed[] = [
   {
+    name: "Biobiljett",
+    category: "Småpriser",
+    cost_points: 25,
+    description: "En biobiljett till SF Bio – perfekt för filmkväll med popcorn och kompisar.",
+    sort_order: 100,
+    image_url: biobiljettAsset.url,
+  },
+  {
     name: "Spotify 1 månad",
     category: "Spel & streaming",
     cost_points: 20,
