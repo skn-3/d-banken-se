@@ -98,3 +98,20 @@ export function Blobs() {
     </div>
   );
 }
+
+export function SiteFooter() {
+  return (
+    <footer className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10">
+      <div className="flex flex-col items-center gap-3 border-t pt-8 text-center sm:flex-row sm:justify-between sm:text-left"
+        style={{ borderColor: "var(--border)" }}>
+        <Link to="/" className="flex items-center gap-2" aria-label="SmartKlimat">
+          <img src={logoBlack.url} alt="SmartKlimat" className="h-6 w-auto opacity-80 select-none" draggable={false} />
+        </Link>
+        <p className="font-display text-xs" style={{ color: "var(--muted-foreground)" }}>
+          {TAGLINE}
+        </p>
+      </div>
+    </footer>
+  );
+}
+
