@@ -476,17 +476,47 @@
 }
 
 /* 3) Conic ray border for affordable rewards */
-@property --ray { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-.rw { position: relative; }
-.rw.afford { border-color: transparent; }
-.rw.afford::before {
-  content: ''; position: absolute; inset: -2px; border-radius: 20px; z-index: 0;
-  background: conic-gradient(from var(--ray), transparent 0deg 285deg, #3CB680 320deg, #EAFBF1 340deg, #1E9E6A 360deg);
-  animation: travel 3s linear infinite;
-  pointer-events: none;
+@property --ray {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
-.rw > * { position: relative; z-index: 1; }
-@keyframes travel { to { --ray: 360deg; } }
+
+/* Ljuskant – endast en tunn linje runt kanten, oavsett kortstorlek */
+.reward-card.afford {
+  position: relative;
+  border-color: transparent;
+}
+.reward-card.afford::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;   /* följer kortets rundning */
+  padding: 2px;             /* linjens tjocklek */
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--ray),
+    transparent 0deg 265deg,
+    #3CB680 305deg,
+    #EAFBF1 335deg,
+    #1E9E6A 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: ray-travel 3s linear infinite;
+}
+@keyframes ray-travel { to { --ray: 360deg; } }
+
+/* Lugnt fallback för dem som stängt av rörelse */
+@media (prefers-reduced-motion: reduce) {
+  .reward-card.afford::before {
+    animation: none;
+    background: #1E9E6A;
+  }
+}
 
 .reward-card { min-height: 100%; border-radius: 20px; }
 .reward-art-frame {
