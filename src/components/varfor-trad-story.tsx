@@ -230,31 +230,20 @@ function Slide2() {
 
 function Slide3() {
   return (
-    <svg viewBox="0 0 330 330" xmlns="http://www.w3.org/2000/svg">
-      {/* ground */}
-      <ellipse cx="165" cy="285" rx="130" ry="12" fill="#9FD9B6" opacity="0.6" />
-      {/* trunk */}
-      <rect x="158" y="200" width="14" height="80" fill="#5C3A1E" rx="3" />
-      {/* canopy */}
+    <svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="150" cy="212" rx="118" ry="18" fill="#CFE6D6" />
+      <rect x="144" y="150" width="12" height="60" rx="4" fill="#9A6F4E" />
       <g className="s3-canopy">
-        <circle cx="165" cy="170" r="70" fill="#1E9E6A" />
-        <circle cx="125" cy="180" r="50" fill="#15784F" />
-        <circle cx="205" cy="180" r="50" fill="#3CB680" />
-        <circle cx="165" cy="135" r="48" fill="#3CB680" />
+        <circle cx="150" cy="120" r="42" fill="#2D8A60" />
+        <circle cx="120" cy="132" r="26" fill="#3CB680" />
+        <circle cx="182" cy="130" r="24" fill="#1E9E6A" />
+        <circle cx="150" cy="104" r="28" fill="#46C18B" />
       </g>
-      {/* CO2 in */}
-      <g>
-        <text className="s3-in s3-in1" x="80" y="120" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-        <text className="s3-in s3-in2" x="220" y="120" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-        <text className="s3-in s3-in3" x="80" y="200" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-        <text className="s3-in s3-in4" x="220" y="200" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-      </g>
-      {/* O2 out */}
-      <g>
-        <text className="s3-o2" x="155" y="110" fontFamily="JetBrains Mono, monospace" fontSize="16" fill="#15784F" fontWeight="700">O₂</text>
-        <text className="s3-o2" x="155" y="110" fontFamily="JetBrains Mono, monospace" fontSize="16" fill="#15784F" fontWeight="700" style={{ animationDelay: "1.1s" }}>O₂</text>
-        <text className="s3-o2" x="155" y="110" fontFamily="JetBrains Mono, monospace" fontSize="16" fill="#15784F" fontWeight="700" style={{ animationDelay: "2.2s" }}>O₂</text>
-      </g>
+      <text className="s3-co2 co2a" x="74" y="120" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="13" fontWeight="600" fill="#8C7B66">CO₂</text>
+      <text className="s3-co2 co2b" x="226" y="116" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="13" fontWeight="600" fill="#8C7B66">CO₂</text>
+      <text className="s3-o2t o2a" x="120" y="92" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="12" fontWeight="600" fill="#2D8A60">O₂</text>
+      <text className="s3-o2t o2b" x="150" y="84" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="12" fontWeight="600" fill="#2D8A60">O₂</text>
+      <text className="s3-o2t o2c" x="180" y="92" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="12" fontWeight="600" fill="#2D8A60">O₂</text>
     </svg>
   );
 }
