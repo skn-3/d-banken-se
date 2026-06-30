@@ -55,12 +55,15 @@ export function SiteHeader() {
 
   return (
     <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-      <Link to="/" className="flex items-center gap-2">
-        <span className="inline-block h-7 w-7 rounded-full" style={{ background: "var(--gradient-mint)", border: "1px solid var(--border)" }} />
-        <span className="font-display text-lg font-semibold tracking-tight" style={{ color: "var(--forest)" }}>
-          SmartKlimat
-        </span>
+      <Link to="/" className="flex items-center gap-2" aria-label="SmartKlimat — startsida">
+        <img
+          src={logoBlack.url}
+          alt="SmartKlimat"
+          className="h-8 w-auto select-none"
+          draggable={false}
+        />
       </Link>
+
 
       <nav className="hidden md:flex items-center gap-3">
         {user ? userLinks() : guestLinks()}
