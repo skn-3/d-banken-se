@@ -89,19 +89,23 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
       }} />
 
       <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-        {/* Logo */}
-        <div style={{
-          width: 72, height: 72, margin: "0 auto",
-          borderRadius: "50%",
-          background: t.logo_url ? `center/cover no-repeat url(${t.logo_url})` : "linear-gradient(160deg,#EAF7EE,#C7EAD4)",
-          border: `2px solid ${accent}`,
-          boxShadow: "0 8px 24px -8px rgba(11,61,46,0.25)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          {!t.logo_url && (
-            <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 700, fontSize: 28, color: accent }}>SK</span>
-          )}
-        </div>
+        {/* Logo — custom template logo if provided, otherwise SmartKlimat black */}
+        {t.logo_url ? (
+          <div style={{
+            width: 72, height: 72, margin: "0 auto",
+            borderRadius: "50%",
+            background: `center/cover no-repeat url(${t.logo_url})`,
+            border: `2px solid ${accent}`,
+            boxShadow: "0 8px 24px -8px rgba(11,61,46,0.25)",
+          }} />
+        ) : (
+          <img
+            src={logoBlack.url}
+            alt="SmartKlimat"
+            style={{ height: 44, width: "auto", margin: "0 auto", display: "block" }}
+          />
+        )}
+
 
         {/* Heading */}
         <h1 style={{
