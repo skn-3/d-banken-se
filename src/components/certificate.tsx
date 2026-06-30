@@ -180,16 +180,22 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           <span style={{ opacity: 0.55 }}>· smartklimat.org/v</span>
         </div>
 
-        {/* Footer */}
+        {/* Footer with brand mark + tagline */}
         <div style={{
           marginTop: 48, display: "flex", justifyContent: "space-between", alignItems: "flex-end",
           fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: "#4F6B5E",
         }}>
           <span>{fmtDate(data.issued_date)}</span>
-          <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 14, fontWeight: 600, color: "#0B3D2E" }}>
-            SmartKlimat
-          </span>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+            {t.logo_url && (
+              <img src={logoBlack.url} alt="SmartKlimat" style={{ height: 18, width: "auto", opacity: 0.85 }} />
+            )}
+            <span style={{ fontFamily: '"Familjen Grotesk", sans-serif', fontSize: 11, color: "#4F6B5E", letterSpacing: "0.01em" }}>
+              {CERT_TAGLINE}
+            </span>
+          </div>
         </div>
+
 
         {t.show_social && t.social_handles && (
           <div style={{
