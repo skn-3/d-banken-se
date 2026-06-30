@@ -1,0 +1,196 @@
+/* Varför träd — story styles */
+.vt-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #0B3D2E;
+  display: flex;
+  flex-direction: column;
+  color: #0B3D2E;
+}
+
+.vt-progress {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+}
+.vt-seg {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.3);
+  border: 0;
+  border-radius: 99px;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+}
+.vt-seg-fill {
+  display: block;
+  height: 100%;
+  background: #fff;
+  border-radius: 99px;
+  transition: width 0.1s linear;
+}
+
+.vt-close {
+  position: absolute;
+  top: 28px;
+  right: 14px;
+  z-index: 11;
+  width: 36px;
+  height: 36px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.9);
+  border: 0;
+  color: #0B3D2E;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.vt-stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.vt-controls {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+}
+.vt-controls button {
+  width: 44px;
+  height: 44px;
+  border-radius: 99px;
+  border: 0;
+  background: rgba(255,255,255,0.9);
+  color: #0B3D2E;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+/* design tokens (story-scoped) */
+.vt-root {
+  --skog:#0B3D2E;--smaragd:#1E9E6A;--smaragd-mork:#15784F;--smaragd-ljus:#3CB680;
+  --salvia:#9FD9B6;--mint:#C7EAD4;--mintpapper:#EAF7EE;--papper:#F4FAF5;--sand:#EFE9DC;
+  --apricot1:#FBE3C0;--apricot2:#F6B27A;--line:#D9EBE0;--guld:#DCBE6E;--muted:#5C7B6C;
+  --bounce:cubic-bezier(.34,1.56,.64,1);
+}
+.vt-stage .slide{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.vt-stage .slide.active{opacity:1;pointer-events:auto}
+.vt-stage .art{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding-top:40px}
+.vt-stage .art svg{width:84%;max-width:330px;height:auto}
+.vt-stage .copy{padding:6px 30px 90px;text-align:center}
+.vt-stage .kicker{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--smaragd);opacity:0;margin-bottom:12px}
+.vt-stage .title{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:29px;line-height:1.1;color:var(--skog);opacity:0;margin-bottom:12px}
+.vt-stage .body{font-size:16px;line-height:1.55;color:#3C5A4C;opacity:0;max-width:300px;margin:0 auto}
+.vt-stage .stat{display:inline-block;margin-top:16px;font-family:"JetBrains Mono",monospace;font-weight:600;font-size:15px;color:var(--smaragd-mork);background:var(--mintpapper);border:1px solid var(--line);border-radius:99px;padding:8px 16px;opacity:0}
+
+.vt-stage .slide.active .kicker{animation:vtFadeUp .6s var(--bounce) .15s forwards}
+.vt-stage .slide.active .title{animation:vtFadeUp .6s var(--bounce) .26s forwards}
+.vt-stage .slide.active .body{animation:vtFadeUp .6s var(--bounce) .4s forwards}
+.vt-stage .slide.active .stat{animation:vtPop .55s var(--bounce) .62s forwards}
+@keyframes vtFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes vtPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+
+.vt-stage .bg1{background:radial-gradient(120% 80% at 70% 12%,#FBE9CC,transparent 46%),linear-gradient(180deg,#EAF7EE,#DCEFE2)}
+.vt-stage .bg2{background:linear-gradient(180deg,#FBE3C0,#FCEFDD 60%,#F3EFE2)}
+.vt-stage .bg3{background:radial-gradient(110% 70% at 50% 16%,#EFFAEF,transparent 50%),linear-gradient(180deg,#EAF7EE,#D7EDDE)}
+.vt-stage .bg4{background:linear-gradient(180deg,#EAF7EE,#EFE9DC)}
+.vt-stage .bg5{background:radial-gradient(120% 80% at 50% 8%,#FBE9CC,transparent 44%),linear-gradient(180deg,#E4F3EA,#CFE8D7)}
+.vt-stage .bg6{background:linear-gradient(180deg,#FBE3C0 0%,#F8E7CF 30%,#E7F2EB 72%,#D7EDDE 100%)}
+
+/* slide 1 */
+.vt-stage .slide.active .s1-sprout{animation:vtSway 4s ease-in-out .4s infinite}
+.vt-stage .s1-sprout{transform-box:fill-box;transform-origin:center bottom}
+.vt-stage .slide.active .s1-leafL{animation:vtUnfurl .8s var(--bounce) .35s forwards}
+.vt-stage .slide.active .s1-leafR{animation:vtUnfurl .8s var(--bounce) .5s forwards}
+.vt-stage .s1-leafL,.vt-stage .s1-leafR{transform-box:fill-box;transform:scale(0)}
+.vt-stage .s1-leafL{transform-origin:right bottom}
+.vt-stage .s1-leafR{transform-origin:left bottom}
+.vt-stage .slide.active .s1-rays{animation:vtSpin 26s linear infinite}
+.vt-stage .s1-rays{transform-box:fill-box;transform-origin:center}
+.vt-stage .slide.active .s1-pollen{animation:vtFloaty 5s ease-in-out infinite}
+.vt-stage .s1-pollen{transform-box:fill-box}
+@keyframes vtUnfurl{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes vtSway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+@keyframes vtSpin{to{transform:rotate(360deg)}}
+@keyframes vtFloaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* slide 2 */
+.vt-stage .s2-puff{transform-box:fill-box;opacity:0}
+.vt-stage .slide.active .s2-puff{animation:vtRise 3.6s ease-in infinite}
+@keyframes vtRise{0%{opacity:0;transform:translateY(8px) scale(.7)}18%{opacity:.85}80%{opacity:.5}100%{opacity:0;transform:translateY(-78px) scale(1.15)}}
+
+/* slide 3 */
+.vt-stage .s3-canopy{transform-box:fill-box;transform-origin:center bottom}
+.vt-stage .slide.active .s3-canopy{animation:vtBreathe 3.4s ease-in-out infinite}
+@keyframes vtBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.vt-stage .s3-in{transform-box:fill-box;opacity:0}
+.vt-stage .slide.active .s3-in1{animation:vtInTL 3s ease-in infinite}
+.vt-stage .slide.active .s3-in2{animation:vtInTR 3s ease-in .9s infinite}
+.vt-stage .slide.active .s3-in3{animation:vtInBL 3s ease-in 1.6s infinite}
+.vt-stage .slide.active .s3-in4{animation:vtInBR 3s ease-in 2.3s infinite}
+@keyframes vtInTL{0%{opacity:0;transform:translate(-34px,-26px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
+@keyframes vtInTR{0%{opacity:0;transform:translate(34px,-26px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
+@keyframes vtInBL{0%{opacity:0;transform:translate(-34px,18px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
+@keyframes vtInBR{0%{opacity:0;transform:translate(34px,18px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
+.vt-stage .s3-o2{transform-box:fill-box;opacity:0}
+.vt-stage .slide.active .s3-o2{animation:vtO2 3.2s ease-out infinite}
+@keyframes vtO2{0%{opacity:0;transform:translateY(0) scale(.6)}25%{opacity:.9}100%{opacity:0;transform:translateY(-46px) scale(1)}}
+
+/* slide 4 */
+.vt-stage .s4-beam{transform-box:fill-box;transform-origin:center}
+.vt-stage .slide.active .s4-beam{animation:vtTip 5s ease-in-out infinite}
+@keyframes vtTip{0%{transform:rotate(-8deg)}18%{transform:rotate(6deg)}34%{transform:rotate(-3deg)}48%{transform:rotate(1deg)}60%,100%{transform:rotate(0)}}
+.vt-stage .s4-eq{transform-box:fill-box;transform-origin:center;opacity:0}
+.vt-stage .slide.active .s4-eq{animation:vtEqshow 5s ease-in-out infinite}
+@keyframes vtEqshow{0%,55%{opacity:0;transform:scale(.5)}68%{opacity:1;transform:scale(1.1)}80%{transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+.vt-stage .s4-tree{transform-box:fill-box}
+.vt-stage .slide.active .s4-tree{animation:vtGentle 3.4s ease-in-out infinite}
+@keyframes vtGentle{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+
+/* slide 5 */
+.vt-stage .s5-tree{transform-box:fill-box}
+.vt-stage .slide.active .s5-t1{animation:vtPlant .7s var(--bounce) .25s forwards}
+.vt-stage .slide.active .s5-t2{animation:vtPlant .7s var(--bounce) .45s forwards}
+.vt-stage .slide.active .s5-t3{animation:vtPlant .7s var(--bounce) .65s forwards}
+.vt-stage .slide.active .s5-t4{animation:vtPlant .7s var(--bounce) .85s forwards}
+.vt-stage .slide.active .s5-t5{animation:vtPlant .7s var(--bounce) 1.05s forwards}
+.vt-stage .slide.active .s5-t6{animation:vtPlant .7s var(--bounce) 1.25s forwards}
+.vt-stage .slide.active .s5-t7{animation:vtPlant .7s var(--bounce) 1.45s forwards}
+@keyframes vtPlant{0%{opacity:0}40%{opacity:1}100%{opacity:1}}
+.vt-stage .slide.active .s5-sun{animation:vtFloaty 6s ease-in-out infinite}
+.vt-stage .s5-sun{transform-box:fill-box}
+
+/* slide 6 */
+.vt-stage .s6-sun{transform-box:fill-box;transform:translateY(40px);opacity:0}
+.vt-stage .slide.active .s6-sun{animation:vtSunrise 1.4s var(--bounce) .3s forwards}
+@keyframes vtSunrise{to{transform:translateY(0);opacity:1}}
+.vt-stage .s6-sprout{transform-box:fill-box}
+.vt-stage .slide.active .s6-sprout{animation:vtSway 4.4s ease-in-out infinite}
+.vt-stage .s6-bird{transform-box:fill-box}
+.vt-stage .slide.active .s6-b1{animation:vtFlyby 9s linear infinite}
+.vt-stage .slide.active .s6-b2{animation:vtFlyby 11s linear 2s infinite}
+@keyframes vtFlyby{0%{transform:translate(-30px,6px)}100%{transform:translate(330px,-14px)}}
+.vt-stage .s6-glow{transform-box:fill-box;transform-origin:center}
+.vt-stage .slide.active .s6-glow{animation:vtPulseGlow 3.6s ease-in-out infinite}
+@keyframes vtPulseGlow{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.6;transform:scale(1.08)}}
+
+@media (prefers-reduced-motion:reduce){
+  .vt-stage *{animation:none!important}
+  .vt-stage .s1-leafL,.vt-stage .s1-leafR,.vt-stage .s5-tree{transform:scale(1)!important;opacity:1!important}
+  .vt-stage .s6-sun,.vt-stage .s6-sprout{transform:none!important;opacity:1!important}
+  .vt-stage .kicker,.vt-stage .title,.vt-stage .body,.vt-stage .stat{opacity:1!important}
+}
