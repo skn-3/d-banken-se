@@ -85,7 +85,11 @@ function AuthPage() {
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
       <Blobs />
       <SiteHeader />
-      <main className="relative z-10 mx-auto flex w-full max-w-md flex-col px-6 pb-20 pt-10">
+      <main className="relative z-10 mx-auto flex w-full max-w-md flex-col px-6 pb-20 pt-6">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img src={logo3d.url} alt="SmartKlimat" className="h-28 w-auto select-none" draggable={false} />
+          <p className="mt-3 font-display text-sm" style={{ color: "var(--muted-foreground)" }}>{TAGLINE}</p>
+        </div>
         <div className="surface-card p-8">
           <h1 className="font-display text-3xl font-semibold">{title}</h1>
           <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>{subtitle}</p>
