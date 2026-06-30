@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import logoBlack from "@/assets/logos/smartklimat-logo-black.png.asset.json";
+
+export const TAGLINE = "Tänk smart, vi har ett gemensamt klimat";
+
 
 export function SiteHeader() {
   const { user } = useAuth();
