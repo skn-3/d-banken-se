@@ -257,6 +257,20 @@ function CustomerPresentation({ onClose, teamTotal }: { onClose: () => void; tea
       </div>
 
       <article className="mx-auto max-w-xl px-5 pb-16 presentation-fade">
+        {/* Story entry */}
+        <button
+          onClick={() => setShowStory(true)}
+          className="mt-6 flex w-full items-center gap-4 rounded-3xl p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
+          style={{ background: "white", border: `1px solid ${line}` }}
+        >
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "#EAF7EE" }}>🌱</div>
+          <div className="flex-1">
+            <div className="font-display text-lg font-semibold" style={{ color: text }}>Varför träd? — en kort berättelse</div>
+            <div className="text-sm" style={{ color: muted }}>Levande, 6 slides — bra att visa kunden</div>
+          </div>
+          <div className="text-xl" style={{ color: muted }}>→</div>
+        </button>
+
         {/* HERO */}
         <section className="pt-6">
           <ImagePlaceholder label="WeForest-foto — skog / plantering" ratio="4 / 5" />
