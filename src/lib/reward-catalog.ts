@@ -1,5 +1,6 @@
 import airpodsPro2Asset from "@/assets/rewards/airpods-pro-2.png.asset.json";
 import appleWatchAsset from "@/assets/rewards/apple-watch.png.asset.json";
+import biobiljettAsset from "@/assets/rewards/biobiljett.png.asset.json";
 import fortniteVbucksAsset from "@/assets/rewards/fortnite-vbucks.png.asset.json";
 import jblFlipAsset from "@/assets/rewards/jbl-flip.png.asset.json";
 import labubuAsset from "@/assets/rewards/labubu.png.asset.json";
@@ -40,6 +41,14 @@ export type RewardSeed = {
 };
 
 export const REWARD_SEEDS: RewardSeed[] = [
+  {
+    name: "Biobiljett",
+    category: "Småpriser",
+    cost_points: 25,
+    description: "En biobiljett till SF Bio – perfekt för filmkväll med popcorn och kompisar.",
+    sort_order: 100,
+    image_url: biobiljettAsset.url,
+  },
   {
     name: "Spotify 1 månad",
     category: "Spel & streaming",
