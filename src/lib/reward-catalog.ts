@@ -114,14 +114,6 @@ export const REWARD_SEEDS: RewardSeed[] = [
     image_url: pokemonTrainerBoxAsset.url,
   },
   {
-    name: "Lego Mechanic",
-    category: "Leksaker & samlarkort",
-    cost_points: 80,
-    description: "Ett större byggset för dig som gillar fart, detaljer och att bygga själv.",
-    sort_order: 340,
-    image_url: null,
-  },
-  {
     name: "JBL Flip",
     category: "Tech & prylar",
     cost_points: 180,
