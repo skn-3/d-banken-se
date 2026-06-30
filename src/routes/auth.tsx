@@ -168,6 +168,7 @@ function AuthPage() {
         </div>
         <Link to="/" className="mx-auto mt-6 text-sm" style={{ color: "var(--muted-foreground)" }}>← Tillbaka till start</Link>
       </main>
+      <SiteFooter />
     </div>
   );
 }
