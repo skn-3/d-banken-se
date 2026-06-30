@@ -1,4 +1,8 @@
 import { forwardRef } from "react";
+import logoBlack from "@/assets/logos/smartklimat-logo-black.png.asset.json";
+
+export const CERT_TAGLINE = "Tänk smart, vi har ett gemensamt klimat";
+
 
 export interface CertificateData {
   verification_id: string;
