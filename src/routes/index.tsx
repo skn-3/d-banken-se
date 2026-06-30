@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { SiteHeader, Blobs } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, Blobs, TAGLINE } from "@/components/site-chrome";
 
 export const Route = createFileRoute("/")({
   head: () => ({
