@@ -45,6 +45,10 @@ function SaljHjalpPage() {
     return <CustomerPresentation onClose={() => setView("home")} teamName={ctx?.team?.name} teamTotal={ctx?.teamTotal} />;
   }
 
+  if (showStory) {
+    return <VarforTradStory onClose={() => setShowStory(false)} />;
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <Blobs />
