@@ -1,5 +1,6 @@
 import airpodsPro2Asset from "@/assets/rewards/airpods-pro-2.png.asset.json";
 import appleWatchAsset from "@/assets/rewards/apple-watch.png.asset.json";
+import biobiljettAsset from "@/assets/rewards/biobiljett.png.asset.json";
 import fortniteVbucksAsset from "@/assets/rewards/fortnite-vbucks.png.asset.json";
 import jblFlipAsset from "@/assets/rewards/jbl-flip.png.asset.json";
 import labubuAsset from "@/assets/rewards/labubu.png.asset.json";
