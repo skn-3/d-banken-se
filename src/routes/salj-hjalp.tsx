@@ -233,6 +233,7 @@ function Hands() {
 }
 
 function CustomerPresentation({ onClose, teamTotal }: { onClose: () => void; teamName?: string; teamTotal?: number }) {
+  const [showStory, setShowStory] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -242,6 +243,8 @@ function CustomerPresentation({ onClose, teamTotal }: { onClose: () => void; tea
   const text = "#0B3D2E";
   const muted = "#3A5A4A";
   const line = "#E2EDE6";
+
+  if (showStory) return <VarforTradStory onClose={() => setShowStory(false)} />;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "#F4FAF5", color: text }}>
