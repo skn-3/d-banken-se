@@ -29,6 +29,7 @@ function SaljHjalpPage() {
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [view, setView] = useState<"home" | "guide" | "present">("home");
   const [showIntro, setShowIntro] = useState(false);
+  const [showStory, setShowStory] = useState(false);
 
   useEffect(() => {
     let alive = true;
