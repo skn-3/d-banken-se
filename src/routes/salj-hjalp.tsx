@@ -69,6 +69,18 @@ function SaljHjalpPage() {
 
             <div className="mt-6 grid gap-4">
               <button
+                onClick={() => setShowStory(true)}
+                className="surface-card flex items-center gap-4 p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>🌱</div>
+                <div className="flex-1">
+                  <div className="font-display text-lg font-semibold">Varför träd?</div>
+                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>En kort, levande berättelse</div>
+                </div>
+                <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
+              </button>
+
+              <button
                 onClick={() => setView("guide")}
                 className="surface-card flex items-center gap-4 p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
               >
