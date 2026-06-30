@@ -230,31 +230,20 @@ function Slide2() {
 
 function Slide3() {
   return (
-    <svg viewBox="0 0 330 330" xmlns="http://www.w3.org/2000/svg">
-      {/* ground */}
-      <ellipse cx="165" cy="285" rx="130" ry="12" fill="#9FD9B6" opacity="0.6" />
-      {/* trunk */}
-      <rect x="158" y="200" width="14" height="80" fill="#5C3A1E" rx="3" />
-      {/* canopy */}
+    <svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="150" cy="212" rx="118" ry="18" fill="#CFE6D6" />
+      <rect x="144" y="150" width="12" height="60" rx="4" fill="#9A6F4E" />
       <g className="s3-canopy">
-        <circle cx="165" cy="170" r="70" fill="#1E9E6A" />
-        <circle cx="125" cy="180" r="50" fill="#15784F" />
-        <circle cx="205" cy="180" r="50" fill="#3CB680" />
-        <circle cx="165" cy="135" r="48" fill="#3CB680" />
+        <circle cx="150" cy="120" r="42" fill="#2D8A60" />
+        <circle cx="120" cy="132" r="26" fill="#3CB680" />
+        <circle cx="182" cy="130" r="24" fill="#1E9E6A" />
+        <circle cx="150" cy="104" r="28" fill="#46C18B" />
       </g>
-      {/* CO2 in */}
-      <g>
-        <text className="s3-in s3-in1" x="80" y="120" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-        <text className="s3-in s3-in2" x="220" y="120" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-        <text className="s3-in s3-in3" x="80" y="200" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-        <text className="s3-in s3-in4" x="220" y="200" fontFamily="JetBrains Mono, monospace" fontSize="14" fill="#5C3A1E" fontWeight="600">CO₂</text>
-      </g>
-      {/* O2 out */}
-      <g>
-        <text className="s3-o2" x="155" y="110" fontFamily="JetBrains Mono, monospace" fontSize="16" fill="#15784F" fontWeight="700">O₂</text>
-        <text className="s3-o2" x="155" y="110" fontFamily="JetBrains Mono, monospace" fontSize="16" fill="#15784F" fontWeight="700" style={{ animationDelay: "1.1s" }}>O₂</text>
-        <text className="s3-o2" x="155" y="110" fontFamily="JetBrains Mono, monospace" fontSize="16" fill="#15784F" fontWeight="700" style={{ animationDelay: "2.2s" }}>O₂</text>
-      </g>
+      <text className="s3-co2 co2a" x="74" y="120" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="13" fontWeight="600" fill="#8C7B66">CO₂</text>
+      <text className="s3-co2 co2b" x="226" y="116" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="13" fontWeight="600" fill="#8C7B66">CO₂</text>
+      <text className="s3-o2t o2a" x="120" y="92" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="12" fontWeight="600" fill="#2D8A60">O₂</text>
+      <text className="s3-o2t o2b" x="150" y="84" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="12" fontWeight="600" fill="#2D8A60">O₂</text>
+      <text className="s3-o2t o2c" x="180" y="92" textAnchor="middle" fontFamily="'Familjen Grotesk',sans-serif" fontSize="12" fontWeight="600" fill="#2D8A60">O₂</text>
     </svg>
   );
 }
@@ -295,58 +284,37 @@ function Slide4() {
 }
 
 function Slide5() {
-  const trees = [
-    { x: 60, y: 240, s: 0.8, cls: "s5-t1" },
-    { x: 110, y: 230, s: 1.1, cls: "s5-t2" },
-    { x: 160, y: 245, s: 0.9, cls: "s5-t3" },
-    { x: 210, y: 228, s: 1.2, cls: "s5-t4" },
-    { x: 260, y: 240, s: 0.85, cls: "s5-t5" },
-    { x: 85, y: 270, s: 0.7, cls: "s5-t6" },
-    { x: 235, y: 270, s: 0.75, cls: "s5-t7" },
-  ];
   return (
-    <svg viewBox="0 0 330 330" xmlns="http://www.w3.org/2000/svg">
-      {/* sun */}
-      <circle className="s5-sun" cx="265" cy="80" r="28" fill="#FBE9CC" />
-      <circle className="s5-sun" cx="265" cy="80" r="18" fill="#DCBE6E" />
-      {/* ground */}
-      <ellipse cx="165" cy="295" rx="150" ry="14" fill="#9FD9B6" opacity="0.6" />
-      {trees.map((t) => (
-        <g key={t.cls} className={`s5-tree ${t.cls}`} style={{ transformOrigin: `${t.x}px ${t.y + 30}px` }} transform={`translate(${t.x}, ${t.y}) scale(${t.s})`}>
-          <rect x="-3" y="0" width="6" height="30" fill="#5C3A1E" />
-          <circle cx="0" cy="-5" r="18" fill="#1E9E6A" />
-          <circle cx="-10" cy="0" r="14" fill="#15784F" />
-          <circle cx="10" cy="0" r="14" fill="#3CB680" />
-        </g>
-      ))}
+    <svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg">
+      <circle className="s5-sun" cx="240" cy="58" r="20" fill="#F8B25C" opacity="0.9" />
+      <ellipse cx="150" cy="214" rx="134" ry="20" fill="#BFE0CB" />
+      <ellipse cx="150" cy="220" rx="90" ry="12" fill="#A9D5B8" />
+      <g className="s5-tree s5-t1"><rect x="46" y="150" width="7" height="40" rx="3" fill="#9A6F4E" /><circle cx="49.5" cy="146" r="20" fill="#2D8A60" /></g>
+      <g className="s5-tree s5-t2"><rect x="92" y="138" width="9" height="56" rx="3" fill="#8E6446" /><circle cx="96" cy="132" r="27" fill="#1E9E6A" /></g>
+      <g className="s5-tree s5-t3"><rect x="146" y="128" width="10" height="66" rx="4" fill="#9A6F4E" /><circle cx="151" cy="120" r="32" fill="#2D8A60" /><circle cx="132" cy="130" r="18" fill="#3CB680" /></g>
+      <g className="s5-tree s5-t4"><rect x="206" y="140" width="9" height="54" rx="3" fill="#8E6446" /><circle cx="210" cy="134" r="26" fill="#1E9E6A" /></g>
+      <g className="s5-tree s5-t5"><rect x="252" y="152" width="7" height="38" rx="3" fill="#9A6F4E" /><circle cx="255.5" cy="148" r="19" fill="#3CB680" /></g>
+      <g className="s5-tree s5-t6"><rect x="122" y="158" width="6" height="34" rx="3" fill="#9A6F4E" /><circle cx="125" cy="154" r="15" fill="#46C18B" /></g>
+      <g className="s5-tree s5-t7"><rect x="180" y="160" width="6" height="32" rx="3" fill="#8E6446" /><circle cx="183" cy="156" r="14" fill="#2D8A60" /></g>
     </svg>
   );
 }
 
 function Slide6() {
   return (
-    <svg viewBox="0 0 330 330" xmlns="http://www.w3.org/2000/svg">
-      {/* glow */}
-      <circle className="s6-glow" cx="165" cy="195" r="90" fill="#FBE9CC" opacity="0.5" />
-      {/* sun rising */}
-      <g className="s6-sun">
-        <circle cx="165" cy="195" r="55" fill="#F6B27A" />
-        <circle cx="165" cy="195" r="40" fill="#DCBE6E" />
-      </g>
-      {/* horizon */}
-      <rect x="0" y="225" width="330" height="105" fill="#9FD9B6" opacity="0.5" />
-      {/* sprout */}
-      <g className="s6-sprout" style={{ transformOrigin: "165px 280px" }}>
-        <path d="M165 280 Q165 250 165 230" stroke="#15784F" strokeWidth="4" fill="none" strokeLinecap="round" />
-        <path d="M165 245 Q145 240 138 225 Q158 225 165 245 Z" fill="#1E9E6A" />
-        <path d="M165 238 Q185 233 192 218 Q172 218 165 238 Z" fill="#3CB680" />
-      </g>
-      {/* birds */}
-      <g className="s6-bird s6-b1">
-        <path d="M40 90 q8 -8 16 0 q8 -8 16 0" stroke="#0B3D2E" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      </g>
-      <g className="s6-bird s6-b2">
-        <path d="M40 130 q6 -6 12 0 q6 -6 12 0" stroke="#0B3D2E" strokeWidth="2" fill="none" strokeLinecap="round" />
+    <svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg">
+      <g className="s6-bird s6-b1" stroke="#8A968C" strokeWidth="2.5" fill="none" strokeLinecap="round"><path d="M0 0 Q6 -6 12 0 Q18 -6 24 0" /></g>
+      <g className="s6-bird s6-b2" stroke="#9AA69C" strokeWidth="2" fill="none" strokeLinecap="round" transform="translate(0,30)"><path d="M0 0 Q5 -5 10 0 Q15 -5 20 0" /></g>
+      <circle className="s6-glow" cx="150" cy="150" r="60" fill="#F8D9A8" opacity="0.4" />
+      <g className="s6-sun"><circle cx="150" cy="158" r="40" fill="#F6B86A" /></g>
+      <ellipse cx="150" cy="196" rx="126" ry="22" fill="#CFE6D6" />
+      <ellipse cx="150" cy="202" rx="86" ry="14" fill="#B7DCC2" />
+      <g opacity="0.75"><rect x="78" y="180" width="5" height="17" fill="#7FA98C" /><circle cx="80.5" cy="178" r="11" fill="#6FA683" /></g>
+      <g opacity="0.75"><rect x="221" y="178" width="5" height="19" fill="#7FA98C" /><circle cx="223.5" cy="176" r="12" fill="#6FA683" /></g>
+      <g className="s6-sprout">
+        <path d="M150 200 Q149 178 150 156" stroke="#15784F" strokeWidth="6.5" fill="none" strokeLinecap="round" />
+        <path d="M150 172 Q116 170 104 144 Q142 140 150 172 Z" fill="#1E9E6A" />
+        <path d="M150 164 Q184 160 196 134 Q158 130 150 164 Z" fill="#3CB680" />
       </g>
     </svg>
   );

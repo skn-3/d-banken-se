@@ -137,18 +137,16 @@
 .vt-stage .s3-canopy{transform-box:fill-box;transform-origin:center bottom}
 .vt-stage .slide.active .s3-canopy{animation:vtBreathe 3.4s ease-in-out infinite}
 @keyframes vtBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-.vt-stage .s3-in{transform-box:fill-box;opacity:0}
-.vt-stage .slide.active .s3-in1{animation:vtInTL 3s ease-in infinite}
-.vt-stage .slide.active .s3-in2{animation:vtInTR 3s ease-in .9s infinite}
-.vt-stage .slide.active .s3-in3{animation:vtInBL 3s ease-in 1.6s infinite}
-.vt-stage .slide.active .s3-in4{animation:vtInBR 3s ease-in 2.3s infinite}
-@keyframes vtInTL{0%{opacity:0;transform:translate(-34px,-26px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
-@keyframes vtInTR{0%{opacity:0;transform:translate(34px,-26px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
-@keyframes vtInBL{0%{opacity:0;transform:translate(-34px,18px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
-@keyframes vtInBR{0%{opacity:0;transform:translate(34px,18px)}25%{opacity:.9}100%{opacity:0;transform:translate(0,0)}}
-.vt-stage .s3-o2{transform-box:fill-box;opacity:0}
-.vt-stage .slide.active .s3-o2{animation:vtO2 3.2s ease-out infinite}
-@keyframes vtO2{0%{opacity:0;transform:translateY(0) scale(.6)}25%{opacity:.9}100%{opacity:0;transform:translateY(-46px) scale(1)}}
+.vt-stage .s3-co2{transform-box:fill-box;opacity:0}
+.vt-stage .slide.active .co2a{animation:co2inR 3.4s ease-in infinite}
+.vt-stage .slide.active .co2b{animation:co2inL 3.4s ease-in 1.6s infinite}
+@keyframes co2inR{0%{opacity:0;transform:translate(-22px,-12px)}22%{opacity:.9}100%{opacity:0;transform:translate(34px,20px) scale(.5)}}
+@keyframes co2inL{0%{opacity:0;transform:translate(22px,-12px)}22%{opacity:.9}100%{opacity:0;transform:translate(-34px,20px) scale(.5)}}
+.vt-stage .s3-o2t{transform-box:fill-box;opacity:0}
+.vt-stage .slide.active .o2a{animation:o2rise 3s ease-out .4s infinite}
+.vt-stage .slide.active .o2b{animation:o2rise 3s ease-out 1.4s infinite}
+.vt-stage .slide.active .o2c{animation:o2rise 3s ease-out 2.3s infinite}
+@keyframes o2rise{0%{opacity:0;transform:translateY(8px) scale(.7)}25%{opacity:.9}100%{opacity:0;transform:translateY(-30px) scale(1)}}
 
 /* slide 4 */
 .vt-stage .s4-beam{transform-box:fill-box;transform-origin:center}
