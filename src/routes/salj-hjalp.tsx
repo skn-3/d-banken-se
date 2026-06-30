@@ -5,6 +5,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { getSellerContext } from "@/lib/seller.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { Onboarding, resetOnboarding } from "@/components/onboarding";
+import { VarforTradStory } from "@/components/varfor-trad-story";
 
 export const Route = createFileRoute("/salj-hjalp")({
   head: () => ({ meta: [{ title: "Smaarty — Sälj-hjälp" }] }),
@@ -28,6 +29,7 @@ function SaljHjalpPage() {
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [view, setView] = useState<"home" | "guide" | "present">("home");
   const [showIntro, setShowIntro] = useState(false);
+  const [showStory, setShowStory] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -41,6 +43,10 @@ function SaljHjalpPage() {
 
   if (view === "present") {
     return <CustomerPresentation onClose={() => setView("home")} teamName={ctx?.team?.name} teamTotal={ctx?.teamTotal} />;
+  }
+
+  if (showStory) {
+    return <VarforTradStory onClose={() => setShowStory(false)} />;
   }
 
   return (
@@ -62,6 +68,18 @@ function SaljHjalpPage() {
             </p>
 
             <div className="mt-6 grid gap-4">
+              <button
+                onClick={() => setShowStory(true)}
+                className="surface-card flex items-center gap-4 p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--mint)" }}>🌱</div>
+                <div className="flex-1">
+                  <div className="font-display text-lg font-semibold">Varför träd?</div>
+                  <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>En kort, levande berättelse</div>
+                </div>
+                <div className="text-xl" style={{ color: "var(--muted-foreground)" }}>→</div>
+              </button>
+
               <button
                 onClick={() => setView("guide")}
                 className="surface-card flex items-center gap-4 p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
@@ -215,6 +233,7 @@ function Hands() {
 }
 
 function CustomerPresentation({ onClose, teamTotal }: { onClose: () => void; teamName?: string; teamTotal?: number }) {
+  const [showStory, setShowStory] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -224,6 +243,8 @@ function CustomerPresentation({ onClose, teamTotal }: { onClose: () => void; tea
   const text = "#0B3D2E";
   const muted = "#3A5A4A";
   const line = "#E2EDE6";
+
+  if (showStory) return <VarforTradStory onClose={() => setShowStory(false)} />;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "#F4FAF5", color: text }}>
@@ -236,6 +257,20 @@ function CustomerPresentation({ onClose, teamTotal }: { onClose: () => void; tea
       </div>
 
       <article className="mx-auto max-w-xl px-5 pb-16 presentation-fade">
+        {/* Story entry */}
+        <button
+          onClick={() => setShowStory(true)}
+          className="mt-6 flex w-full items-center gap-4 rounded-3xl p-5 text-left transition hover:scale-[1.01] active:scale-[0.99]"
+          style={{ background: "white", border: `1px solid ${line}` }}
+        >
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "#EAF7EE" }}>🌱</div>
+          <div className="flex-1">
+            <div className="font-display text-lg font-semibold" style={{ color: text }}>Varför träd? — en kort berättelse</div>
+            <div className="text-sm" style={{ color: muted }}>Levande, 6 slides — bra att visa kunden</div>
+          </div>
+          <div className="text-xl" style={{ color: muted }}>→</div>
+        </button>
+
         {/* HERO */}
         <section className="pt-6">
           <ImagePlaceholder label="WeForest-foto — skog / plantering" ratio="4 / 5" />
