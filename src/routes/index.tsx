@@ -54,7 +54,9 @@ function Index() {
             </div>
           ))}
         </div>
+        <p className="mt-16 font-display text-sm" style={{ color: "var(--muted-foreground)" }}>{TAGLINE}</p>
       </main>
+      <SiteFooter />
     </div>
   );
 }
