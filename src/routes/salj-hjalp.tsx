@@ -5,6 +5,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { getSellerContext } from "@/lib/seller.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { Onboarding, resetOnboarding } from "@/components/onboarding";
+import { VarforTradStory } from "@/components/varfor-trad-story";
 
 export const Route = createFileRoute("/salj-hjalp")({
   head: () => ({ meta: [{ title: "Smaarty — Sälj-hjälp" }] }),
