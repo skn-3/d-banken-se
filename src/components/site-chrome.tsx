@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import logoBlack from "@/assets/logos/smartklimat-logo-black.png.asset.json";
+
+export const TAGLINE = "Tänk smart, vi har ett gemensamt klimat";
+
 
 export function SiteHeader() {
   const { user } = useAuth();
@@ -51,12 +55,15 @@ export function SiteHeader() {
 
   return (
     <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-      <Link to="/" className="flex items-center gap-2">
-        <span className="inline-block h-7 w-7 rounded-full" style={{ background: "var(--gradient-mint)", border: "1px solid var(--border)" }} />
-        <span className="font-display text-lg font-semibold tracking-tight" style={{ color: "var(--forest)" }}>
-          SmartKlimat
-        </span>
+      <Link to="/" className="flex items-center gap-2" aria-label="SmartKlimat — startsida">
+        <img
+          src={logoBlack.url}
+          alt="SmartKlimat"
+          className="h-8 w-auto select-none"
+          draggable={false}
+        />
       </Link>
+
 
       <nav className="hidden md:flex items-center gap-3">
         {user ? userLinks() : guestLinks()}
@@ -91,3 +98,20 @@ export function Blobs() {
     </div>
   );
 }
+
+export function SiteFooter() {
+  return (
+    <footer className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10">
+      <div className="flex flex-col items-center gap-3 border-t pt-8 text-center sm:flex-row sm:justify-between sm:text-left"
+        style={{ borderColor: "var(--border)" }}>
+        <Link to="/" className="flex items-center gap-2" aria-label="SmartKlimat">
+          <img src={logoBlack.url} alt="SmartKlimat" className="h-6 w-auto opacity-80 select-none" draggable={false} />
+        </Link>
+        <p className="font-display text-xs" style={{ color: "var(--muted-foreground)" }}>
+          {TAGLINE}
+        </p>
+      </div>
+    </footer>
+  );
+}
+

@@ -1,4 +1,8 @@
 import { forwardRef } from "react";
+import logoBlack from "@/assets/logos/smartklimat-logo-black.png.asset.json";
+
+export const CERT_TAGLINE = "Tänk smart, vi har ett gemensamt klimat";
+
 
 export interface CertificateData {
   verification_id: string;
@@ -85,19 +89,23 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
       }} />
 
       <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-        {/* Logo */}
-        <div style={{
-          width: 72, height: 72, margin: "0 auto",
-          borderRadius: "50%",
-          background: t.logo_url ? `center/cover no-repeat url(${t.logo_url})` : "linear-gradient(160deg,#EAF7EE,#C7EAD4)",
-          border: `2px solid ${accent}`,
-          boxShadow: "0 8px 24px -8px rgba(11,61,46,0.25)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          {!t.logo_url && (
-            <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 700, fontSize: 28, color: accent }}>SK</span>
-          )}
-        </div>
+        {/* Logo — custom template logo if provided, otherwise SmartKlimat black */}
+        {t.logo_url ? (
+          <div style={{
+            width: 72, height: 72, margin: "0 auto",
+            borderRadius: "50%",
+            background: `center/cover no-repeat url(${t.logo_url})`,
+            border: `2px solid ${accent}`,
+            boxShadow: "0 8px 24px -8px rgba(11,61,46,0.25)",
+          }} />
+        ) : (
+          <img
+            src={logoBlack.url}
+            alt="SmartKlimat"
+            style={{ height: 44, width: "auto", margin: "0 auto", display: "block" }}
+          />
+        )}
+
 
         {/* Heading */}
         <h1 style={{
@@ -172,16 +180,22 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           <span style={{ opacity: 0.55 }}>· smartklimat.org/v</span>
         </div>
 
-        {/* Footer */}
+        {/* Footer with brand mark + tagline */}
         <div style={{
           marginTop: 48, display: "flex", justifyContent: "space-between", alignItems: "flex-end",
           fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: "#4F6B5E",
         }}>
           <span>{fmtDate(data.issued_date)}</span>
-          <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 14, fontWeight: 600, color: "#0B3D2E" }}>
-            SmartKlimat
-          </span>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+            {t.logo_url && (
+              <img src={logoBlack.url} alt="SmartKlimat" style={{ height: 18, width: "auto", opacity: 0.85 }} />
+            )}
+            <span style={{ fontFamily: '"Familjen Grotesk", sans-serif', fontSize: 11, color: "#4F6B5E", letterSpacing: "0.01em" }}>
+              {CERT_TAGLINE}
+            </span>
+          </div>
         </div>
+
 
         {t.show_social && t.social_handles && (
           <div style={{

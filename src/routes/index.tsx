@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { SiteHeader, Blobs } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, Blobs, TAGLINE } from "@/components/site-chrome";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,7 +54,9 @@ function Index() {
             </div>
           ))}
         </div>
+        <p className="mt-16 font-display text-sm" style={{ color: "var(--muted-foreground)" }}>{TAGLINE}</p>
       </main>
+      <SiteFooter />
     </div>
   );
 }

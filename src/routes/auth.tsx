@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SiteHeader, Blobs } from "@/components/site-chrome";
+import { SiteHeader, SiteFooter, Blobs, TAGLINE } from "@/components/site-chrome";
+import logo3d from "@/assets/logos/smartklimat-3d.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -84,7 +85,11 @@ function AuthPage() {
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
       <Blobs />
       <SiteHeader />
-      <main className="relative z-10 mx-auto flex w-full max-w-md flex-col px-6 pb-20 pt-10">
+      <main className="relative z-10 mx-auto flex w-full max-w-md flex-col px-6 pb-20 pt-6">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img src={logo3d.url} alt="SmartKlimat" className="h-28 w-auto select-none" draggable={false} />
+          <p className="mt-3 font-display text-sm" style={{ color: "var(--muted-foreground)" }}>{TAGLINE}</p>
+        </div>
         <div className="surface-card p-8">
           <h1 className="font-display text-3xl font-semibold">{title}</h1>
           <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>{subtitle}</p>
@@ -163,6 +168,7 @@ function AuthPage() {
         </div>
         <Link to="/" className="mx-auto mt-6 text-sm" style={{ color: "var(--muted-foreground)" }}>← Tillbaka till start</Link>
       </main>
+      <SiteFooter />
     </div>
   );
 }
