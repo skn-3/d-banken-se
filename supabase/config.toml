@@ -1,1 +1,4 @@
 project_id = "yakwdirpbwdtsdpxlbkp"
+
+[functions.inbound-mockfjards]
+verify_jwt = false
