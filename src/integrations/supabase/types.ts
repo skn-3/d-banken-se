@@ -306,6 +306,8 @@ export type Database = {
           recipient_email: string | null
           recipient_name: string | null
           registered_by_user_id: string | null
+          source: string | null
+          source_order_ref: string | null
           status: string
           total_amount_ore: number
           tree_count: number
@@ -320,6 +322,8 @@ export type Database = {
           recipient_email?: string | null
           recipient_name?: string | null
           registered_by_user_id?: string | null
+          source?: string | null
+          source_order_ref?: string | null
           status?: string
           total_amount_ore: number
           tree_count: number
@@ -334,6 +338,8 @@ export type Database = {
           recipient_email?: string | null
           recipient_name?: string | null
           registered_by_user_id?: string | null
+          source?: string | null
+          source_order_ref?: string | null
           status?: string
           total_amount_ore?: number
           tree_count?: number
