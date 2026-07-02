@@ -733,7 +733,7 @@ function HomeView({
         const ready = rewardBalance >= rewardGoal.cost;
         return (
           <Link
-            to="/belonigar"
+            to="/beloningar"
             search={ctx.isPreview && ctx.previewUserId ? { as: ctx.previewUserId } : { as: undefined }}
             className="surface-card block p-3 transition hover:shadow-md"
             style={{ background: "var(--mint-paper)", borderTop: "2px solid #d4af37" }}
@@ -761,7 +761,7 @@ function HomeView({
 
       {/* Belöningar-CTA */}
       <Link
-        to="/belonigar"
+        to="/beloningar"
         search={ctx.isPreview && ctx.previewUserId ? { as: ctx.previewUserId } : { as: undefined }}
         className="surface-card flex items-center justify-between p-5 transition hover:shadow-md"
         style={{ background: "var(--gradient-mint)" }}

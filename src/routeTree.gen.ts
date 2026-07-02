@@ -14,7 +14,7 @@ import { Route as SaljHjalpRouteImport } from './routes/salj-hjalp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
-import { Route as BelonigarRouteImport } from './routes/belonigar'
+import { Route as BeloningarRouteImport } from './routes/beloningar'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AktiveraRouteImport } from './routes/aktivera'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -46,9 +46,9 @@ const KontoRoute = KontoRouteImport.update({
   path: '/konto',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BelonigarRoute = BelonigarRouteImport.update({
-  id: '/belonigar',
-  path: '/belonigar',
+const BeloningarRoute = BeloningarRouteImport.update({
+  id: '/beloningar',
+  path: '/beloningar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -82,7 +82,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
-  '/belonigar': typeof BelonigarRoute
+  '/beloningar': typeof BeloningarRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -95,7 +95,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
-  '/belonigar': typeof BelonigarRoute
+  '/beloningar': typeof BeloningarRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -109,7 +109,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
-  '/belonigar': typeof BelonigarRoute
+  '/beloningar': typeof BeloningarRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -124,7 +124,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aktivera'
     | '/auth'
-    | '/belonigar'
+    | '/beloningar'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -137,7 +137,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aktivera'
     | '/auth'
-    | '/belonigar'
+    | '/beloningar'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -150,7 +150,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aktivera'
     | '/auth'
-    | '/belonigar'
+    | '/beloningar'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -164,7 +164,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AktiveraRoute: typeof AktiveraRoute
   AuthRoute: typeof AuthRoute
-  BelonigarRoute: typeof BelonigarRoute
+  BeloningarRoute: typeof BeloningarRoute
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -210,11 +210,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KontoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/belonigar': {
-      id: '/belonigar'
-      path: '/belonigar'
-      fullPath: '/belonigar'
-      preLoaderRoute: typeof BelonigarRouteImport
+    '/beloningar': {
+      id: '/beloningar'
+      path: '/beloningar'
+      fullPath: '/beloningar'
+      preLoaderRoute: typeof BeloningarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -260,7 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AktiveraRoute: AktiveraRoute,
   AuthRoute: AuthRoute,
-  BelonigarRoute: BelonigarRoute,
+  BeloningarRoute: BeloningarRoute,
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -271,13 +271,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

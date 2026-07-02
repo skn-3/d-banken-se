@@ -10,7 +10,7 @@ import { EventBanner } from "@/components/event-banner";
 import { rewardEmoji, getRewardGoal, setRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 import { REWARD_CATEGORY_EMOJI, REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
 
-export const Route = createFileRoute("/belonigar")({
+export const Route = createFileRoute("/beloningar")({
   head: () => ({ meta: [{ title: "Belöningar — Smaarty" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
     as: typeof s.as === "string" && s.as.length > 0 ? (s.as as string) : undefined,
