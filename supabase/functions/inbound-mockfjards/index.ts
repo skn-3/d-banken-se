@@ -114,6 +114,17 @@ Deno.serve(async (req) => {
   const gen = await db.rpc("generate_certificate", { _purchase_id: pur.data.id });
   if (gen.error) return json(500, { ok: false, reason: "certificate_failed", detail: gen.error.message });
   const vid = (gen.data as any)?.verification_id ?? null;
+  const certId = (gen.data as any)?.id ?? null;
+
+  // 4b) Lägg partner-info i template_snapshot
+  if (certId) {
+    const currentSnapshot = (gen.data as any)?.template_snapshot ?? {};
+    const newSnapshot = {
+      ...currentSnapshot,
+      partner: { name: "Mockfjärds Fönster", logo: "/brand/mockfjards-badge.png" },
+    };
+    await db.from("certificates").update({ template_snapshot: newSnapshot }).eq("id", certId);
+  }
 
   // 5) Mail — endast om recipient_email finns
   if (vid && recipientEmail) {
