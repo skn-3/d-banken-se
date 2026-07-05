@@ -8,6 +8,7 @@ import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { PushToggle } from "@/components/push-toggle";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { BadgeWall } from "@/components/badge-wall";
+import { TreeBankHero } from "@/components/tree-bank-hero";
 
 export const Route = createFileRoute("/konto")({
   head: () => ({
@@ -118,24 +119,19 @@ function KontoPage() {
           <div className="surface-card p-10 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar din trädbank…</div>
         ) : (
           <>
-            <div className="surface-card overflow-hidden p-10 text-center" style={{ background: "var(--gradient-mint)" }}>
-              <div className="text-sm font-medium uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-                Trädbank för {user?.email}
-              </div>
-              <div className="mt-4 font-mono text-7xl font-semibold leading-none" style={{ color: "var(--forest)" }}>
-                {balance.toLocaleString("sv-SE")}
-              </div>
-              <div className="mt-3 text-base" style={{ color: "var(--forest)" }}>
-                träd planterade {customer?.name ? `i ${customer.name}s namn` : ""}
-              </div>
-              {!customer && (
-                <p className="mt-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
+            <TreeBankHero
+              trees={balance}
+              recipientName={customer?.name ?? null}
+              latestLocation={certs[0]?.location_name ?? null}
+            />
+            {!customer && (
+              <div className="mt-4 surface-card p-6 text-center">
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
                   Vi hittade inga planteringar för den här e-posten ännu.
-                  <br />
-                  <button onClick={() => navigate({ to: "/kop" })} className="mt-3 btn-primary">Plantera ett träd</button>
                 </p>
-              )}
-            </div>
+                <button onClick={() => navigate({ to: "/kop" })} className="mt-3 btn-primary">Plantera ett träd</button>
+              </div>
+            )}
 
             <div className="mt-8 surface-card p-8">
               <div className="flex items-baseline justify-between">

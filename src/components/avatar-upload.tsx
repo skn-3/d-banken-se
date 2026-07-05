@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import Cropper, { type Area } from "react-easy-crop";
+import { Camera, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getAvatarState, saveUploadedPhoto, setAvatarKey } from "@/lib/avatars.functions";
@@ -23,6 +24,8 @@ export function AvatarUpload() {
   const [zoom, setZoom] = useState(1);
   const [croppedArea, setCroppedArea] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pickedName, setPickedName] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reload = useCallback(async () => {
@@ -38,13 +41,19 @@ export function AvatarUpload() {
     ? [{ user_id: user.id, avatar_key: profile.avatar_key, photo_path: profile.photo_path }]
     : []);
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
+  const acceptFile = (f: File | null | undefined) => {
     if (!f) return;
     if (!f.type.startsWith("image/")) { toast.error("Filen är inte en bild."); return; }
     if (f.size > 2 * 1024 * 1024) { toast.error("Max 2 MB. Välj en mindre bild."); return; }
     const url = URL.createObjectURL(f);
     setFileSrc(url); setZoom(1); setCrop({ x: 0, y: 0 });
+    setPickedName(f.name);
+  };
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => acceptFile(e.target.files?.[0]);
+  const openPicker = () => fileRef.current?.click();
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false);
+    acceptFile(e.dataTransfer.files?.[0]);
   };
 
   const uploadCropped = async () => {
@@ -59,7 +68,7 @@ export function AvatarUpload() {
       if (up.error) throw up.error;
       await savePhoto({ data: { path } });
       toast.success("Ny profilbild sparad");
-      setFileSrc(null); if (fileRef.current) fileRef.current.value = "";
+      setFileSrc(null); setPickedName(null); if (fileRef.current) fileRef.current.value = "";
       await reload();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Kunde inte spara bilden");
@@ -92,15 +101,74 @@ export function AvatarUpload() {
         Ladda upp vad du vill — men inget olämpligt och inga bilder på andra utan lov.
       </p>
 
-      <div className="mt-6 flex items-center gap-4">
-        {profile && user && (
-          <AvatarCircle subject={{ user_id: user.id, avatar_key: profile.avatar_key, photo_path: profile.photo_path }} urls={urls} size={80} />
-        )}
-        <div className="flex flex-col gap-2">
-          <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="text-sm" />
-          {profile?.photo_path && (
-            <button className="text-xs underline text-left" onClick={removePhoto} style={{ color: "var(--destructive)" }}>Ta bort bilden</button>
+      <div
+        className="mt-6 rounded-2xl border-2 border-dashed p-5 transition-colors"
+        style={{
+          borderColor: dragOver ? "var(--primary)" : "var(--border)",
+          background: dragOver ? "var(--mint-paper)" : "transparent",
+        }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+      >
+        <div className="flex items-center gap-5 flex-wrap">
+          {profile && user && (
+            <button
+              type="button"
+              onClick={openPicker}
+              aria-label="Byt profilbild"
+              className="relative group rounded-full press-scale"
+              style={{ width: 80, height: 80 }}
+            >
+              <AvatarCircle
+                subject={{ user_id: user.id, avatar_key: profile.avatar_key, photo_path: profile.photo_path }}
+                urls={urls}
+                size={80}
+              />
+              <span
+                className="absolute inset-0 rounded-full flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
+                style={{ background: "rgba(11,61,46,0.55)" }}
+              >
+                <Camera size={20} />
+                <span className="text-[10px] mt-0.5 font-medium">Byt bild</span>
+              </span>
+            </button>
           )}
+          <div className="flex flex-col gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={onFile}
+              className="sr-only"
+              aria-label="Välj profilbild"
+            />
+            <button
+              type="button"
+              onClick={openPicker}
+              className="press-scale inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+              style={{
+                border: "1.5px solid var(--primary)",
+                color: "var(--primary)",
+                background: "transparent",
+              }}
+            >
+              <Camera size={16} />
+              Ladda upp bild
+            </button>
+            <div className="flex items-center gap-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              <Upload size={12} />
+              <span>eller släpp en bild här</span>
+            </div>
+            {pickedName && (
+              <div className="text-xs truncate max-w-[220px]" style={{ color: "var(--muted-foreground)" }} title={pickedName}>
+                {pickedName}
+              </div>
+            )}
+            {profile?.photo_path && (
+              <button className="text-xs underline text-left" onClick={removePhoto} style={{ color: "var(--destructive)" }}>Ta bort bilden</button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -124,7 +192,7 @@ export function AvatarUpload() {
             <button onClick={uploadCropped} disabled={busy} className="btn-primary !py-1.5 !px-4 text-sm">
               {busy ? "Sparar…" : "Spara"}
             </button>
-            <button onClick={() => { setFileSrc(null); if (fileRef.current) fileRef.current.value=""; }} className="btn-secondary !py-1.5 !px-4 text-sm">Avbryt</button>
+            <button onClick={() => { setFileSrc(null); setPickedName(null); if (fileRef.current) fileRef.current.value=""; }} className="btn-secondary !py-1.5 !px-4 text-sm">Avbryt</button>
           </div>
         </div>
       )}
