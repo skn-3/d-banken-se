@@ -41,12 +41,8 @@ function renderText(r: FeedRow, includeTeam = false): string {
   }
 }
 
-const springIn = {
-  initial: { opacity: 0, y: -12, scale: 0.96 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, scale: 0.98 },
-  transition: { type: "spring" as const, stiffness: 420, damping: 22 },
-};
+const bounceStyle: React.CSSProperties = { animation: "feed-in 420ms cubic-bezier(0.34,1.56,0.64,1) both" };
+
 
 export function TeamFeed() {
   const load = useServerFn(getTeamFeed);
