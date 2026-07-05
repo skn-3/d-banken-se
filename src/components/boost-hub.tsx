@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
+import { celebrate, haptic } from "@/lib/celebrate";
+
 import { getSellerBoostState, activateBoost, type SellerBuffs } from "@/lib/boosts.functions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
