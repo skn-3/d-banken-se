@@ -138,10 +138,12 @@ export function BoostHub() {
     setActivating(true);
     try {
       await activateFn({ data: { boostId: confirm.boost.id } });
-      popConfetti();
+      celebrate({ emoji: confirm.catalog.emoji });
+      haptic(30);
       toast(`${confirm.catalog.emoji} ${confirm.catalog.name} aktiverad!`, {
         description: describeEffect(confirm.catalog),
       });
+
       setConfirm(null);
       await load();
     } catch (e: any) {
