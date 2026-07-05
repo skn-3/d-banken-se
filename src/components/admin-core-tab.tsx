@@ -207,6 +207,7 @@ export function AdminCoreTab() {
       <PayoutsSection />
       <TeamShareSettingSection />
       <RewardEconomyPanel />
+      <AdminSupportSection />
       <AdminPhotoReports />
 
 
