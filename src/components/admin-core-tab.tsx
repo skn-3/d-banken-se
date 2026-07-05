@@ -582,9 +582,6 @@ function TeamShareSettingSection() {
 
 
 
-function kr(ore: number) {
-  return `${(ore / 100).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`;
-}
 
 function RewardEconomyPanel() {
   const loadStats = useServerFn(getRewardEconomy);
