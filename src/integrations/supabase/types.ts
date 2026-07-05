@@ -474,7 +474,9 @@ export type Database = {
           company_template_id: string | null
           created_at: string
           email: string
+          guardian_email: string | null
           id: string
+          is_minor: boolean
           name: string
           user_id: string
         }
@@ -483,7 +485,9 @@ export type Database = {
           company_template_id?: string | null
           created_at?: string
           email: string
+          guardian_email?: string | null
           id?: string
+          is_minor?: boolean
           name: string
           user_id: string
         }
@@ -492,7 +496,9 @@ export type Database = {
           company_template_id?: string | null
           created_at?: string
           email?: string
+          guardian_email?: string | null
           id?: string
+          is_minor?: boolean
           name?: string
           user_id?: string
         }
@@ -628,6 +634,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_log: {
+        Row: {
+          created_at: string
+          failed: number
+          id: string
+          kind: string
+          ok: number
+          payload: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          failed?: number
+          id?: string
+          kind: string
+          ok?: number
+          payload?: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          failed?: number
+          id?: string
+          kind?: string
+          ok?: number
+          payload?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       reward_orders: {
         Row: {

@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
+import { PushToggle } from "@/components/push-toggle";
 
 export const Route = createFileRoute("/konto")({
   head: () => ({
@@ -189,6 +190,8 @@ function KontoPage() {
                 </div>
               )}
             </div>
+
+            <PushToggle />
 
             {isAdmin && (
               <div className="mt-6 text-center">
