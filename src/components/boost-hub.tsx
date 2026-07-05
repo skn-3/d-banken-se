@@ -86,7 +86,7 @@ export function BoostHub() {
   const [activating, setActivating] = useState(false);
 
   const load = async () => {
-    const r = (await stateFn({ data: {} })) as unknown as State;
+    const r = (await stateFn()) as unknown as State;
     setState(r);
     return r;
   };
