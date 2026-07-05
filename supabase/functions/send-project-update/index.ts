@@ -67,8 +67,7 @@ async function resolveRecipients(
     q = q.eq("source", audience.value);
   }
   if (audience.kind === "project" && audience.value) {
-    // deno-lint-ignore no-explicit-any
-    (q as any) = (q as any).eq("certificates.location_name", audience.value);
+    q = q.eq("certificates.location_name", audience.value);
   }
 
   const { data: rows, error } = await q.limit(50000);
