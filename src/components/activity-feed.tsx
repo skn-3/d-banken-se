@@ -116,19 +116,17 @@ export function NationalFeed() {
         <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Ännu inga nationella höjdpunkter — bli den första! ✨</div>
       ) : (
         <ul className="space-y-2">
-          <AnimatePresence initial={false}>
-            {rows.map(r => (
-              <motion.li key={r.id} {...springIn} className="flex items-start gap-2 text-sm">
-                {r.user_id && (
-                  <AvatarCircle subject={{ user_id: r.user_id, avatar_key: r.avatar_key, photo_path: r.photo_path }} urls={urls} size={28} />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div style={{ color: "var(--forest)" }}>{renderText(r, true)}</div>
-                  <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{relTime(r.created_at)}</div>
-                </div>
-              </motion.li>
-            ))}
-          </AnimatePresence>
+          {rows.map(r => (
+            <li key={r.id} style={bounceStyle} className="flex items-start gap-2 text-sm">
+              {r.user_id && (
+                <AvatarCircle subject={{ user_id: r.user_id, avatar_key: r.avatar_key, photo_path: r.photo_path }} urls={urls} size={28} />
+              )}
+              <div className="flex-1 min-w-0">
+                <div style={{ color: "var(--forest)" }}>{renderText(r, true)}</div>
+                <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{relTime(r.created_at)}</div>
+              </div>
+            </li>
+          ))}
         </ul>
       )}
     </div>
