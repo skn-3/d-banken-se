@@ -667,33 +667,64 @@ export type Database = {
       }
       teams: {
         Row: {
+          certificate_template_id: string | null
+          city: string | null
           created_at: string
+          created_by_user_id: string | null
+          goal_end_date: string | null
+          goal_trees: number | null
           id: string
+          join_code: string | null
           name: string
           organization_id: string
+          project_location: string | null
+          show_team_name_on_certificate: boolean
           team_bonus_points: number
           updated_at: string
           weekly_goal_trees: number
         }
         Insert: {
+          certificate_template_id?: string | null
+          city?: string | null
           created_at?: string
+          created_by_user_id?: string | null
+          goal_end_date?: string | null
+          goal_trees?: number | null
           id?: string
+          join_code?: string | null
           name: string
           organization_id: string
+          project_location?: string | null
+          show_team_name_on_certificate?: boolean
           team_bonus_points?: number
           updated_at?: string
           weekly_goal_trees?: number
         }
         Update: {
+          certificate_template_id?: string | null
+          city?: string | null
           created_at?: string
+          created_by_user_id?: string | null
+          goal_end_date?: string | null
+          goal_trees?: number | null
           id?: string
+          join_code?: string | null
           name?: string
           organization_id?: string
+          project_location?: string | null
+          show_team_name_on_certificate?: boolean
           team_bonus_points?: number
           updated_at?: string
           weekly_goal_trees?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "teams_certificate_template_id_fkey"
+            columns: ["certificate_template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teams_organization_id_fkey"
             columns: ["organization_id"]
@@ -789,6 +820,22 @@ export type Database = {
       }
     }
     Functions: {
+      create_team_self_service: {
+        Args: {
+          _certificate_template_id: string
+          _city: string
+          _goal_end_date: string
+          _goal_trees: number
+          _new_organization_name: string
+          _new_organization_type: string
+          _organization_id: string
+          _project_location: string
+          _show_team_name: boolean
+          _team_name: string
+          _weekly_goal_trees: number
+        }
+        Returns: Json
+      }
       generate_certificate: {
         Args: { _purchase_id: string }
         Returns: {
@@ -844,6 +891,20 @@ export type Database = {
         }
       }
       seller_points_balance: { Args: { _user_id: string }; Returns: number }
+      update_team_self_service: {
+        Args: {
+          _certificate_template_id: string
+          _city: string
+          _goal_end_date: string
+          _goal_trees: number
+          _project_location: string
+          _show_team_name: boolean
+          _team_id: string
+          _team_name: string
+          _weekly_goal_trees: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "seller" | "team_leader"
