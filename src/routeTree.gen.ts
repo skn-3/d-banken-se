@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SkapaLagRouteImport } from './routes/skapa-lag'
 import { Route as SaljareRouteImport } from './routes/saljare'
 import { Route as SaljHjalpRouteImport } from './routes/salj-hjalp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -23,6 +24,11 @@ import { Route as VIdRouteImport } from './routes/v.$id'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
 
+const SkapaLagRoute = SkapaLagRouteImport.update({
+  id: '/skapa-lag',
+  path: '/skapa-lag',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SaljareRoute = SaljareRouteImport.update({
   id: '/saljare',
   path: '/saljare',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
+  '/skapa-lag': typeof SkapaLagRoute
   '/v/$id': typeof VIdRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
+  '/skapa-lag': typeof SkapaLagRoute
   '/v/$id': typeof VIdRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
+  '/skapa-lag': typeof SkapaLagRoute
   '/v/$id': typeof VIdRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/salj-hjalp'
     | '/saljare'
+    | '/skapa-lag'
     | '/v/$id'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/weekly-backup'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/salj-hjalp'
     | '/saljare'
+    | '/skapa-lag'
     | '/v/$id'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/weekly-backup'
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/salj-hjalp'
     | '/saljare'
+    | '/skapa-lag'
     | '/v/$id'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/weekly-backup'
@@ -195,6 +207,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SaljHjalpRoute: typeof SaljHjalpRoute
   SaljareRoute: typeof SaljareRoute
+  SkapaLagRoute: typeof SkapaLagRoute
   VIdRoute: typeof VIdRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   ApiPublicHooksWeeklyBackupRoute: typeof ApiPublicHooksWeeklyBackupRoute
@@ -202,6 +215,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/skapa-lag': {
+      id: '/skapa-lag'
+      path: '/skapa-lag'
+      fullPath: '/skapa-lag'
+      preLoaderRoute: typeof SkapaLagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/saljare': {
       id: '/saljare'
       path: '/saljare'
@@ -307,6 +327,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SaljHjalpRoute: SaljHjalpRoute,
   SaljareRoute: SaljareRoute,
+  SkapaLagRoute: SkapaLagRoute,
   VIdRoute: VIdRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   ApiPublicHooksWeeklyBackupRoute: ApiPublicHooksWeeklyBackupRoute,
