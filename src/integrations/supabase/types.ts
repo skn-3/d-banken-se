@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity: {
+        Row: {
+          action: string
+          created_at: string
+          detail: Json
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           id: number
@@ -169,6 +193,24 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      email_suppression: {
+        Row: {
+          created_at: string
+          email: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          reason?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          reason?: string
         }
         Relationships: []
       }
@@ -564,7 +606,67 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      register_kunder: {
+        Row: {
+          antal_kop: number | null
+          forsta_kop: string | null
+          kallor: string[] | null
+          kund_nyckel: string | null
+          mottagar_epost: string | null
+          mottagar_namn: string | null
+          senaste_kop: string | null
+          totalt_antal_trad: number | null
+        }
+        Relationships: []
+      }
+      register_rader: {
+        Row: {
+          antal_trad: number | null
+          belopp_ore: number | null
+          datum: string | null
+          kalla: string | null
+          mottagar_epost: string | null
+          mottagar_namn: string | null
+          projekt: string | null
+          purchase_id: string | null
+          source_seller: string | null
+          status: string | null
+          verification_id: string | null
+        }
+        Relationships: []
+      }
+      stats_trad_per_kalla: {
+        Row: {
+          antal_kop: number | null
+          antal_trad: number | null
+          kalla: string | null
+        }
+        Relationships: []
+      }
+      stats_trad_per_manad: {
+        Row: {
+          antal_kop: number | null
+          antal_trad: number | null
+          manad: string | null
+        }
+        Relationships: []
+      }
+      stats_trad_per_projekt: {
+        Row: {
+          antal_bevis: number | null
+          antal_trad: number | null
+          projekt: string | null
+        }
+        Relationships: []
+      }
+      stats_trad_per_saljare: {
+        Row: {
+          antal_kop: number | null
+          antal_trad: number | null
+          saljare: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_certificate: {
@@ -597,6 +699,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_admin_activity: {
+        Args: { _action: string; _detail?: Json }
+        Returns: string
       }
       purchase_reward: {
         Args: { _reward_id: string }
