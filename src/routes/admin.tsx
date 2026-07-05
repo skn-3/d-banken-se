@@ -109,6 +109,7 @@ function AdminPage() {
             <div className="mt-4 flex flex-wrap gap-2">
               {([
                 ["overview", "Översikt"],
+                ["core", "Core"],
                 ["organizations", "Organisationer"],
                 ["rewards", "Belöningskatalog"],
                 ["orders", "Beställningar"],
