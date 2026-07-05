@@ -24,6 +24,9 @@ const TeamSignupSchema = z.object({
   guardianEmail: z.string().trim().email().max(255).nullable().optional(),
 });
 
+export const SIGNUP_NEUTRAL_MESSAGE =
+  "Om adressen är ledig har vi skickat ett bekräftelsemail. Kolla din inkorg.";
+
 export const requestPasswordReset = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => ResetSchema.parse(input))
   .handler(async ({ data }) => {
@@ -40,14 +43,29 @@ export const requestSignupConfirmation = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupSchema.parse(input))
   .handler(async ({ data }) => {
     const { sendSignupConfirmationEmail } = await import("@/lib/auth-email.server");
-    await sendSignupConfirmationEmail(data);
-    return { ok: true };
+    try {
+      await sendSignupConfirmationEmail(data);
+    } catch (error) {
+      console.error("[auth-email] signup confirmation not sent", {
+        error: error instanceof Error ? error.message : String(error ?? ""),
+      });
+      // Neutral response — never reveal whether the email is already taken.
+    }
+    return { ok: true, message: SIGNUP_NEUTRAL_MESSAGE };
   });
 
 export const requestTeamSignupConfirmation = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => TeamSignupSchema.parse(input))
   .handler(async ({ data }) => {
     const { sendTeamSignupConfirmationEmail } = await import("@/lib/auth-email.server");
-    await sendTeamSignupConfirmationEmail(data);
-    return { ok: true };
+    try {
+      await sendTeamSignupConfirmationEmail(data);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error ?? "");
+      // Team-code validation errors are legitimate form feedback; surface them.
+      if (/lagkod|team code/i.test(msg)) throw error;
+      console.error("[auth-email] team signup confirmation not sent", { error: msg });
+    }
+    return { ok: true, message: SIGNUP_NEUTRAL_MESSAGE };
   });
+
