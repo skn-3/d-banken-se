@@ -95,6 +95,45 @@ export type Database = {
         }
         Relationships: []
       }
+      boost_catalog: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          effect_config: Json
+          effect_type: string
+          emoji: string
+          key: string
+          name: string
+          trigger_config: Json
+          trigger_type: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          effect_config?: Json
+          effect_type: string
+          emoji?: string
+          key: string
+          name: string
+          trigger_config?: Json
+          trigger_type: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          effect_config?: Json
+          effect_type?: string
+          emoji?: string
+          key?: string
+          name?: string
+          trigger_config?: Json
+          trigger_type?: string
+        }
+        Relationships: []
+      }
       certificate_templates: {
         Row: {
           accent_color: string
@@ -402,6 +441,7 @@ export type Database = {
           delta: number
           description: string | null
           id: string
+          metadata: Json
           reference_id: string | null
           seller_user_id: string
           type: string
@@ -411,6 +451,7 @@ export type Database = {
           delta: number
           description?: string | null
           id?: string
+          metadata?: Json
           reference_id?: string | null
           seller_user_id: string
           type: string
@@ -420,6 +461,7 @@ export type Database = {
           delta?: number
           description?: string | null
           id?: string
+          metadata?: Json
           reference_id?: string | null
           seller_user_id?: string
           type?: string
@@ -670,6 +712,80 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_boosts: {
+        Row: {
+          activated_at: string | null
+          boost_key: string
+          consumed_at: string | null
+          dedupe_key: string | null
+          earned_at: string
+          id: string
+          meta: Json
+          remaining_uses: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          boost_key: string
+          consumed_at?: string | null
+          dedupe_key?: string | null
+          earned_at?: string
+          id?: string
+          meta?: Json
+          remaining_uses?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          boost_key?: string
+          consumed_at?: string | null
+          dedupe_key?: string | null
+          earned_at?: string
+          id?: string
+          meta?: Json
+          remaining_uses?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_boosts_boost_key_fkey"
+            columns: ["boost_key"]
+            isOneToOne: false
+            referencedRelation: "boost_catalog"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      seller_streaks: {
+        Row: {
+          best_weeks: number
+          current_weeks: number
+          freezes: number
+          last_counted_week: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          best_weeks?: number
+          current_weeks?: number
+          freezes?: number
+          last_counted_week?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          best_weeks?: number
+          current_weeks?: number
+          freezes?: number
+          last_counted_week?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string
@@ -886,6 +1002,37 @@ export type Database = {
       }
     }
     Functions: {
+      activate_seller_boost: {
+        Args: { _boost_id: string }
+        Returns: {
+          activated_at: string | null
+          boost_key: string
+          consumed_at: string | null
+          dedupe_key: string | null
+          earned_at: string
+          id: string
+          meta: Json
+          remaining_uses: number
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "seller_boosts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      award_seller_boost: {
+        Args: {
+          _dedupe: string
+          _key: string
+          _meta: Json
+          _user_id: string
+          _uses: number
+        }
+        Returns: string
+      }
       create_team_self_service: {
         Args: {
           _certificate_template_id: string
@@ -939,6 +1086,7 @@ export type Database = {
         Returns: string
       }
       lookup_team_by_code: { Args: { _code: string }; Returns: Json }
+      process_seller_weekly_streaks: { Args: never; Returns: undefined }
       purchase_reward: {
         Args: { _reward_id: string }
         Returns: {
