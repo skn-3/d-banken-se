@@ -50,14 +50,12 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
       style={{
         width: 720,
         minHeight: 980,
-        background: "#FBF9F2",
-        backgroundImage:
-          "radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.6), transparent 60%), radial-gradient(600px 400px at 100% 100%, rgba(11,110,79,0.05), transparent 70%)",
+        background: "#F4FAF5",
         position: "relative",
         overflow: "hidden",
         borderRadius: 24,
-        border: "1px solid rgba(11,61,46,0.14)",
-        boxShadow: "0 30px 80px -50px rgba(11,61,46,0.35)",
+        border: "1px solid #D9EBE0",
+        boxShadow: "0 30px 80px -50px rgba(11,61,46,0.25)",
         padding: "64px 56px 48px",
         fontFamily: '"Familjen Grotesk", system-ui, sans-serif',
         color: "#0B3D2E",
@@ -65,6 +63,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
         transformOrigin: "top left",
       }}
     >
+
       <div style={{ position: "relative", zIndex: 1, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 0, minHeight: 860 }}>
         {/* Partner logo (optional) */}
         {t.logo_url && (
