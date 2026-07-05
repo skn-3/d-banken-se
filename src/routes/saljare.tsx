@@ -721,9 +721,18 @@ function HomeView({
               : sellers.map((s, i) => {
                   const me = s.userId === ctx.userId;
                   const w = (s.trees / maxSeller) * 100;
+                  const showRankUp = me && rankImproved;
                   return (
-                    <div key={s.userId} className="relative overflow-hidden rounded-xl border px-3 py-2"
-                      style={{ borderColor: me ? "var(--primary)" : "var(--border)", background: me ? "var(--mint-paper)" : "var(--card)" }}>
+                    <div
+                      key={s.userId}
+                      className={`relative overflow-hidden rounded-xl border px-3 py-2 ${showRankUp ? "gold-glow" : ""}`}
+                      style={{
+                        borderColor: me ? (showRankUp ? "#DCBE6E" : "var(--primary)") : "var(--border)",
+                        background: me ? "var(--mint-paper)" : "var(--card)",
+                        animation: "feed-in 380ms cubic-bezier(0.34,1.56,0.64,1) both",
+                        animationDelay: `${i * 30}ms`,
+                      }}
+                    >
                       <div className="absolute inset-y-0 left-0 rounded-l-xl transition-all duration-700"
                         style={{ width: `${w}%`, background: me ? "rgba(30,158,106,0.18)" : "rgba(159,217,182,0.35)" }} />
                       <div className="relative flex items-center gap-2">
@@ -732,6 +741,7 @@ function HomeView({
                           <span className="min-w-0 flex-shrink truncate text-sm font-medium" style={{ color: "var(--forest)" }}>
                             {s.name}{me && <span className="ml-2 text-xs" style={{ color: "var(--primary)" }}>(du)</span>}
                           </span>
+                          {showRankUp && <span className="rank-up-arrow" title="Du klättrade sedan senaste besöket!">▲</span>}
                           <BuffRow buffs={buffsMap[s.userId]} />
                         </div>
                         <div className="font-mono text-sm font-semibold" style={{ color: "var(--forest)" }}>{s.trees}</div>
@@ -739,6 +749,7 @@ function HomeView({
                     </div>
                   );
                 })
+
             : teams.length === 0
               ? <div className="py-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Inga lag att visa än.</div>
               : teams.map((t, i) => {
