@@ -130,6 +130,7 @@ Deno.serve(async (req) => {
     tree_count: treeCount, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
     status: "paid", paid_at: new Date().toISOString(),
     registered_by_user_id: null, source: SOURCE, source_order_ref: orderNumber,
+    source_seller: sellerName,
   }).select("id, created_at").single();
 
   if (pur.error) {
