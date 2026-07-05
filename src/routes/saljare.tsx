@@ -925,39 +925,21 @@ function RegisterView({
 
 
 
-function Confetti() {
-  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced) return null;
-  const colors = ["#1e9e6a", "#3fc78b", "#9FD9B6", "#FBE3C0", "#F6B27A", "#C7EAD4"];
-  const pieces = Array.from({ length: 60 }, (_, i) => {
-    const left = Math.random() * 100;
-    const delay = Math.random() * 0.6;
-    const duration = 1.8 + Math.random() * 1.6;
-    const size = 6 + Math.random() * 8;
-    const rot = Math.random() * 360;
-    const color = colors[i % colors.length];
-    const drift = (Math.random() - 0.5) * 120;
-    return (
-      <span
-        key={i}
-        style={{
-          position: "absolute",
-          left: `${left}%`,
-          top: "-20px",
-          width: size,
-          height: size * 0.4,
-          background: color,
-          borderRadius: 2,
-          transform: `rotate(${rot}deg)`,
-          animation: `smaarty-confetti ${duration}s cubic-bezier(.2,.7,.4,1) ${delay}s forwards`,
-          // @ts-expect-error CSS var
-          "--drift": `${drift}px`,
-        }}
-      />
-    );
-  });
+function LevelUpToast({ level, onDone }: { level: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2400);
+    return () => clearTimeout(t);
+  }, [onDone]);
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">{pieces}</div>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none" aria-live="polite">
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(30,158,106,0.25) 0%, rgba(11,61,46,0.65) 70%)" }} />
+      <div className="level-toast relative rounded-3xl px-10 py-8 text-center shadow-2xl"
+        style={{ background: "linear-gradient(135deg,#1E9E6A 0%,#DCBE6E 100%)", color: "#fff" }}>
+        <div className="text-5xl">🌳</div>
+        <div className="mt-2 font-display text-3xl font-semibold">Nivå {level}!</div>
+        <div className="mt-1 text-sm opacity-90">Ditt träd växte till nästa stadium</div>
+      </div>
+    </div>
   );
 }
 
@@ -973,34 +955,39 @@ function DoneView({
   onPlantMore: () => void;
 }) {
   const [showCert, setShowCert] = useState(false);
-  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduced = prefersReducedMotion();
   const newTotal = result.prevTotal + result.trees;
   const prevStage = getStage(result.prevTotal);
   const newStage = getStage(newTotal);
   const grewStage = newStage.idx > prevStage.idx;
-  const co2Kg = Math.round(result.trees * 20); // ~20 kg CO2 / träd / år
+  const co2Kg = Math.round(result.trees * 20);
+  const [showLevel, setShowLevel] = useState(grewStage);
+
+  // Celebration side-effects (once)
+  useEffect(() => {
+    celebrate({ emoji: "🌳" });
+    haptic(30);
+    if (grewStage) {
+      setTimeout(() => { celebrateBig("✨"); haptic(30); }, 600);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="relative space-y-6">
+      {showLevel && <LevelUpToast level={newStage.current.name} onDone={() => setShowLevel(false)} />}
       <section className="relative overflow-hidden surface-card p-8 text-center"
         style={{ background: "var(--gradient-mint)" }}>
-        <Confetti />
-
         <div className="relative">
           <div className="flex justify-center">
-            <img
-              src={newStage.current.image}
-              alt={newStage.current.name}
-              className="smaarty-idle h-48 w-48 select-none"
-              style={{
-                background: "transparent",
-                animation: reduced
-                  ? undefined
-                  : (grewStage
-                      ? "smaarty-grow 900ms cubic-bezier(.2,.9,.3,1.6), smaarty-idle 3800ms ease-in-out 1000ms infinite"
-                      : "smaarty-cheer 1200ms ease-in-out, smaarty-idle 3800ms ease-in-out 1300ms infinite"),
-              }}
-            />
+            <div className={reduced ? "" : (grewStage ? "level-tree-grow" : "tree-pop")}>
+              <img
+                src={newStage.current.image}
+                alt={newStage.current.name}
+                className="h-48 w-48 select-none"
+                style={{ background: "transparent" }}
+              />
+            </div>
           </div>
 
           {grewStage && (
@@ -1021,14 +1008,14 @@ function DoneView({
             <div className="text-left">
               <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Poäng</div>
               <div className="font-mono text-2xl font-semibold" style={{ color: "var(--primary)" }}>
-                +<CountUp value={result.points} duration={900} />
+                +<CountUp value={result.points} duration={1000} />
               </div>
             </div>
             <div className="h-8 w-px" style={{ background: "var(--border)" }} />
             <div className="text-left">
               <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Träd totalt</div>
               <div className="font-mono text-2xl font-semibold" style={{ color: "var(--forest)" }}>
-                <CountUp value={newTotal} duration={900} />
+                <CountUp value={newTotal} duration={1000} />
               </div>
             </div>
           </div>
@@ -1040,11 +1027,11 @@ function DoneView({
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <button onClick={onPlantMore} className="btn-primary !py-4 text-lg"
+        <button onClick={onPlantMore} className="btn-primary press-scale !py-4 text-lg"
           style={{ boxShadow: "0 12px 30px -10px rgba(30,158,106,.55)" }}>
           🌱 Plantera fler
         </button>
-        <button onClick={onContinue} className="btn-secondary !py-4 text-lg">
+        <button onClick={onContinue} className="btn-secondary press-scale !py-4 text-lg">
           ← Tillbaka till hemmet
         </button>
       </div>
@@ -1054,13 +1041,13 @@ function DoneView({
           ? <>Värdebeviset har skickats till <span className="font-mono" style={{ color: "var(--forest)" }}>{resultEmail}</span>.</>
           : <>Planteringen är registrerad. Mejlet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
         <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={() => setShowCert((v) => !v)} className="btn-secondary !py-2 !px-3 text-xs">
+          <button onClick={() => setShowCert((v) => !v)} className="btn-secondary press-scale !py-2 !px-3 text-xs">
             {showCert ? "Dölj värdebevis" : "Visa värdebevis"}
           </button>
-          <button onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)} className="btn-secondary !py-2 !px-3 text-xs">
+          <button onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)} className="btn-secondary press-scale !py-2 !px-3 text-xs">
             Ladda ner PDF
           </button>
-          <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary !py-2 !px-3 text-xs">
+          <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary press-scale !py-2 !px-3 text-xs">
             Öppna publik sida
           </Link>
         </div>
@@ -1068,28 +1055,8 @@ function DoneView({
           <Certificate ref={certRef} data={certificate} />
         </div>
       </div>
-
-      <style>{`
-        @keyframes smaarty-confetti {
-          0%   { transform: translate(0,0) rotate(0deg); opacity: 1; }
-          100% { transform: translate(var(--drift,0), 110vh) rotate(720deg); opacity: 0.9; }
-        }
-        @keyframes smaarty-grow {
-          0%   { transform: scale(0.4); opacity: 0; }
-          60%  { transform: scale(1.15); opacity: 1; }
-          100% { transform: scale(1); }
-        }
-        @keyframes smaarty-cheer {
-          0%, 100% { transform: translateY(0) rotate(0); }
-          25%      { transform: translateY(-8px) rotate(-4deg); }
-          50%      { transform: translateY(0) rotate(0); }
-          75%      { transform: translateY(-6px) rotate(4deg); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes smaarty-confetti { from,to { opacity: 0; } }
-        }
-      `}</style>
     </div>
   );
 }
+
 
