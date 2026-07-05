@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_catalog: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          emoji: string
+          key: string
+          name: string
+          rarity: string
+          scope: string
+          sort_order: number
+          trigger_config: Json
+          trigger_type: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description: string
+          emoji: string
+          key: string
+          name: string
+          rarity?: string
+          scope?: string
+          sort_order?: number
+          trigger_config?: Json
+          trigger_type: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          emoji?: string
+          key?: string
+          name?: string
+          rarity?: string
+          scope?: string
+          sort_order?: number
+          trigger_config?: Json
+          trigger_type?: string
+        }
+        Relationships: []
+      }
+      activity_feed: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          scope: string
+          team_id: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          scope?: string
+          team_id?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          scope?: string
+          team_id?: string | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_feed_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_feed_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_team_ranking"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
       admin_activity: {
         Row: {
           action: string
@@ -867,6 +954,35 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_achievements: {
+        Row: {
+          achievement_key: string
+          earned_at: string
+          meta: Json
+          user_id: string
+        }
+        Insert: {
+          achievement_key: string
+          earned_at?: string
+          meta?: Json
+          user_id: string
+        }
+        Update: {
+          achievement_key?: string
+          earned_at?: string
+          meta?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_achievements_achievement_key_fkey"
+            columns: ["achievement_key"]
+            isOneToOne: false
+            referencedRelation: "achievement_catalog"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       seller_boosts: {
         Row: {
           activated_at: string | null
@@ -1214,6 +1330,7 @@ export type Database = {
       }
     }
     Functions: {
+      _user_team_id: { Args: { _uid: string }; Returns: string }
       activate_seller_boost: {
         Args: { _boost_id: string }
         Returns: {
@@ -1234,6 +1351,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      award_achievement: {
+        Args: { _key: string; _meta?: Json; _user_id: string }
+        Returns: boolean
       }
       award_seller_boost: {
         Args: {
@@ -1285,6 +1406,35 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_national_activity_feed: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_key: string
+          created_at: string
+          first_name: string
+          id: string
+          payload: Json
+          photo_path: string
+          team_id: string
+          team_name: string
+          type: string
+          user_id: string
+        }[]
+      }
+      get_team_activity_feed: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_key: string
+          created_at: string
+          first_name: string
+          id: string
+          payload: Json
+          photo_path: string
+          team_id: string
+          type: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1303,6 +1453,7 @@ export type Database = {
       }
       lookup_team_by_code: { Args: { _code: string }; Returns: Json }
       process_seller_weekly_streaks: { Args: never; Returns: undefined }
+      process_weekly_achievements: { Args: never; Returns: undefined }
       purchase_reward: {
         Args: { _reward_id: string }
         Returns: {
