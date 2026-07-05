@@ -102,23 +102,31 @@ function getStage(total: number) {
   return { current, next, idx };
 }
 
-function CountUp({ value, duration = 700 }: { value: number; duration?: number }) {
-  const [n, setN] = useState(0);
+function CountUp({ value, duration = 900, loading = false }: { value: number; duration?: number; loading?: boolean }) {
+  const prev = useRef(value);
+  const [n, setN] = useState(value);
   useEffect(() => {
-    const from = 0;
+    const from = prev.current;
+    const to = value;
+    if (from === to) { setN(to); return; }
+    const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) { prev.current = to; setN(to); return; }
     const start = performance.now();
     let raf = 0;
     const tick = (t: number) => {
       const p = Math.min(1, (t - start) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
-      setN(Math.round(from + (value - from) * eased));
+      setN(Math.round(from + (to - from) * eased));
       if (p < 1) raf = requestAnimationFrame(tick);
+      else prev.current = to;
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [value, duration]);
+  if (loading) return <span className="skeleton-shimmer">0000</span>;
   return <>{n.toLocaleString("sv-SE")}</>;
 }
+
 
 function ProgressRing({ value, max, size = 240, stroke = 14, children }: { value: number; max: number; size?: number; stroke?: number; children?: React.ReactNode }) {
   const r = (size - stroke) / 2;
