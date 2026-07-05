@@ -43,6 +43,7 @@ interface ThanksArgs {
   verifyUrl: string;
   locationName?: string | null;
   giftMessage?: string | null;
+  heroStampUrl?: string | null;
 }
 
 export function renderThanksEmail(a: ThanksArgs): { subject: string; html: string } {
