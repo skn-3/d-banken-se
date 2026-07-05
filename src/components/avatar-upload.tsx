@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import Cropper, { type Area } from "react-easy-crop";
+import { Camera, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getAvatarState, saveUploadedPhoto, setAvatarKey } from "@/lib/avatars.functions";
