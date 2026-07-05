@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   getAudienceOptions, listBackupFiles, getBackupSignedUrl,
   listRecentNewsletters, listRecentBackupRuns, runBackupNow,
+  listRecentProjectUpdates,
 } from "@/lib/core.functions";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
