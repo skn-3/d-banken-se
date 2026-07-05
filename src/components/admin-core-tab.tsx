@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getAudienceOptions, listBackupFiles, getBackupSignedUrl,
-  listRecentNewsletters, listRecentBackupRuns,
+  listRecentNewsletters, listRecentBackupRuns, runBackupNow,
 } from "@/lib/core.functions";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
