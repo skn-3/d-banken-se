@@ -75,7 +75,7 @@ export async function runBackup(opts: { userId?: string | null; triggeredBy: "ma
 
 export async function backupThrottled(minSecondsAgo = 60): Promise<boolean> {
   const since = new Date(Date.now() - minSecondsAgo * 1000).toISOString();
-  const { count } = await supabaseAdmin
+  const { count } = await (supabaseAdmin as any)
     .from("backup_runs")
     .select("id", { count: "exact", head: true })
     .gte("created_at", since);
