@@ -6,6 +6,10 @@ import {
   listRecentNewsletters, listRecentBackupRuns, runBackupNow,
   listRecentProjectUpdates,
 } from "@/lib/core.functions";
+import {
+  adminListPayoutRequests, adminUpdatePayoutStatus,
+  getTeamSharePrice, setTeamSharePrice,
+} from "@/lib/payouts.functions";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
 
@@ -196,6 +200,11 @@ export function AdminCoreTab() {
       </section>
 
       <ProjectUpdatesSection sources={sources} projects={projects} updates={updates} refresh={refreshAll} />
+
+      <PayoutsSection />
+      <TeamShareSettingSection />
+
+
 
       <section className="surface-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -411,4 +420,160 @@ function ProjectUpdatesSection({
     </>
   );
 }
+
+function kr(ore: number) {
+  return `${(ore / 100).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`;
+}
+
+function PayoutsSection() {
+  const loadFn = useServerFn(adminListPayoutRequests);
+  const updateFn = useServerFn(adminUpdatePayoutStatus);
+  const [rows, setRows] = useState<any[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const refresh = async () => {
+    try { const r = await loadFn(); setRows(r.rows); }
+    catch (e: any) { setMsg(e.message); }
+  };
+  useEffect(() => { refresh().catch(() => {}); }, []);
+
+  const change = async (id: string, status: "approved" | "paid" | "rejected") => {
+    setBusy(id + status); setMsg(null);
+    try {
+      let note: string | undefined;
+      if (status === "rejected") {
+        note = window.prompt("Notering (krävs vid avslag):") || undefined;
+        if (!note) { setBusy(null); return; }
+      } else {
+        note = window.prompt("Notering (valfri):") || undefined;
+      }
+      await updateFn({ data: { id, status, note } });
+      await refresh();
+    } catch (e: any) { setMsg(e.message); }
+    finally { setBusy(null); }
+  };
+
+  const pending = rows.filter((r) => r.status === "pending" || r.status === "approved");
+  const done = rows.filter((r) => r.status === "paid" || r.status === "rejected");
+
+  return (
+    <section className="surface-card p-6">
+      <h2 className="font-display text-xl font-semibold">Utbetalningar</h2>
+      <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
+        Väntande och godkända förfrågningar. Bekräfta utbetalning efter manuell banköverföring.
+      </p>
+
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+            <tr>
+              <th className="py-2">Datum</th><th>Lag</th><th>Belopp</th>
+              <th>Mottagare</th><th>Intjänat</th><th>Tillgängligt</th>
+              <th>Status</th><th>Åtgärd</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pending.map((r) => (
+              <tr key={r.id} className="border-t align-top" style={{ borderColor: "var(--border)" }}>
+                <td className="py-2 font-mono text-xs">{new Date(r.created_at).toLocaleDateString("sv-SE")}</td>
+                <td>{r.team_name}</td>
+                <td className="font-mono">{kr(r.amount_ore)}</td>
+                <td className="text-xs">
+                  {r.recipient?.contactName}<br />
+                  <span style={{ color: "var(--muted-foreground)" }}>{r.recipient?.accountType} · {r.recipient?.number}</span>
+                </td>
+                <td className="font-mono text-xs">{kr(r.earned_ore)}</td>
+                <td className="font-mono text-xs">{kr(r.available_ore)}</td>
+                <td className="text-xs">{r.status}</td>
+                <td>
+                  <div className="flex flex-wrap gap-1">
+                    {r.status === "pending" && (
+                      <button className="chip" disabled={busy?.startsWith(r.id)} onClick={() => change(r.id, "approved")}>Godkänn</button>
+                    )}
+                    <button className="chip" style={{ background: "var(--mint)" }}
+                      disabled={busy?.startsWith(r.id)} onClick={() => change(r.id, "paid")}>Utbetald</button>
+                    <button className="chip" disabled={busy?.startsWith(r.id)} onClick={() => change(r.id, "rejected")}>Avslå</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {!pending.length && <tr><td colSpan={8} className="py-4 text-center" style={{ color: "var(--muted-foreground)" }}>Inga väntande förfrågningar.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      {msg && <p className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>{msg}</p>}
+
+      {done.length > 0 && (
+        <div className="mt-6">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>Historik</h3>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+                <tr><th className="py-2">Datum</th><th>Lag</th><th>Belopp</th><th>Status</th><th>Hanterad</th><th>Notis</th></tr>
+              </thead>
+              <tbody>
+                {done.map((r) => (
+                  <tr key={r.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                    <td className="py-2 font-mono text-xs">{new Date(r.created_at).toLocaleDateString("sv-SE")}</td>
+                    <td>{r.team_name}</td>
+                    <td className="font-mono">{kr(r.amount_ore)}</td>
+                    <td className="text-xs">{r.status}</td>
+                    <td className="font-mono text-xs">{r.handled_at ? new Date(r.handled_at).toLocaleDateString("sv-SE") : ""}</td>
+                    <td className="text-xs" style={{ color: "var(--muted-foreground)" }}>{r.note ?? ""}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function TeamShareSettingSection() {
+  const loadFn = useServerFn(getTeamSharePrice);
+  const saveFn = useServerFn(setTeamSharePrice);
+  const [ore, setOre] = useState<string>("0");
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    loadFn().then((r) => setOre(String(r.orePerTree ?? 0))).catch(() => {});
+  }, []);
+
+  const save = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      const n = parseInt(ore, 10);
+      if (!Number.isFinite(n) || n < 0) throw new Error("Ogiltigt värde.");
+      await saveFn({ data: { orePerTree: n } });
+      setMsg("Sparat.");
+    } catch (e: any) { setMsg(e.message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <section className="surface-card p-6">
+      <h2 className="font-display text-xl font-semibold">Lagens intäkt per träd</h2>
+      <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
+        Antal <strong>ören</strong> som tillfaller säljarens lag för varje träd som säljs via Smaarty.
+        Ändringen påverkar <strong>endast framtida köp</strong> — historik lämnas orörd. Är värdet 0 visas inga kronor för säljare eller lag.
+      </p>
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="text-sm">Ören per träd
+          <input className="input-field mt-1 w-40" inputMode="numeric" value={ore} onChange={(e) => setOre(e.target.value)} />
+        </label>
+        <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+          = {((parseInt(ore, 10) || 0) / 100).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr / träd
+        </div>
+        <button className="chip" style={{ background: "var(--mint)" }} disabled={busy} onClick={save}>Spara</button>
+        {msg && <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{msg}</span>}
+      </div>
+    </section>
+  );
+}
+
 

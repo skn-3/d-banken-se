@@ -44,6 +44,7 @@ export type Database = {
           planting_latitude: number
           planting_location_name: string
           planting_longitude: number
+          team_share_ore_per_tree: number
           updated_at: string
         }
         Insert: {
@@ -51,6 +52,7 @@ export type Database = {
           planting_latitude?: number
           planting_location_name?: string
           planting_longitude?: number
+          team_share_ore_per_tree?: number
           updated_at?: string
         }
         Update: {
@@ -58,6 +60,7 @@ export type Database = {
           planting_latitude?: number
           planting_location_name?: string
           planting_longitude?: number
+          team_share_ore_per_tree?: number
           updated_at?: string
         }
         Relationships: []
@@ -310,6 +313,56 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_requests: {
+        Row: {
+          amount_ore: number
+          created_at: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          note: string | null
+          recipient: Json
+          requested_by: string
+          status: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ore: number
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          note?: string | null
+          recipient?: Json
+          requested_by: string
+          status?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ore?: number
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          note?: string | null
+          recipient?: Json
+          requested_by?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       point_events: {
         Row: {
           active: boolean
@@ -472,6 +525,8 @@ export type Database = {
           source_order_ref: string | null
           source_seller: string | null
           status: string
+          team_id: string | null
+          team_share_ore: number
           total_amount_ore: number
           tree_count: number
           unit_price_ore: number
@@ -489,6 +544,8 @@ export type Database = {
           source_order_ref?: string | null
           source_seller?: string | null
           status?: string
+          team_id?: string | null
+          team_share_ore?: number
           total_amount_ore: number
           tree_count: number
           unit_price_ore: number
@@ -506,6 +563,8 @@ export type Database = {
           source_order_ref?: string | null
           source_seller?: string | null
           status?: string
+          team_id?: string | null
+          team_share_ore?: number
           total_amount_ore?: number
           tree_count?: number
           unit_price_ore?: number
@@ -517,6 +576,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]

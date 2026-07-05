@@ -24,6 +24,7 @@ import skogsmastareAsset from "@/assets/badges/skogsmastare.png.asset.json";
 import veckansSaljareAsset from "@/assets/badges/veckans-saljare.png.asset.json";
 import eldsjalAsset from "@/assets/badges/eldsjal.png.asset.json";
 import { Smaarty } from "@/components/smaarty";
+import { LeaderFinancePanel } from "@/components/leader-finance-panel";
 
 const WEEKEND_SPRINT_GOAL = 5;
 const PRICE_PER_TREE_ORE = 3500;
@@ -424,15 +425,18 @@ function SellerPage() {
             onSubmit={submit}
           />
         ) : (
-          <HomeView
-            ctx={ctx}
-            lbScope={lbScope} setLbScope={setLbScope}
-            lbKind={lbKind} setLbKind={setLbKind}
-            onRegister={() => setView("register")}
-            readOnly={!!ctx.isPreview}
-            rewardGoal={rewardGoal}
-            rewardBalance={rewardBalance}
-          />
+          <>
+            <HomeView
+              ctx={ctx}
+              lbScope={lbScope} setLbScope={setLbScope}
+              lbKind={lbKind} setLbKind={setLbKind}
+              onRegister={() => setView("register")}
+              readOnly={!!ctx.isPreview}
+              rewardGoal={rewardGoal}
+              rewardBalance={rewardBalance}
+            />
+            {!ctx.isPreview && <div className="mt-6"><LeaderFinancePanel /></div>}
+          </>
         )}
       </main>
     </div>
