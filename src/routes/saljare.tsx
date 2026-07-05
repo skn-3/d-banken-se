@@ -25,6 +25,7 @@ import veckansSaljareAsset from "@/assets/badges/veckans-saljare.png.asset.json"
 import eldsjalAsset from "@/assets/badges/eldsjal.png.asset.json";
 import { Smaarty } from "@/components/smaarty";
 import { LeaderFinancePanel } from "@/components/leader-finance-panel";
+import { TeamManagementPanel } from "@/components/team-management-panel";
 import { TeamFeed } from "@/components/activity-feed";
 import { BoostHub, BuffRow } from "@/components/boost-hub";
 import { getLeaderboardBuffs, type SellerBuffs } from "@/lib/boosts.functions";
@@ -449,6 +450,7 @@ function SellerPage() {
               rewardBalance={rewardBalance}
             />
             {!ctx.isPreview && <div className="mt-6"><LeaderFinancePanel /></div>}
+            {!ctx.isPreview && <div className="mt-6"><TeamManagementPanel /></div>}
             {!ctx.isPreview && (
               <div className="mt-6">
                 <div className="font-display text-xl font-semibold mb-2" style={{ color: "var(--forest)" }}>Loggen</div>
