@@ -201,6 +201,11 @@ export function AdminCoreTab() {
 
       <ProjectUpdatesSection sources={sources} projects={projects} updates={updates} refresh={refreshAll} />
 
+      <PayoutsSection />
+      <TeamShareSettingSection />
+
+
+
       <section className="surface-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
