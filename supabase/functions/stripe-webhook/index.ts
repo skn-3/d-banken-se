@@ -126,9 +126,6 @@ Deno.serve(async (req) => {
   const session = event.data.object as Stripe.Checkout.Session;
 
 
-  const session = event.data.object as Stripe.Checkout.Session;
-  const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-
   try {
     const md = session.metadata ?? {};
     const type = String(md.type ?? "");
