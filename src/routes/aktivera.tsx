@@ -224,8 +224,6 @@ function SellerSignup({ team }: { team: NonNullable<TeamLookup> }) {
         if (sErr) throw new Error("Kontot skapades. Öppna länken i din e-post för att aktivera det.");
       }
 
-      await joinFn({ data: { code: team.name ? await (async () => team.id)() as unknown as string : "" } }).catch(() => { /* replaced below */ });
-      // real join call with the code (from URL)
       const code = new URL(window.location.href).searchParams.get("lag") ?? "";
       await joinFn({ data: { code } });
 
