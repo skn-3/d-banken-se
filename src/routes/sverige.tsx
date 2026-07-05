@@ -72,7 +72,7 @@ function SellersBoard({ period, page, setPage, currentUserId }: { period: Period
   const fetchList = useServerFn(getSverigeSellers);
   const fetchBuffs = useServerFn(getLeaderboardBuffs);
   const [state, setState] = useState<{ rows: SellerRow[]; total: number; me: SellerRow | null; myRank: number | null; startRank: number } | null>(null);
-  const [buffs, setBuffs] = useState<Record<string, { turbo: boolean; streakWeeks: number; hattrickToday: boolean; goldWeek: boolean }>>({});
+  const [buffs, setBuffs] = useState<Record<string, { turbo: boolean; streakWeeks: number; hattrickToday: boolean; goldWeek: boolean; freezes: number }>>({});
 
   useEffect(() => {
     let alive = true;
