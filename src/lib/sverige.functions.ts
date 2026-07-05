@@ -2,6 +2,28 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export interface SellerRow {
+  user_id: string;
+  first_name: string | null;
+  photo_path: string | null;
+  avatar_key: string | null;
+  team_name: string | null;
+  team_city: string | null;
+  organization_name: string | null;
+  points_week: number;
+  points_total: number;
+}
+export interface TeamRow {
+  team_id: string;
+  team_name: string;
+  organization_name: string | null;
+  city: string | null;
+  members: number;
+  trees_total: number;
+  points_week: number;
+  points_total: number;
+}
+
 const listInput = z.object({
   period: z.enum(["week", "total"]).default("week"),
   page: z.number().int().min(0).max(200).default(0),
@@ -38,9 +60,9 @@ export const getSverigeSellers = createServerFn({ method: "POST" })
       myRank = (count ?? 0) + 1;
     }
     return {
-      rows: (pageRes.data ?? []) as unknown[],
-      total: countRes.count ?? 0,
-      me: mineRes.data as unknown,
+      rows: (pageRes.data ?? []) as SellerRow[],
+      total: (countRes.count ?? 0) as number,
+      me: (mineRes.data ?? null) as SellerRow | null,
       myRank,
       startRank: from + 1,
     };
@@ -64,8 +86,8 @@ export const getSverigeTeams = createServerFn({ method: "POST" })
       sb.from("v_public_team_ranking").select("team_id", { count: "exact", head: true }),
     ]);
     return {
-      rows: (pageRes.data ?? []) as unknown[],
-      total: countRes.count ?? 0,
+      rows: (pageRes.data ?? []) as TeamRow[],
+      total: (countRes.count ?? 0) as number,
       startRank: from + 1,
     };
   });
