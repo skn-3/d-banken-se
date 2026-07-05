@@ -27,6 +27,7 @@ import { Route as VIdRouteImport } from './routes/v.$id'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
 import { Route as ApiPublicPushNotifyRouteImport } from './routes/api/public/push-notify'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
+import { Route as ApiPublicHooksTeamWeeklyReportRouteImport } from './routes/api/public/hooks/team-weekly-report'
 
 const SverigeRoute = SverigeRouteImport.update({
   id: '/sverige',
@@ -119,6 +120,12 @@ const ApiPublicHooksWeeklyBackupRoute =
     path: '/api/public/hooks/weekly-backup',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTeamWeeklyReportRoute =
+  ApiPublicHooksTeamWeeklyReportRouteImport.update({
+    id: '/api/public/hooks/team-weekly-report',
+    path: '/api/public/hooks/team-weekly-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
 export interface FileRoutesByTo {
@@ -158,6 +166,7 @@ export interface FileRoutesByTo {
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
 export interface FileRoutesById {
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
 export interface FileRouteTypes {
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/unsubscribe'
+    | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/weekly-backup'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/unsubscribe'
+    | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/weekly-backup'
   id:
     | '__root__'
@@ -241,6 +253,7 @@ export interface FileRouteTypes {
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/unsubscribe'
+    | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/weekly-backup'
   fileRoutesById: FileRoutesById
 }
@@ -262,6 +275,7 @@ export interface RootRouteChildren {
   VIdRoute: typeof VIdRoute
   ApiPublicPushNotifyRoute: typeof ApiPublicPushNotifyRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
+  ApiPublicHooksTeamWeeklyReportRoute: typeof ApiPublicHooksTeamWeeklyReportRoute
   ApiPublicHooksWeeklyBackupRoute: typeof ApiPublicHooksWeeklyBackupRoute
 }
 
@@ -393,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksWeeklyBackupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/team-weekly-report': {
+      id: '/api/public/hooks/team-weekly-report'
+      path: '/api/public/hooks/team-weekly-report'
+      fullPath: '/api/public/hooks/team-weekly-report'
+      preLoaderRoute: typeof ApiPublicHooksTeamWeeklyReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -414,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   VIdRoute: VIdRoute,
   ApiPublicPushNotifyRoute: ApiPublicPushNotifyRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
+  ApiPublicHooksTeamWeeklyReportRoute: ApiPublicHooksTeamWeeklyReportRoute,
   ApiPublicHooksWeeklyBackupRoute: ApiPublicHooksWeeklyBackupRoute,
 }
 export const routeTree = rootRouteImport
