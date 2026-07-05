@@ -19,7 +19,7 @@ export interface SendEmailResult {
   skipped?: boolean;
 }
 
-export const AUTH_EMAIL_FROM = "Smaarty <konto@send.smartklimat.org>";
+export const AUTH_EMAIL_FROM = "Smaarty <konto@smartklimat.org>";
 const SMARTKLIMAT_STAMP_WHITE = "https://smartklimat.org/brand/logo-stamp-vit.png";
 
 function extractMessageId(body: string | null) {
