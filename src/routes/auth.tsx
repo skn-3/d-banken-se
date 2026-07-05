@@ -39,10 +39,10 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        await sendSignupConfirmation({
+        const res = await sendSignupConfirmation({
           data: { email, password, name, accountType: "privat", redirectTo: `${window.location.origin}/konto` },
         });
-        setInfo("Vi har skickat ett bekräftelsemail. Öppna länken för att aktivera kontot.");
+        setInfo(res.message ?? "Om adressen är ledig har vi skickat ett bekräftelsemail. Kolla din inkorg.");
       } else if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
