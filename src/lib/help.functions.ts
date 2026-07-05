@@ -27,7 +27,7 @@ export const getHelpContext = createServerFn({ method: "GET" })
         .from("team_members")
         .select("user_id")
         .eq("team_id", member.team_id)
-        .eq("role", "leader")
+        .eq("role", "team_leader")
         .maybeSingle();
       if (leader?.user_id) {
         const { data: prof } = await supabaseAdmin
@@ -41,7 +41,7 @@ export const getHelpContext = createServerFn({ method: "GET" })
     }
 
     return {
-      role: member.role as "seller" | "leader",
+      role: (member.role === "team_leader" ? "leader" : "seller") as "seller" | "leader",
       teamName: team?.name ?? null,
       leaderFirstName,
     };
