@@ -66,7 +66,8 @@ export const createTeamSelfService = createServerFn({ method: "POST" })
       _goal_trees: data.goalTrees,
       _goal_end_date: data.goalEndDate,
       _weekly_goal_trees: data.weeklyGoalTrees,
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     if (error) throw new Error(error.message);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return res as { team_id: string; organization_id: string; join_code: string };
