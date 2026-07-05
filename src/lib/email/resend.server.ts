@@ -112,19 +112,8 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return result;
   };
 
-  const firstResult = await sendOnce(payload);
-  if (fallbackFrom && fallbackFrom !== from && shouldRetryWithFallback(firstResult)) {
-    console.error("[Resend] primary from-domain rejected; retrying with verified fallback sender", {
-      to,
-      subject,
-      primaryFrom: from,
-      fallbackFrom,
-      primaryStatus: firstResult.status,
-      primaryBody: firstResult.body,
-    });
-    return sendOnce({ ...payload, from: fallbackFrom });
-  }
-  return firstResult;
+  return sendOnce(payload);
+  void fallbackFrom;
 }
 
 interface AuthEmailArgs {
