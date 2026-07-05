@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { AvatarCircle, useSignedAvatars } from "@/components/user-avatar";
 import { getSverigeSellers, getSverigeTeams, type SellerRow, type TeamRow } from "@/lib/sverige.functions";
-import { getLeaderboardBuffs } from "@/lib/boosts.functions";
+import { getLeaderboardBuffs, type SellerBuffs } from "@/lib/boosts.functions";
 import { BuffRow } from "@/components/boost-hub";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -72,7 +72,7 @@ function SellersBoard({ period, page, setPage, currentUserId }: { period: Period
   const fetchList = useServerFn(getSverigeSellers);
   const fetchBuffs = useServerFn(getLeaderboardBuffs);
   const [state, setState] = useState<{ rows: SellerRow[]; total: number; me: SellerRow | null; myRank: number | null; startRank: number } | null>(null);
-  const [buffs, setBuffs] = useState<Record<string, { turbo: boolean; streakWeeks: number; hattrickToday: boolean; goldWeek: boolean; freezes: number }>>({});
+  const [buffs, setBuffs] = useState<Record<string, SellerBuffs>>({});
 
   useEffect(() => {
     let alive = true;
