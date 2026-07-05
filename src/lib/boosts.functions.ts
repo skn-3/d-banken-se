@@ -11,7 +11,7 @@ export const getSellerBoostState = createServerFn({ method: "GET" })
       supabaseAdmin.from("boost_catalog").select("*").eq("active", true),
       supabaseAdmin.from("seller_boosts").select("*").eq("user_id", uid).order("earned_at", { ascending: false }).limit(200),
       supabaseAdmin.from("seller_streaks").select("*").eq("user_id", uid).maybeSingle(),
-      supabaseAdmin.from("purchases").select("tree_count, created_at").eq("seller_user_id", uid),
+      supabaseAdmin.from("purchases").select("tree_count, created_at").eq("registered_by_user_id", uid),
     ]);
 
     // Derive progress numbers for locked boosts.
