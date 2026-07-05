@@ -71,7 +71,7 @@ export const listRecentNewsletters = createServerFn({ method: "GET" })
       .select("id, subject, sent_at, recipient_count, audience_kind, audience_value")
       .order("sent_at", { ascending: false })
       .limit(20);
-    return { runs: data ?? [] };
+    return { newsletters: data ?? [] };
   });
 
 export const runBackupNow = createServerFn({ method: "POST" })
