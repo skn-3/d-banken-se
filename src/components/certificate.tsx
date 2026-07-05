@@ -107,7 +107,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           fontWeight: 700,
           fontSize: 148,
           lineHeight: 0.9,
-          color: emerald,
+          color: "#1E9E6A",
           letterSpacing: "-0.03em",
         }}>
           {data.tree_count.toLocaleString("sv-SE")}
