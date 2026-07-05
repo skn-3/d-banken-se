@@ -16,6 +16,8 @@ import { Route as SaljHjalpRouteImport } from './routes/salj-hjalp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
+import { Route as IntegritetRouteImport } from './routes/integritet'
+import { Route as HjalpRouteImport } from './routes/hjalp'
 import { Route as BeloningarRouteImport } from './routes/beloningar'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AktiveraRouteImport } from './routes/aktivera'
@@ -59,6 +61,16 @@ const KopRoute = KopRouteImport.update({
 const KontoRoute = KontoRouteImport.update({
   id: '/konto',
   path: '/konto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegritetRoute = IntegritetRouteImport.update({
+  id: '/integritet',
+  path: '/integritet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HjalpRoute = HjalpRouteImport.update({
+  id: '/hjalp',
+  path: '/hjalp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BeloningarRoute = BeloningarRouteImport.update({
@@ -114,6 +126,8 @@ export interface FileRoutesByFullPath {
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
+  '/hjalp': typeof HjalpRoute
+  '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -132,6 +146,8 @@ export interface FileRoutesByTo {
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
+  '/hjalp': typeof HjalpRoute
+  '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -151,6 +167,8 @@ export interface FileRoutesById {
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
+  '/hjalp': typeof HjalpRoute
+  '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -171,6 +189,8 @@ export interface FileRouteTypes {
     | '/aktivera'
     | '/auth'
     | '/beloningar'
+    | '/hjalp'
+    | '/integritet'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -189,6 +209,8 @@ export interface FileRouteTypes {
     | '/aktivera'
     | '/auth'
     | '/beloningar'
+    | '/hjalp'
+    | '/integritet'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -207,6 +229,8 @@ export interface FileRouteTypes {
     | '/aktivera'
     | '/auth'
     | '/beloningar'
+    | '/hjalp'
+    | '/integritet'
     | '/konto'
     | '/kop'
     | '/reset-password'
@@ -226,6 +250,8 @@ export interface RootRouteChildren {
   AktiveraRoute: typeof AktiveraRoute
   AuthRoute: typeof AuthRoute
   BeloningarRoute: typeof BeloningarRoute
+  HjalpRoute: typeof HjalpRoute
+  IntegritetRoute: typeof IntegritetRoute
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -288,6 +314,20 @@ declare module '@tanstack/react-router' {
       path: '/konto'
       fullPath: '/konto'
       preLoaderRoute: typeof KontoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integritet': {
+      id: '/integritet'
+      path: '/integritet'
+      fullPath: '/integritet'
+      preLoaderRoute: typeof IntegritetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hjalp': {
+      id: '/hjalp'
+      path: '/hjalp'
+      fullPath: '/hjalp'
+      preLoaderRoute: typeof HjalpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/beloningar': {
@@ -362,6 +402,8 @@ const rootRouteChildren: RootRouteChildren = {
   AktiveraRoute: AktiveraRoute,
   AuthRoute: AuthRoute,
   BeloningarRoute: BeloningarRoute,
+  HjalpRoute: HjalpRoute,
+  IntegritetRoute: IntegritetRoute,
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
   ResetPasswordRoute: ResetPasswordRoute,
