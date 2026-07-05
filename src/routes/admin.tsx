@@ -193,6 +193,8 @@ function AdminPage() {
               </>
             )}
 
+            {tab === "core" && <AdminCoreTab />}
+
             {tab === "organizations" && <AdminOrgsTab />}
 
             {tab === "rewards" && <RewardsCatalogTab />}
