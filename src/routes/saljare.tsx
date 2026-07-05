@@ -425,15 +425,18 @@ function SellerPage() {
             onSubmit={submit}
           />
         ) : (
-          <HomeView
-            ctx={ctx}
-            lbScope={lbScope} setLbScope={setLbScope}
-            lbKind={lbKind} setLbKind={setLbKind}
-            onRegister={() => setView("register")}
-            readOnly={!!ctx.isPreview}
-            rewardGoal={rewardGoal}
-            rewardBalance={rewardBalance}
-          />
+          <>
+            <HomeView
+              ctx={ctx}
+              lbScope={lbScope} setLbScope={setLbScope}
+              lbKind={lbKind} setLbKind={setLbKind}
+              onRegister={() => setView("register")}
+              readOnly={!!ctx.isPreview}
+              rewardGoal={rewardGoal}
+              rewardBalance={rewardBalance}
+            />
+            {!ctx.isPreview && <div className="mt-6"><LeaderFinancePanel /></div>}
+          </>
         )}
       </main>
     </div>
