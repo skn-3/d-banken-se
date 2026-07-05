@@ -193,11 +193,12 @@ function KontoPage() {
             <BadgeWall />
             <PushToggle />
 
-            {isAdmin && (
-              <div className="mt-6 text-center">
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link to="/hjalp" className="btn-secondary">Hjälp</Link>
+              {isAdmin && (
                 <button onClick={() => navigate({ to: "/admin" })} className="btn-secondary">Öppna admin</button>
-              </div>
-            )}
+              )}
+            </div>
           </>
         )}
       </main>
