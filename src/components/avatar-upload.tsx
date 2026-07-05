@@ -68,7 +68,7 @@ export function AvatarUpload() {
       if (up.error) throw up.error;
       await savePhoto({ data: { path } });
       toast.success("Ny profilbild sparad");
-      setFileSrc(null); if (fileRef.current) fileRef.current.value = "";
+      setFileSrc(null); setPickedName(null); if (fileRef.current) fileRef.current.value = "";
       await reload();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Kunde inte spara bilden");
