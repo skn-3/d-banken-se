@@ -1412,6 +1412,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_internal_secret: { Args: { _name: string }; Returns: string }
       get_national_activity_feed: {
         Args: { _limit?: number }
         Returns: {
@@ -1425,6 +1426,19 @@ export type Database = {
           team_name: string
           type: string
           user_id: string
+        }[]
+      }
+      get_public_certificate: {
+        Args: { _verification_id: string }
+        Returns: {
+          issued_date: string
+          latitude: number
+          location_name: string
+          longitude: number
+          recipient_name: string
+          template_snapshot: Json
+          tree_count: number
+          verification_id: string
         }[]
       }
       get_team_activity_feed: {
