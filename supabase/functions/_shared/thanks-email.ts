@@ -9,6 +9,7 @@ export interface ThanksArgs {
   verifyUrl: string;
   locationName?: string | null;
   giftMessage?: string | null;
+  heroStampUrl?: string | null;
 }
 
 function esc(s: string) {
@@ -81,7 +82,7 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
     ? `${a.recipientName} — ${N} träd planterade i ditt namn`
     : `${a.recipientName} — dina ${N} träd växer i ${proj.name}`;
 
-  const stampWhite = "https://smartklimat.org/brand/logo-stamp-vit.png";
+  const stampWhite = a.heroStampUrl && a.heroStampUrl.trim() ? a.heroStampUrl : "https://smartklimat.org/brand/logo-stamp-vit.png";
   const bricolage = "'Bricolage Grotesque',Helvetica,Arial,sans-serif";
   const body = "Helvetica,Arial,sans-serif";
   const mono = "'Courier New',monospace";
