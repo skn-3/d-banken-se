@@ -10,7 +10,7 @@ export type CatalogRow = {
 export type EarnedRow = { achievement_key: string; earned_at: string };
 export type FeedRow = {
   id: string; user_id: string | null; team_id: string | null;
-  type: string; payload: Record<string, unknown>; created_at: string;
+  type: string; payload: Record<string, string | number | boolean | null>; created_at: string;
   avatar_key: string | null; photo_path: string | null; first_name: string | null;
   team_name?: string | null;
 };
