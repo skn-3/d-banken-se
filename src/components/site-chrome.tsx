@@ -41,6 +41,7 @@ export function SiteHeader() {
       ) : (
         <Link to="/kop" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Plantera träd</Link>
       )}
+      <Link to="/sverige" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Sverige</Link>
       <Link to="/konto" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Mitt konto</Link>
       <button onClick={logout} className="btn-secondary whitespace-nowrap text-center">Logga ut</button>
     </>
