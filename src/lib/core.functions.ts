@@ -71,7 +71,15 @@ export const listRecentNewsletters = createServerFn({ method: "GET" })
       .select("id, subject, sent_at, recipient_count, audience_kind, audience_value")
       .order("sent_at", { ascending: false })
       .limit(20);
-    return { newsletters: data ?? [] };
+    return { runs: data ?? [] };
+  });
+
+export const runBackupNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { runBackup } = await import("@/lib/backup.server");
+    return await runBackup({ userId: context.userId, triggeredBy: "manual" });
   });
 
 export const listRecentBackupRuns = createServerFn({ method: "GET" })
