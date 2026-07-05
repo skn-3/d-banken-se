@@ -45,37 +45,38 @@ interface ThanksArgs {
 
 export function renderThanksEmail(a: ThanksArgs): { subject: string; html: string } {
   const subject = `Tack — ${a.treeCount} träd planterade i ditt namn`;
+  const stamp = "https://smartklimat.org/brand/logo-stamp-guld.png";
   const html = `<!doctype html>
 <html lang="sv"><head><meta charset="utf-8" /><title>${subject}</title></head>
-<body style="margin:0;padding:0;background:#F4FAF5;font-family:'Helvetica Neue',Arial,sans-serif;color:#0B3D2E;">
+<body style="margin:0;padding:0;background:#F4FAF5;font-family:Helvetica,Arial,sans-serif;color:#0B3D2E;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4FAF5;padding:32px 0;">
     <tr><td align="center">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px -30px rgba(11,61,46,0.25);">
-        <tr><td style="background:linear-gradient(155deg,#EAF7EE 0%,#C7EAD4 100%);padding:36px 40px;text-align:center;">
-          <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid #1E9E6A;color:#1E9E6A;font-weight:700;font-size:22px;">SK</div>
-          <h1 style="margin:18px 0 6px;font-size:24px;font-weight:600;color:#0B3D2E;">Tack, ${escapeHtml(a.recipientName)}!</h1>
-          <p style="margin:0;font-size:14px;color:#385248;">Träden planteras tillsammans med WeForest.</p>
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#FBF9F2;border:1px solid rgba(11,61,46,0.14);border-radius:24px;overflow:hidden;">
+        <tr><td style="padding:44px 44px 8px;text-align:center;">
+          <div style="font-family:'Menlo','Courier New',monospace;font-size:11px;letter-spacing:0.42em;color:#4F6B5E;text-transform:uppercase;">VÄRDEBEVIS</div>
+          <h1 style="margin:22px 0 0;font-size:30px;font-weight:700;color:#0B3D2E;letter-spacing:-0.01em;">${escapeHtml(a.recipientName)}</h1>
+          <div style="margin:28px 0 6px;font-size:88px;font-weight:700;color:#1E9E6A;line-height:0.9;letter-spacing:-0.03em;">${a.treeCount.toLocaleString("sv-SE")}</div>
+          <div style="font-size:14px;color:#385248;">träd planterade</div>
+          <div style="margin-top:14px;font-family:'Menlo','Courier New',monospace;font-size:11px;letter-spacing:0.06em;color:#4F6B5E;text-transform:uppercase;">${escapeHtml(a.dateText)}</div>
+          <img src="${stamp}" width="72" height="72" alt="" style="display:block;margin:28px auto 0;width:72px;height:72px;" />
         </td></tr>
-        <tr><td style="padding:32px 40px 8px;">
-          <div style="text-align:center;font-family:'Menlo','Courier New',monospace;font-size:48px;font-weight:600;color:#1E9E6A;line-height:1;">${a.treeCount.toLocaleString("sv-SE")}</div>
-          <div style="text-align:center;margin-top:6px;font-size:13px;color:#4F6B5E;">träd planterade</div>
-        </td></tr>
-        <tr><td style="padding:24px 40px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E5EDE6;border-radius:16px;">
-            <tr><td style="padding:14px 18px;border-bottom:1px solid #E5EDE6;font-size:13px;color:#4F6B5E;">Datum</td><td style="padding:14px 18px;border-bottom:1px solid #E5EDE6;text-align:right;font-family:'Menlo','Courier New',monospace;font-size:13px;color:#0B3D2E;">${escapeHtml(a.dateText)}</td></tr>
-            <tr><td style="padding:14px 18px;border-bottom:1px solid #E5EDE6;font-size:13px;color:#4F6B5E;">Antal</td><td style="padding:14px 18px;border-bottom:1px solid #E5EDE6;text-align:right;font-family:'Menlo','Courier New',monospace;font-size:13px;color:#0B3D2E;">${a.treeCount} träd</td></tr>
-            <tr><td style="padding:14px 18px;border-bottom:1px solid #E5EDE6;font-size:13px;color:#4F6B5E;">Belopp</td><td style="padding:14px 18px;border-bottom:1px solid #E5EDE6;text-align:right;font-family:'Menlo','Courier New',monospace;font-size:13px;color:#0B3D2E;">${escapeHtml(a.totalKr)}</td></tr>
-            <tr><td style="padding:14px 18px;font-size:13px;color:#4F6B5E;">Verifierings-ID</td><td style="padding:14px 18px;text-align:right;font-family:'Menlo','Courier New',monospace;font-size:13px;color:#0B3D2E;">${escapeHtml(a.verificationId)}</td></tr>
-          </table>
-        </td></tr>
-        <tr><td align="center" style="padding:8px 40px 36px;">
-          <a href="${a.verifyUrl}" style="display:inline-block;background:#1E9E6A;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:999px;font-weight:600;font-size:14px;">Visa & ladda ner värdebevis</a>
-          <p style="margin:16px 0 0;font-size:12px;color:#7A8F84;">Eller öppna direkt: <a href="${a.verifyUrl}" style="color:#1E9E6A;">${a.verifyUrl}</a></p>
-        </td></tr>
-        <tr><td style="background:#F8FBF6;padding:20px 40px;text-align:center;font-size:11px;color:#7A8F84;">
-          SmartKlimat · Träd som planteras genom WeForest
+        <tr><td align="center" style="padding:24px 44px 40px;">
+          <a href="${a.verifyUrl}" style="display:inline-block;background:#1E9E6A;color:#ffffff;text-decoration:none;padding:14px 26px;border-radius:999px;font-weight:600;font-size:14px;">Visa och verifiera ditt bevis</a>
+          <p style="margin:14px 0 0;font-size:11px;color:#7A8F84;font-family:'Menlo','Courier New',monospace;">Verifierings-ID: ${escapeHtml(a.verificationId)}</p>
         </td></tr>
       </table>
+
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#ffffff;border:1px solid rgba(11,61,46,0.10);border-radius:20px;">
+        <tr><td style="padding:26px 32px;">
+          <h2 style="margin:0 0 14px;font-size:15px;font-weight:700;color:#0B3D2E;letter-spacing:0.02em;">Varför träd?</h2>
+          <p style="margin:0 0 10px;font-size:13px;line-height:1.55;color:#385248;">Ditt träd binder ungefär 20 kg koldioxid — varje år.</p>
+          <p style="margin:0 0 10px;font-size:13px;line-height:1.55;color:#385248;">Det planteras i granskade WeForest-projekt i Indien, Zambia eller Brasilien.</p>
+          <p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:#385248;">Det är spårbart — följ det via länken ovan.</p>
+          <a href="https://smartklimat.org/projekt" style="font-size:13px;font-weight:600;color:#1E9E6A;text-decoration:none;">Läs mer om projekten →</a>
+        </td></tr>
+      </table>
+
+      <p style="margin:20px 0 0;font-size:11px;color:#7A8F84;font-family:Helvetica,Arial,sans-serif;">SmartKlimat · Tänk smart, vi har ett gemensamt klimat.</p>
     </td></tr>
   </table>
 </body></html>`;
