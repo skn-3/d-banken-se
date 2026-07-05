@@ -48,40 +48,9 @@ type Ctx = {
   orders?: OrderRow[];
 };
 
-function Confetti({ show }: { show: boolean }) {
-  if (!show) return null;
-  const pieces = Array.from({ length: 28 });
-  const colors = ["#1e9e6a", "#9fd9b6", "#fbe3c0", "#3fc78b", "#ffcf78"];
-  return (
-    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {pieces.map((_, i) => {
-        const left = Math.random() * 100;
-        const delay = Math.random() * 0.3;
-        const dur = 1.2 + Math.random() * 0.9;
-        const size = 8 + Math.random() * 8;
-        const color = colors[i % colors.length];
-        const rot = Math.random() * 360;
-        return (
-          <span
-            key={i}
-            style={{
-              position: "absolute",
-              left: `${left}%`,
-              top: "-20px",
-              width: size,
-              height: size,
-              background: color,
-              borderRadius: 2,
-              transform: `rotate(${rot}deg)`,
-              animation: `smaarty-confetti ${dur}s cubic-bezier(.2,.7,.4,1) ${delay}s forwards`,
-            }}
-          />
-        );
-      })}
-      <style>{`@keyframes smaarty-confetti { to { transform: translateY(110vh) rotate(720deg); opacity: 0.3; } }`}</style>
-    </div>
-  );
-}
+// Konfetti hanteras via canvas-confetti (celebrate()).
+
+
 
 function RewardArtwork({ reward, canAfford }: { reward: RewardRow; canAfford: boolean }) {
   const fallback = rewardEmoji(reward.name, reward.category);
