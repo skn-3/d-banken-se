@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Blobs } from "@/components/site-chrome";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 
 export const Route = createFileRoute("/v/$id")({
@@ -25,10 +24,14 @@ interface Row {
   template_snapshot: Record<string, unknown>;
 }
 
+const PAPER_BG =
+  "radial-gradient(1000px 700px at 50% -10%, #EAF7EE 0%, transparent 70%), radial-gradient(800px 500px at 100% 100%, #DFF1E4 0%, transparent 70%), #F4FAF5";
+
 function VerifyPage() {
   const { id } = Route.useParams();
   const [state, setState] = useState<"loading" | "missing" | "ok">("loading");
   const [data, setData] = useState<CertificateData | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,59 +59,76 @@ function VerifyPage() {
     return () => { cancelled = true; };
   }, [id]);
 
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* ignore */ }
+  }
+
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
-      <Blobs />
-      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
+    <div className="min-h-screen w-full" style={{ background: PAPER_BG }}>
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <Link to="/" className="flex items-center gap-2">
-          <span className="inline-block h-7 w-7 rounded-full" style={{ background: "var(--gradient-mint)", border: "1px solid var(--border)" }} />
-          <span className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>SmartKlimat</span>
+          <span className="inline-block h-7 w-7 rounded-full" style={{ background: "linear-gradient(135deg,#9FD9B6,#1E9E6A)" }} />
+          <span className="font-display text-lg font-semibold" style={{ color: "#0B3D2E" }}>SmartKlimat</span>
         </Link>
-        <span className="chip">Publik verifiering</span>
       </header>
 
-      <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-20 pt-4">
+      <main className="mx-auto w-full max-w-3xl px-6 pb-24 pt-4">
         {state === "loading" && (
-          <div className="surface-card p-10 text-center" style={{ color: "var(--muted-foreground)" }}>Letar upp värdebevis…</div>
-        )}
-        {state === "missing" && (
-          <div className="surface-card p-10 text-center">
-            <h1 className="font-display text-2xl font-semibold">Värdebevis hittades inte</h1>
-            <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              ID <span className="font-mono">{id}</span> finns inte i vårt register.
-            </p>
+          <div className="mx-auto max-w-md rounded-2xl border border-black/5 bg-white/60 p-10 text-center text-sm" style={{ color: "#4F6B5E" }}>
+            Letar upp värdebevis…
           </div>
         )}
+
+        {state === "missing" && (
+          <div className="mx-auto max-w-md rounded-2xl border border-black/5 bg-white p-10 text-center shadow-sm">
+            <h1 className="font-display text-2xl font-semibold" style={{ color: "#0B3D2E" }}>Beviset kunde inte hittas</h1>
+            <p className="mt-2 text-sm" style={{ color: "#4F6B5E" }}>
+              ID <span className="font-mono">{id}</span> finns inte i vårt register. Kontrollera länken eller besök vår startsida.
+            </p>
+            <a
+              href="https://smartklimat.org"
+              className="mt-6 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+              style={{ background: "#1E9E6A" }}
+            >
+              Till smartklimat.org
+            </a>
+          </div>
+        )}
+
         {state === "ok" && data && (
-          <div className="space-y-6">
-            <div className="surface-card p-6 text-center">
-              <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--primary)", color: "#fff" }}>✓</div>
-              <h1 className="font-display text-xl font-semibold">Detta värdebevis är äkta</h1>
-              <p className="mt-1 text-sm font-mono" style={{ color: "var(--muted-foreground)" }}>{data.verification_id}</p>
+          <div className="mx-auto flex flex-col items-center" style={{ maxWidth: 420 }}>
+            {/* Verified pill */}
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold" style={{ background: "#E8F5EE", borderColor: "rgba(30,158,106,0.35)", color: "#0B6E4F" }}>
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] text-white" style={{ background: "#1E9E6A" }}>✓</span>
+              Verifierat äkta · SmartKlimat
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Fact label="Mottagare" value={data.recipient_name} />
-              <Fact label="Antal träd" value={data.tree_count.toLocaleString("sv-SE")} mono />
-              <Fact label="Planteringsplats" value={data.location_name} />
-              <Fact label="Datum" value={new Date(data.issued_date).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" })} />
+            {/* Certificate — scaled to fit ~420 (base 720) */}
+            <div style={{ width: 420, height: (420 / 720) * 980 + 4 }}>
+              <div style={{ transform: `scale(${420 / 720})`, transformOrigin: "top left" }}>
+                <Certificate data={data} />
+              </div>
             </div>
 
-            <div className="overflow-x-auto flex justify-center">
-              <Certificate data={data} />
+            {/* Meta + copy */}
+            <div className="mt-5 flex w-full items-center justify-between text-xs" style={{ color: "#4F6B5E" }}>
+              <span>Utfärdat {new Date(data.issued_date).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" })}</span>
+              <button
+                type="button"
+                onClick={copyLink}
+                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white"
+                style={{ borderColor: "rgba(11,61,46,0.18)", color: "#0B3D2E", background: "rgba(255,255,255,0.6)" }}
+              >
+                {copied ? "Kopierad ✓" : "Kopiera länk"}
+              </button>
             </div>
           </div>
         )}
       </main>
-    </div>
-  );
-}
-
-function Fact({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="surface-card p-4">
-      <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>{label}</div>
-      <div className={`mt-1 text-base font-semibold ${mono ? "font-mono" : ""}`} style={{ color: "var(--forest)" }}>{value}</div>
     </div>
   );
 }

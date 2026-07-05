@@ -1,8 +1,7 @@
 import { forwardRef } from "react";
-import logoBlack from "@/assets/logos/smartklimat-logo-black.png.asset.json";
 
 export const CERT_TAGLINE = "Tänk smart, vi har ett gemensamt klimat";
-
+const STAMP_URL = "/brand/logo-stamp-guld.png";
 
 export interface CertificateData {
   verification_id: string;
@@ -31,180 +30,158 @@ export const BACKGROUND_OPTIONS: { key: string; label: string; css: string }[] =
   { key: "paper", label: "Papper", css: "linear-gradient(155deg, #F8FBF6 0%, #EFE9DC 100%)" },
 ];
 
-function bgCss(key: string) {
-  return BACKGROUND_OPTIONS.find((b) => b.key === key)?.css ?? BACKGROUND_OPTIONS[0].css;
-}
-
-function fmtCoord(lat: number | string, lng: number | string) {
-  const n = (v: number | string) => Number(v).toFixed(4);
-  return `${n(lat)}°, ${n(lng)}°`;
-}
-
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
 }
 
 interface Props {
   data: CertificateData;
-  scale?: number; // visual scale for preview (1 = full)
+  scale?: number;
 }
 
 export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificate({ data, scale = 1 }, ref) {
   const { template: t } = data;
   const accent = t.accent_color || "#1E9E6A";
+  const emerald = "#0B6E4F";
 
   return (
     <div
       ref={ref}
       style={{
         width: 720,
-        minHeight: 1000,
-        background: bgCss(t.background_key),
+        minHeight: 980,
+        background: "#FBF9F2",
+        backgroundImage:
+          "radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.6), transparent 60%), radial-gradient(600px 400px at 100% 100%, rgba(11,110,79,0.05), transparent 70%)",
         position: "relative",
         overflow: "hidden",
         borderRadius: 24,
-        boxShadow: "0 30px 80px -40px rgba(11,61,46,0.35), 0 1px 0 rgba(255,255,255,0.6) inset",
-        padding: "64px 56px",
+        border: "1px solid rgba(11,61,46,0.14)",
+        boxShadow: "0 30px 80px -50px rgba(11,61,46,0.35)",
+        padding: "64px 56px 48px",
         fontFamily: '"Familjen Grotesk", system-ui, sans-serif',
         color: "#0B3D2E",
         transform: scale !== 1 ? `scale(${scale})` : undefined,
         transformOrigin: "top left",
       }}
     >
-      {/* Organic blobs */}
-      <div aria-hidden style={{
-        position: "absolute", top: -120, left: -100, width: 360, height: 360,
-        background: "#9FD9B6", filter: "blur(50px)", opacity: 0.55,
-        borderRadius: "60% 40% 55% 45% / 50% 60% 40% 50%",
-      }} />
-      <div aria-hidden style={{
-        position: "absolute", bottom: -140, right: -120, width: 380, height: 380,
-        background: "linear-gradient(135deg,#FBE3C0,#F6B27A)", filter: "blur(60px)", opacity: 0.45,
-        borderRadius: "45% 55% 60% 40% / 55% 45% 60% 40%",
-      }} />
-      <div aria-hidden style={{
-        position: "absolute", top: "40%", right: -80, width: 220, height: 220,
-        background: "#C7EAD4", filter: "blur(40px)", opacity: 0.45,
-        borderRadius: "55% 45% 40% 60% / 45% 55% 50% 50%",
-      }} />
-
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-        {/* Logo — custom template logo if provided, otherwise SmartKlimat black */}
-        {t.logo_url ? (
-          <div style={{
-            width: 72, height: 72, margin: "0 auto",
-            borderRadius: "50%",
-            background: `center/cover no-repeat url(${t.logo_url})`,
-            border: `2px solid ${accent}`,
-            boxShadow: "0 8px 24px -8px rgba(11,61,46,0.25)",
-          }} />
-        ) : (
-          <img
-            src={logoBlack.url}
-            alt="SmartKlimat"
-            style={{ height: 44, width: "auto", margin: "0 auto", display: "block" }}
-          />
+      <div style={{ position: "relative", zIndex: 1, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 0, minHeight: 860 }}>
+        {/* Partner logo (optional) */}
+        {t.logo_url && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginBottom: 20 }}>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.18em", color: "#7A8F84", textTransform: "uppercase" }}>
+              i samarbete med
+            </span>
+            <img src={t.logo_url} alt="Partner" style={{ maxHeight: 36, width: "auto", opacity: 0.9 }} />
+          </div>
         )}
 
+        {/* Eyebrow */}
+        <div style={{
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: 12,
+          letterSpacing: "0.42em",
+          color: "#4F6B5E",
+          textTransform: "uppercase",
+        }}>
+          {t.heading_text || "VÄRDEBEVIS"}
+        </div>
 
-        {/* Heading */}
-        <h1 style={{
+        {/* Recipient */}
+        <div style={{
           marginTop: 28,
-          fontFamily: '"Bricolage Grotesque", sans-serif',
+          fontFamily: '"Bricolage Grotesque", serif',
           fontWeight: 700,
           fontSize: 44,
-          letterSpacing: "0.18em",
-          lineHeight: 1,
+          lineHeight: 1.05,
           color: "#0B3D2E",
-        }}>{t.heading_text}</h1>
-
-        <p style={{
-          marginTop: 14, fontSize: 16, fontWeight: 500, color: accent,
-          letterSpacing: "0.04em",
+          maxWidth: 560,
         }}>
-          har planterat <span style={{ fontFamily: '"JetBrains Mono", monospace', fontWeight: 600 }}>{data.tree_count.toLocaleString("sv-SE")}</span> {data.tree_count === 1 ? "träd" : "träd"}
-        </p>
+          {data.recipient_name}
+        </div>
 
-        {/* Coordinates */}
-        {t.show_coordinates && (
-          <div style={{
-            marginTop: 12, display: "inline-flex", alignItems: "center", gap: 8,
-            fontFamily: '"JetBrains Mono", monospace', fontSize: 12,
+        {/* Tree count */}
+        <div style={{
+          marginTop: 40,
+          fontFamily: '"Bricolage Grotesque", serif',
+          fontWeight: 700,
+          fontSize: 148,
+          lineHeight: 0.9,
+          color: emerald,
+          letterSpacing: "-0.03em",
+        }}>
+          {data.tree_count.toLocaleString("sv-SE")}
+        </div>
+        <div style={{
+          marginTop: 10,
+          fontSize: 15,
+          fontWeight: 500,
+          color: "#385248",
+          letterSpacing: "0.02em",
+        }}>
+          träd planterade
+        </div>
+
+        {/* Location + date */}
+        <div style={{
+          marginTop: 22,
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: 11,
+          color: "#4F6B5E",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+        }}>
+          {data.location_name} · {fmtDate(data.issued_date)}
+        </div>
+
+        {/* Gold stamp */}
+        <img
+          src={STAMP_URL}
+          alt=""
+          crossOrigin="anonymous"
+          style={{
+            width: 72,
+            height: 72,
+            marginTop: 36,
+            filter: "drop-shadow(0 6px 12px rgba(151,110,25,0.25))",
+          }}
+        />
+
+        {/* Body text (optional accent line) */}
+        {t.body_text && (
+          <p style={{
+            maxWidth: 460,
+            margin: "28px auto 0",
+            fontSize: 13,
+            lineHeight: 1.65,
             color: "#4F6B5E",
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" />
-            </svg>
-            <span>{data.location_name} · {fmtCoord(data.latitude, data.longitude)}</span>
-          </div>
+            {t.body_text}
+          </p>
         )}
 
-        {/* Recipient name */}
-        <div style={{
-          marginTop: 36,
-          fontFamily: '"Bricolage Grotesque", sans-serif',
-          fontWeight: 600, fontSize: 38, lineHeight: 1.1,
-          color: "#0B3D2E",
-        }}>{data.recipient_name}</div>
+        <div style={{ flex: 1 }} />
 
-        {/* Divider */}
+        {/* Verification footer */}
         <div style={{
-          margin: "32px auto", width: 80, height: 1,
-          background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
-        }} />
-
-        {/* Body */}
-        <p style={{
-          maxWidth: 480, margin: "0 auto", fontSize: 14, lineHeight: 1.65,
-          color: "#385248",
+          marginTop: 48,
+          paddingTop: 20,
+          borderTop: "1px solid rgba(11,61,46,0.12)",
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: 10,
+          color: "#7A8F84",
+          letterSpacing: "0.06em",
         }}>
-          {t.body_text}
-        </p>
-
-        {/* Verification pill */}
-        <div style={{
-          marginTop: 40, display: "inline-flex", alignItems: "center", gap: 8,
-          padding: "8px 16px", borderRadius: 999,
-          background: "rgba(255,255,255,0.7)",
-          border: `1px solid ${accent}33`,
-          fontFamily: '"JetBrains Mono", monospace', fontSize: 12,
-          color: "#0B3D2E",
-        }}>
-          <span style={{
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            width: 18, height: 18, borderRadius: "50%", background: accent, color: "#fff",
-            fontSize: 11,
-          }}>✓</span>
-          <span style={{ fontWeight: 600 }}>{data.verification_id}</span>
-          <span style={{ opacity: 0.55 }}>· smartklimat.org/v</span>
+          <span style={{ textTransform: "uppercase" }}>SmartKlimat</span>
+          <span>Verifiera: smartklimat.org/v/{data.verification_id}</span>
         </div>
 
-        {/* Footer with brand mark + tagline */}
-        <div style={{
-          marginTop: 48, display: "flex", justifyContent: "space-between", alignItems: "flex-end",
-          fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: "#4F6B5E",
-        }}>
-          <span>{fmtDate(data.issued_date)}</span>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-            {t.logo_url && (
-              <img src={logoBlack.url} alt="SmartKlimat" style={{ height: 18, width: "auto", opacity: 0.85 }} />
-            )}
-            <span style={{ fontFamily: '"Familjen Grotesk", sans-serif', fontSize: 11, color: "#4F6B5E", letterSpacing: "0.01em" }}>
-              {CERT_TAGLINE}
-            </span>
-          </div>
-        </div>
-
-
-        {t.show_social && t.social_handles && (
-          <div style={{
-            marginTop: 18, fontFamily: '"JetBrains Mono", monospace', fontSize: 10,
-            color: "#7A8F84", letterSpacing: "0.08em",
-          }}>
-            {t.social_handles}
-          </div>
-        )}
+        {/* Hidden accent hint so accent_color is still used for partner branding */}
+        <span style={{ display: "none" }} data-accent={accent} />
       </div>
     </div>
   );
@@ -216,7 +193,7 @@ export function snapshotToTemplate(snapshot: Record<string, unknown>): Certifica
     accent_color: (snapshot.accent_color as string) ?? "#1E9E6A",
     heading_text: (snapshot.heading_text as string) ?? "VÄRDEBEVIS",
     body_text: (snapshot.body_text as string) ?? "",
-    background_key: (snapshot.background_key as string) ?? "mint",
+    background_key: (snapshot.background_key as string) ?? "paper",
     show_coordinates: snapshot.show_coordinates !== false,
     show_social: snapshot.show_social !== false,
     social_handles: (snapshot.social_handles as string) ?? "@smartklimat",
