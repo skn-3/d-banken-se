@@ -130,10 +130,12 @@ function RewardsPage() {
     setBusyId(r.id);
     try {
       await buyFn({ data: { rewardId: r.id, targetUserId: previewAs } });
-      setConfetti(true);
+      setFlippedId(r.id);
+      celebrate({ emoji: "🎁" });
+      haptic(30);
       setToast(`Klart — du löste in ${r.name}. Din lärare ordnar resten.`);
-      setTimeout(() => setConfetti(false), 2200);
       setTimeout(() => setToast(null), 4500);
+      setTimeout(() => setFlippedId(null), 3500);
       await reload();
     } catch (e) {
       setToast((e as Error).message);
@@ -142,6 +144,7 @@ function RewardsPage() {
       setBusyId(null);
     }
   };
+
 
   const toggleGoal = (r: RewardRow) => {
     if (!goalUid) return;
