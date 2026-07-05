@@ -41,6 +41,7 @@ function ActivatePage() {
   const [teamError, setTeamError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState("");
   const [joining, setJoining] = useState(false);
+  const [joinAttempted, setJoinAttempted] = useState(false);
 
   const doLookup = useServerFn(lookupTeamByCode);
   const joinExisting = useServerFn(joinTeamByCode);
@@ -66,12 +67,13 @@ function ActivatePage() {
   }, [rawCode, doLookup]);
 
   useEffect(() => {
-    if (!hasSession || !rawCode || !team || joining) return;
+    if (!hasSession || !rawCode || !team || joinAttempted) return;
+    setJoinAttempted(true);
     setJoining(true);
     joinExisting({ data: { code: rawCode } })
       .catch(() => { /* membership may already exist */ })
       .finally(() => setJoining(false));
-  }, [hasSession, rawCode, team, joining, joinExisting]);
+  }, [hasSession, rawCode, team, joinAttempted, joinExisting]);
 
   if (!ready) {
     return <Shell><p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Laddar…</p></Shell>;
@@ -83,7 +85,7 @@ function ActivatePage() {
   }
 
   if (hasSession && rawCode && team) {
-    return <Shell wide><IntroCarousel team={team} onDone={() => navigate({ to: "/saljare" })} /></Shell>;
+    return <Shell wide>{joining ? <p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Kopplar dig till laget…</p> : <IntroCarousel team={team} onDone={() => navigate({ to: "/saljare" })} />}</Shell>;
   }
 
   // Team code present in URL
