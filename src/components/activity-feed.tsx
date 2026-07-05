@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getTeamFeed, getNationalFeed, type FeedRow } from "@/lib/achievements.functions";
 import { AvatarCircle, useSignedAvatars } from "@/components/user-avatar";
