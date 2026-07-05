@@ -8,6 +8,7 @@ import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { PushToggle } from "@/components/push-toggle";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { BadgeWall } from "@/components/badge-wall";
+import { TreeBankHero } from "@/components/tree-bank-hero";
 
 export const Route = createFileRoute("/konto")({
   head: () => ({
