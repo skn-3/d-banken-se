@@ -72,21 +72,19 @@ export function TeamFeed() {
   return (
     <div className="surface-card p-4">
       <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
-        <AnimatePresence initial={false}>
-          {rows.map(r => (
-            <motion.li key={r.id} {...springIn} className="py-3 flex items-center gap-3">
-              {r.user_id ? (
-                <AvatarCircle subject={{ user_id: r.user_id, avatar_key: r.avatar_key, photo_path: r.photo_path }} urls={urls} size={36} />
-              ) : (
-                <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: "var(--mint-paper)" }}>🌲</div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm" style={{ color: "var(--forest)" }}>{renderText(r)}</div>
-                <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{relTime(r.created_at)}</div>
-              </div>
-            </motion.li>
-          ))}
-        </AnimatePresence>
+        {rows.map(r => (
+          <li key={r.id} style={bounceStyle} className="py-3 flex items-center gap-3">
+            {r.user_id ? (
+              <AvatarCircle subject={{ user_id: r.user_id, avatar_key: r.avatar_key, photo_path: r.photo_path }} urls={urls} size={36} />
+            ) : (
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: "var(--mint-paper)" }}>🌲</div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm" style={{ color: "var(--forest)" }}>{renderText(r)}</div>
+              <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{relTime(r.created_at)}</div>
+            </div>
+          </li>
+        ))}
       </ul>
     </div>
   );
