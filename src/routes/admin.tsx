@@ -306,8 +306,10 @@ function RewardsCatalogTab() {
   const createFn = useServerFn(adminCreateReward);
   const updateFn = useServerFn(adminUpdateReward);
   const deleteFn = useServerFn(adminDeleteReward);
+  const loadBudget = useServerFn(getRewardBudget);
 
   const [rewards, setRewards] = useState<CatalogReward[]>([]);
+  const [budgetOre, setBudgetOre] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<CatalogReward | null>(null);
   const [showNew, setShowNew] = useState(false);
@@ -316,6 +318,7 @@ function RewardsCatalogTab() {
   const reload = async () => {
     const r = await listFn({ data: {} });
     setRewards(r.rewards as CatalogReward[]);
+    try { const b = await loadBudget(); setBudgetOre(b.orePerTree); } catch { /* ignore */ }
   };
   useEffect(() => { (async () => { await reload(); setLoading(false); })(); /* eslint-disable-next-line */ }, []);
 
