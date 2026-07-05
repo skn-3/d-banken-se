@@ -74,6 +74,19 @@ export const listRecentNewsletters = createServerFn({ method: "GET" })
     return { newsletters: data ?? [] };
   });
 
+export const listRecentProjectUpdates = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await (supabaseAdmin as any)
+      .from("project_updates")
+      .select("id, subject, sent_at, recipient_count, audience_kind, audience_value")
+      .order("sent_at", { ascending: false })
+      .limit(20);
+    return { updates: data ?? [] };
+  });
+
 export const runBackupNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

@@ -411,6 +411,54 @@ export type Database = {
           },
         ]
       }
+      project_updates: {
+        Row: {
+          audience_kind: string
+          audience_value: string | null
+          body: string
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          headline: string
+          id: string
+          image_url: string | null
+          recipient_count: number
+          sent_at: string
+          sent_by: string | null
+          subject: string
+        }
+        Insert: {
+          audience_kind: string
+          audience_value?: string | null
+          body: string
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          headline: string
+          id?: string
+          image_url?: string | null
+          recipient_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          subject: string
+        }
+        Update: {
+          audience_kind?: string
+          audience_value?: string | null
+          body?: string
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          headline?: string
+          id?: string
+          image_url?: string | null
+          recipient_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
       purchases: {
         Row: {
           created_at: string
