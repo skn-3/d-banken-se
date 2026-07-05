@@ -8,6 +8,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
 import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
+import { AdminCoreTab } from "@/components/admin-core-tab";
 import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward, adminUpdateReward, adminDeleteReward } from "@/lib/rewards.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
 import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
