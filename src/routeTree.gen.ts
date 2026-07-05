@@ -22,6 +22,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VIdRouteImport } from './routes/v.$id'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as ApiPublicPushNotifyRouteImport } from './routes/api/public/push-notify'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
 
 const SkapaLagRoute = SkapaLagRouteImport.update({
@@ -89,6 +90,11 @@ const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
   path: '/api/public/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPushNotifyRoute = ApiPublicPushNotifyRouteImport.update({
+  id: '/api/public/push-notify',
+  path: '/api/public/push-notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksWeeklyBackupRoute =
   ApiPublicHooksWeeklyBackupRouteImport.update({
     id: '/api/public/hooks/weekly-backup',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
   '/v/$id': typeof VIdRoute
+  '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
   '/v/$id': typeof VIdRoute
+  '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
   '/v/$id': typeof VIdRoute
+  '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/saljare'
     | '/skapa-lag'
     | '/v/$id'
+    | '/api/public/push-notify'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/weekly-backup'
   fileRoutesByTo: FileRoutesByTo
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/saljare'
     | '/skapa-lag'
     | '/v/$id'
+    | '/api/public/push-notify'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/weekly-backup'
   id:
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/saljare'
     | '/skapa-lag'
     | '/v/$id'
+    | '/api/public/push-notify'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/weekly-backup'
   fileRoutesById: FileRoutesById
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   SaljareRoute: typeof SaljareRoute
   SkapaLagRoute: typeof SkapaLagRoute
   VIdRoute: typeof VIdRoute
+  ApiPublicPushNotifyRoute: typeof ApiPublicPushNotifyRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   ApiPublicHooksWeeklyBackupRoute: typeof ApiPublicHooksWeeklyBackupRoute
 }
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push-notify': {
+      id: '/api/public/push-notify'
+      path: '/api/public/push-notify'
+      fullPath: '/api/public/push-notify'
+      preLoaderRoute: typeof ApiPublicPushNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/weekly-backup': {
       id: '/api/public/hooks/weekly-backup'
       path: '/api/public/hooks/weekly-backup'
@@ -329,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   SaljareRoute: SaljareRoute,
   SkapaLagRoute: SkapaLagRoute,
   VIdRoute: VIdRoute,
+  ApiPublicPushNotifyRoute: ApiPublicPushNotifyRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   ApiPublicHooksWeeklyBackupRoute: ApiPublicHooksWeeklyBackupRoute,
 }

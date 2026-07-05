@@ -23,13 +23,13 @@ function composeForBoost(boostKey: string, meta: Record<string, unknown>): { tit
   return null;
 }
 
-async function loadAdmin() {
+async function loadAdmin(): Promise<any> {
   const url = process.env.SUPABASE_URL!;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-async function sendToUser(admin: ReturnType<typeof createClient>, userId: string, title: string, body: string, url: string, kind: string, tag?: string) {
+async function sendToUser(admin: any, userId: string, title: string, body: string, url: string, kind: string, tag?: string) {
   const vapid: VapidKeys = {
     subject: process.env.VAPID_SUBJECT || "mailto:hej@smartklimat.org",
     publicKey: process.env.VAPID_PUBLIC_KEY!,
@@ -44,7 +44,7 @@ async function sendToUser(admin: ReturnType<typeof createClient>, userId: string
     const sub: PushSubscription = { endpoint: row.endpoint, expirationTime: null, keys: { p256dh: row.p256dh, auth: row.auth } };
     try {
       const payload = await buildPushPayload({ data: payloadStr, options: { ttl: 3600 } }, sub, vapid);
-      const res = await fetch(sub.endpoint, payload);
+      const res = await fetch(sub.endpoint, { ...payload, body: (payload.body as Uint8Array).slice().buffer } as RequestInit);
       if (res.status === 404 || res.status === 410) { dead.push(row.endpoint); failed++; }
       else if (res.ok) ok++;
       else failed++;
@@ -55,7 +55,7 @@ async function sendToUser(admin: ReturnType<typeof createClient>, userId: string
   return { ok, failed };
 }
 
-async function handleStreakBatch(admin: ReturnType<typeof createClient>) {
+async function handleStreakBatch(admin: any) {
   // Compute this ISO week in Europe/Stockholm on JS side is tricky; use SQL: fetch candidates via RPC-style raw query.
   const { data: streaks } = await admin
     .from("seller_streaks")

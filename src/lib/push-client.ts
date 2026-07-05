@@ -24,7 +24,7 @@ export async function enablePush(vapidPublicKey: string): Promise<{ endpoint: st
   await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
   });
   const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
   return {
