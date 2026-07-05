@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
+  AUTH_EMAIL_FALLBACK_FROM,
   AUTH_EMAIL_FROM,
   renderAuthResetEmail,
   renderAuthSignupEmail,
@@ -26,19 +27,45 @@ function mapAuthError(error: unknown) {
   return msg || "Kunde inte skapa bekräftelselänk.";
 }
 
+function emailHash(email: string) {
+  let hash = 0;
+  for (let i = 0; i < email.length; i += 1) hash = Math.imul(31, hash) + email.charCodeAt(i) | 0;
+  return Math.abs(hash).toString(16);
+}
+
 export async function sendRecoveryEmail(args: { email: string; redirectTo: string }) {
   const email = normalizeEmail(args.email);
+  const context = { flow: "password_recovery", emailHash: emailHash(email), redirectTo: args.redirectTo };
+  console.log("[auth-email] generateLink recovery start", context);
   const { data, error } = await supabaseAdmin.auth.admin.generateLink({
     type: "recovery",
     email,
     options: { redirectTo: args.redirectTo },
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[auth-email] generateLink recovery failed", { ...context, error: error.message, status: error.status, name: error.name });
+    throw new Error(error.message);
+  }
 
   const actionUrl = actionLinkFrom(data);
+  console.log("[auth-email] generateLink recovery ok", {
+    ...context,
+    userId: (data as { user?: { id?: string } } | null)?.user?.id ?? null,
+    hasActionLink: Boolean(actionUrl),
+    actionHost: (() => { try { return new URL(actionUrl).host; } catch { return null; } })(),
+  });
   const { subject, html } = renderAuthResetEmail({ actionUrl });
-  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM });
-  if (!res.ok) throw new Error((res as { error?: string }).error || "Mailutskick misslyckades.");
+  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM, fallbackFrom: AUTH_EMAIL_FALLBACK_FROM });
+  console[res.ok ? "log" : "error"]("[auth-email] recovery email provider result", {
+    ...context,
+    provider: res.provider,
+    status: res.status,
+    body: res.body,
+    messageId: res.messageId ?? null,
+    error: res.error ?? null,
+    skipped: res.skipped ?? false,
+  });
+  if (!res.ok) throw new Error(res.error || "Mailutskick misslyckades.");
   return { actionLink: actionUrl };
 }
 
@@ -72,7 +99,7 @@ export async function sendSignupConfirmationEmail(args: {
   }
 
   const { subject, html } = renderAuthSignupEmail({ actionUrl });
-  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM });
+  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM, fallbackFrom: AUTH_EMAIL_FALLBACK_FROM });
   if (!res.ok) throw new Error((res as { error?: string }).error || "Mailutskick misslyckades.");
   return { actionLink: actionUrl, userId };
 }

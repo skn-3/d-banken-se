@@ -7,21 +7,65 @@ interface SendArgs {
   subject: string;
   html: string;
   from?: string;
+  fallbackFrom?: string;
+}
+
+export interface SendEmailResult {
+  ok: boolean;
+  provider: "resend" | "lovable-resend-gateway" | "none";
+  status: number | null;
+  body: string | null;
+  messageId?: string | null;
+  error?: string;
+  skipped?: boolean;
 }
 
 export const AUTH_EMAIL_FROM = "Smaarty <konto@send.smartklimat.org>";
+export const AUTH_EMAIL_FALLBACK_FROM = "Smaarty <konto@smartklimat.org>";
 const SMARTKLIMAT_STAMP_WHITE = "https://smartklimat.org/brand/logo-stamp-vit.png";
 
-export async function sendEmail({ to, subject, html, from: fromOverride }: SendArgs) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error("[Resend] RESEND_API_KEY missing — skipping email send");
-    return { ok: false, skipped: true };
+function extractMessageId(body: string | null) {
+  if (!body) return null;
+  try {
+    const parsed = JSON.parse(body) as { id?: unknown; data?: { id?: unknown } };
+    return typeof parsed.id === "string" ? parsed.id : typeof parsed.data?.id === "string" ? parsed.data.id : null;
+  } catch {
+    return null;
   }
+}
 
-  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
+function summarizeBody(body: string | null) {
+  if (!body) return null;
+  return body.length > 4000 ? `${body.slice(0, 4000)}…[truncated]` : body;
+}
 
-  const payload = { from, to, subject, html };
+function shouldRetryWithFallback(result: SendEmailResult) {
+  const body = `${result.body ?? ""} ${result.error ?? ""}`;
+  return !result.ok && /domain is not verified|domain.*not verified/i.test(body);
+}
+
+async function sendViaGateway(payload: { from: string; to: string; subject: string; html: string }, apiKey: string, gatewayKey: string) {
+  const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${gatewayKey}`,
+      "X-Connection-Api-Key": apiKey,
+    },
+    body: JSON.stringify(payload),
+  });
+  const gatewayBody = await gatewayRes.text();
+  return {
+    ok: gatewayRes.ok,
+    provider: "lovable-resend-gateway" as const,
+    status: gatewayRes.status,
+    body: summarizeBody(gatewayBody),
+    messageId: extractMessageId(gatewayBody),
+    ...(!gatewayRes.ok ? { error: gatewayBody || `Gateway send failed ${gatewayRes.status}` } : {}),
+  } satisfies SendEmailResult;
+}
+
+async function sendDirect(payload: { from: string; to: string; subject: string; html: string }, apiKey: string) {
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
@@ -30,29 +74,58 @@ export async function sendEmail({ to, subject, html, from: fromOverride }: SendA
     },
     body: JSON.stringify(payload),
   });
+  const text = await res.text();
+  return {
+    ok: res.ok,
+    provider: "resend" as const,
+    status: res.status,
+    body: summarizeBody(text),
+    messageId: extractMessageId(text),
+    ...(!res.ok ? { error: text || `Resend send failed ${res.status}` } : {}),
+  } satisfies SendEmailResult;
+}
 
-  if (!res.ok) {
-    const text = await res.text();
-    const gatewayKey = process.env.LOVABLE_API_KEY;
-    if ((res.status === 401 || res.status === 403) && gatewayKey) {
-      const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${gatewayKey}`,
-          "X-Connection-Api-Key": apiKey,
-        },
-        body: JSON.stringify(payload),
-      });
-      if (gatewayRes.ok) return { ok: true };
-      const gatewayText = await gatewayRes.text();
-      console.error(`[Resend] Gateway send failed ${gatewayRes.status}: ${gatewayText}`);
-      return { ok: false, error: gatewayText };
-    }
-    console.error(`[Resend] Send failed ${res.status}: ${text}`);
-    return { ok: false, error: text };
+export async function sendEmail({ to, subject, html, from: fromOverride, fallbackFrom }: SendArgs): Promise<SendEmailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    const result: SendEmailResult = { ok: false, provider: "none", status: null, body: null, skipped: true, error: "RESEND_API_KEY missing" };
+    console.error("[Resend] RESEND_API_KEY missing in server runtime", { to, subject, from: fromOverride ?? null, result });
+    return result;
   }
-  return { ok: true };
+
+  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
+
+  const payload = { from, to, subject, html };
+  const gatewayKey = process.env.LOVABLE_API_KEY;
+
+  const sendOnce = async (activePayload: typeof payload) => {
+    const result = gatewayKey
+      ? await sendViaGateway(activePayload, apiKey, gatewayKey)
+      : await sendDirect(activePayload, apiKey);
+    console[result.ok ? "log" : "error"](`[Resend] ${result.provider} response`, {
+      to,
+      from: activePayload.from,
+      subject,
+      status: result.status,
+      body: result.body,
+      messageId: result.messageId,
+    });
+    return result;
+  };
+
+  const firstResult = await sendOnce(payload);
+  if (fallbackFrom && fallbackFrom !== from && shouldRetryWithFallback(firstResult)) {
+    console.error("[Resend] primary from-domain rejected; retrying with verified fallback sender", {
+      to,
+      subject,
+      primaryFrom: from,
+      fallbackFrom,
+      primaryStatus: firstResult.status,
+      primaryBody: firstResult.body,
+    });
+    return sendOnce({ ...payload, from: fallbackFrom });
+  }
+  return firstResult;
 }
 
 interface AuthEmailArgs {
