@@ -6,6 +6,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { PushToggle } from "@/components/push-toggle";
+import { AvatarUpload } from "@/components/avatar-upload";
 
 export const Route = createFileRoute("/konto")({
   head: () => ({
@@ -191,6 +192,7 @@ function KontoPage() {
               )}
             </div>
 
+            <AvatarUpload />
             <PushToggle />
 
             {isAdmin && (
