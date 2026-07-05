@@ -96,14 +96,27 @@ async function handleStreakBatch(admin: any) {
   return { total: streaks.length, sent };
 }
 
+let cachedSecret: string | null = null;
+async function expectedSecret(admin: any): Promise<string> {
+  if (cachedSecret) return cachedSecret;
+  const { data } = await admin.rpc("get_internal_secret", { _name: "PUSH_NOTIFY_SECRET" });
+  cachedSecret = typeof data === "string" ? data : "";
+  return cachedSecret;
+}
+
 export const Route = createFileRoute("/api/public/push-notify")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const admin = await loadAdmin();
+        const provided = request.headers.get("x-internal-secret") ?? "";
+        const expected = await expectedSecret(admin);
+        if (!expected || provided !== expected) {
+          return new Response("Unauthorized", { status: 401 });
+        }
         if (isQuietHours()) return Response.json({ skipped: "quiet_hours" });
         let body: { kind?: Kind; user_id?: string; boost_key?: string; meta?: Record<string, unknown> } = {};
         try { body = await request.json(); } catch { return new Response("Bad JSON", { status: 400 }); }
-        const admin = await loadAdmin();
 
         if (body.kind === "streak_reminder_batch") {
           const r = await handleStreakBatch(admin);
