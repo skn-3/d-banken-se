@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import logoVit from "@/assets/logos/smartklimat-vit.png";
+import logoVitAsset from "@/assets/logos/smartklimat-vit.png.asset.json";
+const logoVit = logoVitAsset.url;
 import { prefersReducedMotion } from "@/lib/celebrate";
 
 interface Props {
