@@ -135,7 +135,14 @@ export const updateTeamSettings = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => UpdateSchema.parse(input))
   .handler(async ({ context, data }) => {
     const { team, supabaseAdmin } = await requireLeaderTeam(context);
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const patch: {
+      name?: string;
+      weekly_goal_trees?: number;
+      goal_trees?: number | null;
+      goal_end_date?: string | null;
+      show_team_name_on_certificate?: boolean;
+      updated_at: string;
+    } = { updated_at: new Date().toISOString() };
     if (data.name !== undefined) patch.name = data.name;
     if (data.weeklyGoal !== undefined) patch.weekly_goal_trees = data.weeklyGoal;
     if (data.goalTrees !== undefined) patch.goal_trees = data.goalTrees;
