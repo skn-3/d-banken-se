@@ -515,6 +515,21 @@ function HomeView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sellers.map((s) => s.userId).join("|")]);
 
+  // Rank-up detection (per seller, per scope)
+  const myRank = ctx.userId ? sellers.findIndex((s) => s.userId === ctx.userId) : -1;
+  const rankKey = ctx.userId ? `smaarty:lastRank:${ctx.userId}:${lbScope}` : null;
+  const [rankImproved, setRankImproved] = useState(false);
+  useEffect(() => {
+    if (!rankKey || myRank < 0) { setRankImproved(false); return; }
+    try {
+      const prev = Number(localStorage.getItem(rankKey) ?? "");
+      if (Number.isFinite(prev) && prev > myRank) setRankImproved(true);
+      else setRankImproved(false);
+      localStorage.setItem(rankKey, String(myRank));
+    } catch { /* ignore */ }
+  }, [rankKey, myRank]);
+
+
   const bubble = !stage.next
     ? "Du är fullvuxen — vilken skog du har skapat! 🌳"
     : remaining <= 1
