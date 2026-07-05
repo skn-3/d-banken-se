@@ -8,6 +8,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
 import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
+import { AdminCoreTab } from "@/components/admin-core-tab";
 import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward, adminUpdateReward, adminDeleteReward } from "@/lib/rewards.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
 import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
@@ -45,7 +46,7 @@ interface Settings {
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 
-type Tab = "overview" | "organizations" | "rewards" | "orders" | "boosters" | "templates" | "settings";
+type Tab = "overview" | "core" | "organizations" | "rewards" | "orders" | "boosters" | "templates" | "settings";
 
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -108,6 +109,7 @@ function AdminPage() {
             <div className="mt-4 flex flex-wrap gap-2">
               {([
                 ["overview", "Översikt"],
+                ["core", "Core"],
                 ["organizations", "Organisationer"],
                 ["rewards", "Belöningskatalog"],
                 ["orders", "Beställningar"],
@@ -190,6 +192,8 @@ function AdminPage() {
                 </section>
               </>
             )}
+
+            {tab === "core" && <AdminCoreTab />}
 
             {tab === "organizations" && <AdminOrgsTab />}
 

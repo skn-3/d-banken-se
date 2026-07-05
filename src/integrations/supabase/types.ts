@@ -62,6 +62,36 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_runs: {
+        Row: {
+          created_at: string
+          deleted: Json
+          files: Json
+          id: string
+          note: string | null
+          ok: boolean
+          triggered_by: string
+        }
+        Insert: {
+          created_at?: string
+          deleted?: Json
+          files?: Json
+          id?: string
+          note?: string | null
+          ok?: boolean
+          triggered_by?: string
+        }
+        Update: {
+          created_at?: string
+          deleted?: Json
+          files?: Json
+          id?: string
+          note?: string | null
+          ok?: boolean
+          triggered_by?: string
+        }
+        Relationships: []
+      }
       certificate_templates: {
         Row: {
           accent_color: string
@@ -211,6 +241,48 @@ export type Database = {
           created_at?: string
           email?: string
           reason?: string
+        }
+        Relationships: []
+      }
+      newsletters: {
+        Row: {
+          audience_kind: string
+          audience_value: string | null
+          body: string | null
+          cta_label: string | null
+          cta_url: string | null
+          headline: string | null
+          id: string
+          recipient_count: number
+          sent_at: string
+          sent_by: string | null
+          subject: string
+        }
+        Insert: {
+          audience_kind: string
+          audience_value?: string | null
+          body?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          headline?: string | null
+          id?: string
+          recipient_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          subject: string
+        }
+        Update: {
+          audience_kind?: string
+          audience_value?: string | null
+          body?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          headline?: string | null
+          id?: string
+          recipient_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          subject?: string
         }
         Relationships: []
       }
