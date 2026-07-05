@@ -691,10 +691,13 @@ function HomeView({
                       style={{ borderColor: me ? "var(--primary)" : "var(--border)", background: me ? "var(--mint-paper)" : "var(--card)" }}>
                       <div className="absolute inset-y-0 left-0 rounded-l-xl transition-all duration-700"
                         style={{ width: `${w}%`, background: me ? "rgba(30,158,106,0.18)" : "rgba(159,217,182,0.35)" }} />
-                      <div className="relative flex items-center gap-3">
+                      <div className="relative flex items-center gap-2">
                         <MedalIcon rank={i + 1} />
-                        <div className="flex-1 truncate text-sm font-medium" style={{ color: "var(--forest)" }}>
-                          {s.name}{me && <span className="ml-2 text-xs" style={{ color: "var(--primary)" }}>(du)</span>}
+                        <div className="flex min-w-0 flex-1 items-center gap-1">
+                          <span className="min-w-0 flex-shrink truncate text-sm font-medium" style={{ color: "var(--forest)" }}>
+                            {s.name}{me && <span className="ml-2 text-xs" style={{ color: "var(--primary)" }}>(du)</span>}
+                          </span>
+                          <BuffRow buffs={buffsMap[s.userId]} />
                         </div>
                         <div className="font-mono text-sm font-semibold" style={{ color: "var(--forest)" }}>{s.trees}</div>
                       </div>
