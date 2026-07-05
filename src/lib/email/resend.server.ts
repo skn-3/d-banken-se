@@ -40,10 +40,8 @@ function summarizeBody(body: string | null) {
   return body.length > 4000 ? `${body.slice(0, 4000)}…[truncated]` : body;
 }
 
-function shouldRetryWithFallback(result: SendEmailResult) {
-  const body = `${result.body ?? ""} ${result.error ?? ""}`;
-  return !result.ok && /domain is not verified|domain.*not verified/i.test(body);
-}
+// Fallback retry removed — auth mail always sends from AUTH_EMAIL_FROM (verified root domain).
+
 
 async function sendViaGateway(payload: { from: string; to: string; subject: string; html: string }, apiKey: string, gatewayKey: string) {
   const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
