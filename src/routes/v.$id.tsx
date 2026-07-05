@@ -36,13 +36,11 @@ function VerifyPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data: row } = await supabase
-        .from("certificates")
-        .select("verification_id, recipient_name, tree_count, location_name, latitude, longitude, issued_date, template_snapshot")
-        .eq("verification_id", id)
-        .maybeSingle();
+      const { data: rows, error } = await supabase
+        .rpc("get_public_certificate", { _verification_id: id });
       if (cancelled) return;
-      if (!row) { setState("missing"); return; }
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      if (error || !row) { setState("missing"); return; }
       const r = row as Row;
       setData({
         verification_id: r.verification_id,
