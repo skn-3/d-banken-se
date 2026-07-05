@@ -1,36 +1,107 @@
 // Server-only: never import from client code.
 const RESEND_API_URL = "https://api.resend.com/emails";
+const RESEND_GATEWAY_URL = "https://connector-gateway.lovable.dev/resend/emails";
 
 interface SendArgs {
   to: string;
   subject: string;
   html: string;
+  from?: string;
 }
 
-export async function sendEmail({ to, subject, html }: SendArgs) {
+export const AUTH_EMAIL_FROM = "Smaarty <konto@send.smartklimat.org>";
+const SMARTKLIMAT_STAMP_WHITE = "https://smartklimat.org/brand/logo-stamp-vit.png";
+
+export async function sendEmail({ to, subject, html, from: fromOverride }: SendArgs) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error("[Resend] RESEND_API_KEY missing — skipping email send");
     return { ok: false, skipped: true };
   }
 
-  const from = process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
+  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
 
+  const payload = { from, to, subject, html };
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ from, to, subject, html }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
     const text = await res.text();
+    const gatewayKey = process.env.LOVABLE_API_KEY;
+    if ((res.status === 401 || res.status === 403) && gatewayKey) {
+      const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${gatewayKey}`,
+          "X-Connection-Api-Key": apiKey,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (gatewayRes.ok) return { ok: true };
+      const gatewayText = await gatewayRes.text();
+      console.error(`[Resend] Gateway send failed ${gatewayRes.status}: ${gatewayText}`);
+      return { ok: false, error: gatewayText };
+    }
     console.error(`[Resend] Send failed ${res.status}: ${text}`);
     return { ok: false, error: text };
   }
   return { ok: true };
+}
+
+interface AuthEmailArgs {
+  actionUrl: string;
+}
+
+export function renderAuthResetEmail({ actionUrl }: AuthEmailArgs): { subject: string; html: string } {
+  return renderAuthShell({
+    subject: "Återställ ditt lösenord — Smaarty",
+    title: "Glömt lösenordet?",
+    body: "Ingen fara — tryck på knappen så väljer du ett nytt. Länken gäller i en timme.",
+    cta: "Välj nytt lösenord",
+    hint: "Bad du inte om detta? Ignorera mailet, inget händer.",
+    actionUrl,
+  });
+}
+
+export function renderAuthSignupEmail({ actionUrl }: AuthEmailArgs): { subject: string; html: string } {
+  return renderAuthShell({
+    subject: "Bekräfta ditt konto — Smaarty",
+    title: "Bekräfta ditt konto",
+    body: "Ett tryck så är du igång — välkommen till laget!",
+    cta: "Bekräfta kontot",
+    hint: "Bad du inte om detta? Ignorera mailet, inget händer.",
+    actionUrl,
+  });
+}
+
+function renderAuthShell(a: {
+  subject: string;
+  title: string;
+  body: string;
+  cta: string;
+  hint: string;
+  actionUrl: string;
+}): { subject: string; html: string } {
+  const html = `<div style="background:#F4FAF5;padding:32px 16px;font-family:Arial,sans-serif">
+  <div style="max-width:480px;margin:0 auto;background:#0B3D2E;border-radius:16px 16px 0 0;padding:28px;text-align:center">
+    <img src="${SMARTKLIMAT_STAMP_WHITE}" width="48" alt="SmartKlimat">
+    <p style="color:#9FD9B6;font-family:monospace;font-size:11px;letter-spacing:3px;margin:12px 0 0">S M A A R T Y</p>
+  </div>
+  <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:0 0 16px 16px;padding:28px;text-align:center">
+    <h1 style="color:#0B3D2E;font-size:20px;margin:0 0 8px">${escapeHtml(a.title)}</h1>
+    <p style="color:#3D5648;font-size:14px;line-height:1.6;margin:0 0 20px">${escapeHtml(a.body)}</p>
+    <a href="${a.actionUrl}" style="display:inline-block;background:#1E9E6A;color:#fff;text-decoration:none;padding:12px 28px;border-radius:24px;font-weight:bold;font-size:14px">${escapeHtml(a.cta)}</a>
+    <p style="color:#6E9483;font-size:12px;margin:20px 0 0">${escapeHtml(a.hint)}</p>
+  </div>
+</div>`;
+  return { subject: a.subject, html };
 }
 
 interface ThanksArgs {

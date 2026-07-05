@@ -3,7 +3,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { sendEmail } from "@/lib/email/resend.server";
 
 function publicClient() {
   return createClient<Database>(
@@ -76,6 +75,7 @@ export const notifyGuardian = createServerFn({ method: "POST" })
         </div>
       </div>
     `;
+    const { sendEmail } = await import("@/lib/email/resend.server");
     const res = await sendEmail({ to: data.guardianEmail, subject, html });
     return { ok: res.ok === true };
   });

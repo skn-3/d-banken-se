@@ -182,8 +182,8 @@ export const supportSendPasswordReset = createServerFn({ method: "POST" })
     const proto = (getRequestHeader("x-forwarded-proto") || "https").split(",")[0];
     const redirectTo = `${proto}://${host}/reset-password`;
 
-    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(prof.email, { redirectTo });
-    if (error) throw new Error(error.message);
+    const { sendRecoveryEmail } = await import("@/lib/auth-email.server");
+    await sendRecoveryEmail({ email: prof.email, redirectTo });
     await logActivity(context.userId, "password_reset_sent", { userId: data.userId, email: prof.email });
     return { ok: true, email: prof.email };
   });
