@@ -427,12 +427,15 @@ function RewardsCatalogTab() {
                         <select className="input-field !py-1 !text-sm" value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })}>
                           {REWARD_CATEGORY_ORDER.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
-                        <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} value={editing.cost_points}
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} placeholder="Poäng" value={editing.cost_points}
                           onChange={e => setEditing({ ...editing, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
-                        <input className="input-field !py-1 !text-sm font-mono" type="number" value={editing.sort_order}
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} placeholder="Inköp öre" value={editing.cost_ore}
+                          onChange={e => setEditing({ ...editing, cost_ore: Math.max(0, Number(e.target.value) || 0) })} />
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" placeholder="Sortering" value={editing.sort_order}
                           onChange={e => setEditing({ ...editing, sort_order: Number(e.target.value) || 0 })} />
                       </div>
                       <div className="flex flex-col gap-2">
+                        <PriceGuard costOre={editing.cost_ore} costPoints={editing.cost_points} budgetOre={budgetOre} compact />
                         <button className="btn-primary !py-1 !px-2 text-xs" onClick={() => saveEdit(editing)}>Spara</button>
                         <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(null)}>Avbryt</button>
                       </div>
