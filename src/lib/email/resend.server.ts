@@ -20,8 +20,9 @@ export interface SendEmailResult {
   skipped?: boolean;
 }
 
-export const AUTH_EMAIL_FROM = "Smaarty <konto@send.smartklimat.org>";
-export const AUTH_EMAIL_FALLBACK_FROM = "Smaarty <konto@smartklimat.org>";
+export const AUTH_EMAIL_FROM = "Smaarty <konto@smartklimat.org>";
+/** @deprecated kept for backwards compatibility; identical to AUTH_EMAIL_FROM. */
+export const AUTH_EMAIL_FALLBACK_FROM = AUTH_EMAIL_FROM;
 const SMARTKLIMAT_STAMP_WHITE = "https://smartklimat.org/brand/logo-stamp-vit.png";
 
 function extractMessageId(body: string | null) {
@@ -39,10 +40,8 @@ function summarizeBody(body: string | null) {
   return body.length > 4000 ? `${body.slice(0, 4000)}…[truncated]` : body;
 }
 
-function shouldRetryWithFallback(result: SendEmailResult) {
-  const body = `${result.body ?? ""} ${result.error ?? ""}`;
-  return !result.ok && /domain is not verified|domain.*not verified/i.test(body);
-}
+// Fallback retry removed — auth mail always sends from AUTH_EMAIL_FROM (verified root domain).
+
 
 async function sendViaGateway(payload: { from: string; to: string; subject: string; html: string }, apiKey: string, gatewayKey: string) {
   const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
@@ -113,19 +112,8 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return result;
   };
 
-  const firstResult = await sendOnce(payload);
-  if (fallbackFrom && fallbackFrom !== from && shouldRetryWithFallback(firstResult)) {
-    console.error("[Resend] primary from-domain rejected; retrying with verified fallback sender", {
-      to,
-      subject,
-      primaryFrom: from,
-      fallbackFrom,
-      primaryStatus: firstResult.status,
-      primaryBody: firstResult.body,
-    });
-    return sendOnce({ ...payload, from: fallbackFrom });
-  }
-  return firstResult;
+  void fallbackFrom;
+  return sendOnce(payload);
 }
 
 interface AuthEmailArgs {
