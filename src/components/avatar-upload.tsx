@@ -24,6 +24,8 @@ export function AvatarUpload() {
   const [zoom, setZoom] = useState(1);
   const [croppedArea, setCroppedArea] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pickedName, setPickedName] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reload = useCallback(async () => {
@@ -39,13 +41,19 @@ export function AvatarUpload() {
     ? [{ user_id: user.id, avatar_key: profile.avatar_key, photo_path: profile.photo_path }]
     : []);
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
+  const acceptFile = (f: File | null | undefined) => {
     if (!f) return;
     if (!f.type.startsWith("image/")) { toast.error("Filen är inte en bild."); return; }
     if (f.size > 2 * 1024 * 1024) { toast.error("Max 2 MB. Välj en mindre bild."); return; }
     const url = URL.createObjectURL(f);
     setFileSrc(url); setZoom(1); setCrop({ x: 0, y: 0 });
+    setPickedName(f.name);
+  };
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => acceptFile(e.target.files?.[0]);
+  const openPicker = () => fileRef.current?.click();
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false);
+    acceptFile(e.dataTransfer.files?.[0]);
   };
 
   const uploadCropped = async () => {
