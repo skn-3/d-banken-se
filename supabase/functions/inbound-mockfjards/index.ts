@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       recipientName: customerName, treeCount, dateText,
       verificationId: vid, verifyUrl: verifyUrl(vid),
       locationName,
-      heroStampUrl: "https://smartklimat.org/brand/mockfjards-badge-vit.png",
+      variant: "mockfjards",
     });
     await sendEmail(recipientEmail, subject, html);
   }

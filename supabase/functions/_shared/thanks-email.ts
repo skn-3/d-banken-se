@@ -10,6 +10,7 @@ export interface ThanksArgs {
   locationName?: string | null;
   giftMessage?: string | null;
   heroStampUrl?: string | null;
+  variant?: "mockfjards" | null;
 }
 
 function esc(s: string) {
@@ -76,18 +77,46 @@ function whyRow(label: string, text: string, last = false) {
 
 export function renderThanksEmail(a: ThanksArgs): { subject: string; html: string } {
   const proj = resolveProject(a.locationName);
+  const isMf = a.variant === "mockfjards";
   const N = a.treeCount.toLocaleString("sv-SE");
   const upperName = esc(a.recipientName.toUpperCase());
-  const subject = proj.key === "generic"
-    ? `${a.recipientName} — ${N} träd planterade i ditt namn`
-    : `${a.recipientName} — dina ${N} träd växer i ${proj.name}`;
+  const subject = isMf
+    ? (proj.key === "generic"
+        ? `${a.recipientName} — era ${N} träd planterade i ert namn`
+        : `${a.recipientName} — era ${N} träd växer i ${proj.name}`)
+    : (proj.key === "generic"
+        ? `${a.recipientName} — ${N} träd planterade i ditt namn`
+        : `${a.recipientName} — dina ${N} träd växer i ${proj.name}`);
 
   const stampWhite = a.heroStampUrl && a.heroStampUrl.trim() ? a.heroStampUrl : "https://smartklimat.org/brand/logo-stamp-vit.png";
   const bricolage = "'Bricolage Grotesque',Helvetica,Arial,sans-serif";
   const body = "Helvetica,Arial,sans-serif";
   const mono = "'Courier New',monospace";
 
-  const greetingBlock = a.giftMessage && a.giftMessage.trim()
+  const preheader = isMf
+    ? "Ett träd för varje fönster. Här är ert bevis — och skogen det växer i."
+    : "Berättelsen om skogen dina träd blir en del av.";
+
+  const ownershipLabel = isMf ? "TRÄD PLANTERADE I ERT NAMN" : "TRÄD PLANTERADE I DITT NAMN";
+  const ctaLabel = isMf ? "Visa och verifiera ert bevis →" : "Visa och verifiera ditt bevis →";
+  const certSuffix = isMf ? " · VIA MOCKFJÄRDS FÖNSTER" : "";
+
+  const partnerRow = isMf
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px auto 0;"><tr>
+        <td valign="middle" style="padding-right:10px;"><img src="https://smartklimat.org/brand/mockfjards-badge-vit.png" width="28" height="28" alt="" style="display:block;width:28px;height:28px;" /></td>
+        <td valign="middle" style="font-family:${mono};font-size:10px;letter-spacing:0.28em;color:#9FD9B6;text-transform:uppercase;">I SAMARBETE MED MOCKFJÄRDS FÖNSTER</td>
+      </tr></table>`
+    : "";
+
+  const contextBox = isMf
+    ? `<tr><td style="padding:0 0 18px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #D9EBE0;border-radius:14px;">
+          <tr><td align="center" style="padding:16px 22px;font-family:${body};font-size:13px;line-height:1.55;color:#52705F;">I samband med ert fönsterbyte har Mockfjärds Fönster planterat träd i ert namn — ett träd för varje fönster.</td></tr>
+        </table>
+      </td></tr>`
+    : "";
+
+  const greetingBlock = !isMf && a.giftMessage && a.giftMessage.trim()
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;"><tr><td style="background:#EAF7EE;border-radius:14px;padding:16px 20px;font-family:${body};font-style:italic;font-size:15px;line-height:1.5;color:#15784F;">${esc(a.giftMessage)}</td></tr></table>`
     : "";
 
@@ -105,7 +134,7 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
 <style>@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&display=swap');</style>
 </head>
 <body style="margin:0;padding:0;background:#F4FAF5;font-family:${body};color:#0B3D2E;">
-<div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0;">Berättelsen om skogen dina träd blir en del av.</div>
+<div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0;">${esc(preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4FAF5;padding:24px 12px;">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
@@ -116,9 +145,12 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
             <img src="${stampWhite}" width="68" height="68" alt="" style="display:block;margin:0 auto 18px;width:68px;height:68px;" />
             <div style="font-family:${mono};font-size:11px;letter-spacing:0.32em;color:#9FD9B6;text-transform:uppercase;">DITT TRÄD HAR FÅTT EN PLATS</div>
             <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:#ffffff;">Tack, från ett gemensamt klimat.</div>
+            ${partnerRow}
           </td></tr>
         </table>
       </td></tr>
+
+      ${contextBox}
 
       <tr><td style="padding:0 0 18px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #D9EBE0;border-radius:18px;">
@@ -132,14 +164,15 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
                 <td width="40%" style="border-left:1px solid #DCBE6E;height:96px;">&nbsp;</td>
               </tr>
             </table>
-            <div style="text-align:center;font-family:${mono};font-size:11px;letter-spacing:0.28em;color:#0B3D2E;text-transform:uppercase;margin-top:14px;">TRÄD PLANTERADE I DITT NAMN</div>
+            <div style="text-align:center;font-family:${mono};font-size:11px;letter-spacing:0.28em;color:#0B3D2E;text-transform:uppercase;margin-top:14px;">${ownershipLabel}</div>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:26px 0 6px;">
-              <a href="${a.verifyUrl}" style="display:inline-block;background:#1E9E6A;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:999px;font-family:${body};font-weight:600;font-size:14px;">Visa och verifiera ditt bevis →</a>
+              <a href="${a.verifyUrl}" style="display:inline-block;background:#1E9E6A;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:999px;font-family:${body};font-weight:600;font-size:14px;">${ctaLabel}</a>
             </td></tr></table>
-            <div style="text-align:center;font-family:${mono};font-size:10px;letter-spacing:0.22em;color:#6E9483;text-transform:uppercase;margin-top:16px;">BEVIS ${esc(a.verificationId)} · ${esc(a.dateText)}</div>
+            <div style="text-align:center;font-family:${mono};font-size:10px;letter-spacing:0.22em;color:#6E9483;text-transform:uppercase;margin-top:16px;">BEVIS ${esc(a.verificationId)} · ${esc(a.dateText)}${certSuffix}</div>
           </td></tr>
         </table>
       </td></tr>
+
 
       <tr><td style="padding:0 0 18px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EAF7EE;border-radius:22px;">
