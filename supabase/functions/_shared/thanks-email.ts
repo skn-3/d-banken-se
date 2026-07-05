@@ -10,6 +10,7 @@ export interface ThanksArgs {
   locationName?: string | null;
   giftMessage?: string | null;
   heroStampUrl?: string | null;
+  variant?: "mockfjards" | null;
 }
 
 function esc(s: string) {
