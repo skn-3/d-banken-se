@@ -262,8 +262,10 @@ function RewardsPage() {
                           onBuy={() => handleBuy(r)}
                           isGoal={goal?.rewardId === r.id}
                           onToggleGoal={() => toggleGoal(r)}
+                          flipped={flippedId === r.id}
                         />
                       ))}
+
                     </div>
                   </section>
                 ))}
