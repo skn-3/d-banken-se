@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
+  AUTH_EMAIL_FALLBACK_FROM,
   AUTH_EMAIL_FROM,
   renderAuthResetEmail,
   renderAuthSignupEmail,
@@ -54,7 +55,7 @@ export async function sendRecoveryEmail(args: { email: string; redirectTo: strin
     actionHost: (() => { try { return new URL(actionUrl).host; } catch { return null; } })(),
   });
   const { subject, html } = renderAuthResetEmail({ actionUrl });
-  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM });
+  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM, fallbackFrom: AUTH_EMAIL_FALLBACK_FROM });
   console[res.ok ? "log" : "error"]("[auth-email] recovery email provider result", {
     ...context,
     provider: res.provider,
@@ -98,7 +99,7 @@ export async function sendSignupConfirmationEmail(args: {
   }
 
   const { subject, html } = renderAuthSignupEmail({ actionUrl });
-  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM });
+  const res = await sendEmail({ to: email, subject, html, from: AUTH_EMAIL_FROM, fallbackFrom: AUTH_EMAIL_FALLBACK_FROM });
   if (!res.ok) throw new Error((res as { error?: string }).error || "Mailutskick misslyckades.");
   return { actionLink: actionUrl, userId };
 }
