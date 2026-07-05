@@ -439,6 +439,12 @@ function SellerPage() {
               rewardBalance={rewardBalance}
             />
             {!ctx.isPreview && <div className="mt-6"><LeaderFinancePanel /></div>}
+            {!ctx.isPreview && (
+              <div className="mt-6">
+                <div className="font-display text-xl font-semibold mb-2" style={{ color: "var(--forest)" }}>Loggen</div>
+                <TeamFeed />
+              </div>
+            )}
           </>
         )}
       </main>
