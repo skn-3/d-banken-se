@@ -168,6 +168,7 @@ const RewardInput = z.object({
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(1000).optional().nullable(),
   costPoints: z.number().int().min(0).max(1000000),
+  costOre: z.number().int().min(0).max(100000000).optional(),
   category: z.string().trim().min(1).max(60),
   imageUrl: z.string().trim().max(500).optional().nullable(),
   active: z.boolean().optional(),
