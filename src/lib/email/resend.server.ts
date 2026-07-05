@@ -112,8 +112,8 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return result;
   };
 
-  return sendOnce(payload);
   void fallbackFrom;
+  return sendOnce(payload);
 }
 
 interface AuthEmailArgs {
