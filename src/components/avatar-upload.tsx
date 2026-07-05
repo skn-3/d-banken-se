@@ -192,7 +192,7 @@ export function AvatarUpload() {
             <button onClick={uploadCropped} disabled={busy} className="btn-primary !py-1.5 !px-4 text-sm">
               {busy ? "Sparar…" : "Spara"}
             </button>
-            <button onClick={() => { setFileSrc(null); if (fileRef.current) fileRef.current.value=""; }} className="btn-secondary !py-1.5 !px-4 text-sm">Avbryt</button>
+            <button onClick={() => { setFileSrc(null); setPickedName(null); if (fileRef.current) fileRef.current.value=""; }} className="btn-secondary !py-1.5 !px-4 text-sm">Avbryt</button>
           </div>
         </div>
       )}
