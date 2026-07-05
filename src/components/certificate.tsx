@@ -127,7 +127,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           marginTop: 22,
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: 11,
-          color: "#4F6B5E",
+          color: "#6E9483",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
         }}>
@@ -154,7 +154,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
             margin: "28px auto 0",
             fontSize: 13,
             lineHeight: 1.65,
-            color: "#4F6B5E",
+            color: "#6E9483",
           }}>
             {t.body_text}
           </p>
@@ -166,19 +166,17 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
         <div style={{
           marginTop: 48,
           paddingTop: 20,
-          borderTop: "1px solid rgba(11,61,46,0.12)",
+          borderTop: "1px solid #D9EBE0",
           width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          textAlign: "center",
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: 10,
-          color: "#7A8F84",
+          color: "#6E9483",
           letterSpacing: "0.06em",
         }}>
-          <span style={{ textTransform: "uppercase" }}>SmartKlimat</span>
-          <span>Verifiera: smartklimat.org/v/{data.verification_id}</span>
+          Verifiera: smartklimat.org/v/{data.verification_id}
         </div>
+
 
         {/* Hidden accent hint so accent_color is still used for partner branding */}
         <span style={{ display: "none" }} data-accent={accent} />
