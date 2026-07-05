@@ -25,6 +25,7 @@ import veckansSaljareAsset from "@/assets/badges/veckans-saljare.png.asset.json"
 import eldsjalAsset from "@/assets/badges/eldsjal.png.asset.json";
 import { Smaarty } from "@/components/smaarty";
 import { LeaderFinancePanel } from "@/components/leader-finance-panel";
+import { TeamFeed } from "@/components/activity-feed";
 import { BoostHub, BuffRow } from "@/components/boost-hub";
 import { getLeaderboardBuffs, type SellerBuffs } from "@/lib/boosts.functions";
 
