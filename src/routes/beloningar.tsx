@@ -91,7 +91,7 @@ function RewardsPage() {
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [confetti, setConfetti] = useState(false);
+  const [flippedId, setFlippedId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
   const [goal, setGoalState] = useState<RewardGoal | null>(null);
