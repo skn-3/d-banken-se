@@ -302,6 +302,27 @@ function recommendedMinPoints(costOre: number, budgetOre: number): number {
   return Math.ceil((costOre * (2 * BASE_POINTS_PER_TREE)) / budgetOre);
 }
 
+function PriceGuard({ costOre, costPoints, budgetOre, compact = false }: { costOre: number; costPoints: number; budgetOre: number; compact?: boolean }) {
+  const min = recommendedMinPoints(costOre, budgetOre);
+  if (!costOre) return null;
+  if (!budgetOre) return (
+    <div className="mt-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+      Sätt en <strong>belöningsbudget</strong> under Core för att se rekommenderat minimipris.
+    </div>
+  );
+  const under = costPoints < min;
+  return (
+    <div className={`mt-2 rounded-lg px-3 py-2 text-xs ${compact ? "" : ""}`}
+      style={{
+        background: under ? "#FFF1E8" : "var(--mint-paper)",
+        color: under ? "#B45309" : "var(--forest)",
+        border: under ? "1px solid #F59E0B" : "1px solid var(--border)",
+      }}>
+      Rekommenderat minimipris: <strong>{min} p</strong> ({(costOre/100).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2})} kr inköp)
+      {under && <div className="mt-0.5">⚠ Priset ligger under rekommendation — subventionerar utöver budgeten.</div>}
+    </div>
+  );
+
 function RewardsCatalogTab() {
   const listFn = useServerFn(adminListRewards);
   const createFn = useServerFn(adminCreateReward);
