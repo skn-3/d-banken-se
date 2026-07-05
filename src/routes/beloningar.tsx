@@ -403,8 +403,16 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
         </div>
       </div>
     </article>
+    <div className="reward-flip-back surface-card">
+      <div className="text-4xl">🎁</div>
+      <div className="font-display text-2xl font-semibold">Beställd!</div>
+      <div className="text-sm opacity-80">Din lärare ordnar resten</div>
+    </div>
+    </div>
+    </div>
   );
 }
+
 
 function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
   goal: RewardGoal | null;
