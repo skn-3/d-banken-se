@@ -39,7 +39,15 @@ export const joinTeamByCode = createServerFn({ method: "POST" })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: res, error } = await context.supabase.rpc("join_team_by_code" as any, { _code: data.code } as any);
     if (error) throw new Error(error.message);
-    return res as { team_id: string; team_name: string };
+    const joined = res as { team_id: string; team_name: string };
+    // Fire-and-forget welcome mail (idempotent per user+team).
+    try {
+      const { sendSellerWelcomeIfNew } = await import("@/lib/email/welcome.server");
+      await sendSellerWelcomeIfNew({ userId: context.userId, teamId: joined.team_id });
+    } catch (err) {
+      console.error("[seller-onboarding] welcome dispatch failed", (err as Error).message);
+    }
+    return joined;
   });
 
 export const notifyGuardian = createServerFn({ method: "POST" })
