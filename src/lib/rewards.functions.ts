@@ -219,6 +219,7 @@ export const adminUpdateReward = createServerFn({ method: "POST" })
       name: data.name,
       description: data.description || null,
       cost_points: data.costPoints,
+      cost_ore: data.costOre ?? 0,
       category: data.category,
       image_url: data.imageUrl || null,
       active: data.active ?? true,
