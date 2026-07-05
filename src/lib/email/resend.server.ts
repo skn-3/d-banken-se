@@ -1,5 +1,6 @@
 // Server-only: never import from client code.
 const RESEND_API_URL = "https://api.resend.com/emails";
+const RESEND_GATEWAY_URL = "https://connector-gateway.lovable.dev/resend/emails";
 
 interface SendArgs {
   to: string;
@@ -20,17 +21,34 @@ export async function sendEmail({ to, subject, html, from: fromOverride }: SendA
 
   const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
 
+  const payload = { from, to, subject, html };
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ from, to, subject, html }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
     const text = await res.text();
+    const gatewayKey = process.env.LOVABLE_API_KEY;
+    if ((res.status === 401 || res.status === 403) && gatewayKey) {
+      const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${gatewayKey}`,
+          "X-Connection-Api-Key": apiKey,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (gatewayRes.ok) return { ok: true };
+      const gatewayText = await gatewayRes.text();
+      console.error(`[Resend] Gateway send failed ${gatewayRes.status}: ${gatewayText}`);
+      return { ok: false, error: gatewayText };
+    }
     console.error(`[Resend] Send failed ${res.status}: ${text}`);
     return { ok: false, error: text };
   }
