@@ -9,6 +9,8 @@ import { getActiveEvent, type ActiveEvent } from "@/lib/events.functions";
 import { EventBanner } from "@/components/event-banner";
 import { rewardEmoji, getRewardGoal, setRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 import { REWARD_CATEGORY_EMOJI, REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
+import { celebrate, haptic } from "@/lib/celebrate";
+
 
 export const Route = createFileRoute("/beloningar")({
   head: () => ({ meta: [{ title: "Belöningar — Smaarty" }] }),
