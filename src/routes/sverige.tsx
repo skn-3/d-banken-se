@@ -6,6 +6,7 @@ import { AvatarCircle, useSignedAvatars } from "@/components/user-avatar";
 import { getSverigeSellers, getSverigeTeams, type SellerRow, type TeamRow } from "@/lib/sverige.functions";
 import { getLeaderboardBuffs, type SellerBuffs } from "@/lib/boosts.functions";
 import { BuffRow } from "@/components/boost-hub";
+import { NationalFeed } from "@/components/activity-feed";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/sverige")({
@@ -31,38 +32,46 @@ function SverigePage() {
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
       <Blobs />
       <SiteHeader />
-      <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-24 pt-4">
+      <main className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-24 pt-4">
         <div className="text-center mb-6">
           <h1 className="font-display text-4xl font-semibold" style={{ color: "var(--forest)" }}>Sverige</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)" }}>Topp 50 säljare och lag i hela landet</p>
         </div>
 
-        <div className="surface-card p-4 flex items-center justify-between gap-2 flex-wrap">
-          <div className="inline-flex rounded-full p-1" style={{ background: "var(--mint-paper)" }}>
-            {(["sellers","teams"] as const).map(t => (
-              <button key={t}
-                onClick={() => { setTab(t); setPage(0); }}
-                className="px-4 py-1.5 text-sm rounded-full font-medium"
-                style={{ background: tab===t ? "var(--forest)" : "transparent", color: tab===t ? "#fff" : "var(--forest)" }}>
-                {t === "sellers" ? "Säljare" : "Lag"}
-              </button>
-            ))}
-          </div>
-          <div className="inline-flex rounded-full p-1" style={{ background: "var(--mint-paper)" }}>
-            {(["week","total"] as const).map(p => (
-              <button key={p}
-                onClick={() => { setPeriod(p); setPage(0); }}
-                className="px-4 py-1.5 text-sm rounded-full font-medium"
-                style={{ background: period===p ? "var(--forest)" : "transparent", color: period===p ? "#fff" : "var(--forest)" }}>
-                {p === "week" ? "Vecka" : "Totalt"}
-              </button>
-            ))}
-          </div>
-        </div>
+        <div className="grid lg:grid-cols-[1fr_20rem] gap-6 items-start">
+          <div>
+            <div className="surface-card p-4 flex items-center justify-between gap-2 flex-wrap">
+              <div className="inline-flex rounded-full p-1" style={{ background: "var(--mint-paper)" }}>
+                {(["sellers","teams"] as const).map(t => (
+                  <button key={t}
+                    onClick={() => { setTab(t); setPage(0); }}
+                    className="px-4 py-1.5 text-sm rounded-full font-medium"
+                    style={{ background: tab===t ? "var(--forest)" : "transparent", color: tab===t ? "#fff" : "var(--forest)" }}>
+                    {t === "sellers" ? "Säljare" : "Lag"}
+                  </button>
+                ))}
+              </div>
+              <div className="inline-flex rounded-full p-1" style={{ background: "var(--mint-paper)" }}>
+                {(["week","total"] as const).map(p => (
+                  <button key={p}
+                    onClick={() => { setPeriod(p); setPage(0); }}
+                    className="px-4 py-1.5 text-sm rounded-full font-medium"
+                    style={{ background: period===p ? "var(--forest)" : "transparent", color: period===p ? "#fff" : "var(--forest)" }}>
+                    {p === "week" ? "Vecka" : "Totalt"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {tab === "sellers"
-          ? <SellersBoard period={period} page={page} setPage={setPage} currentUserId={user?.id ?? null} />
-          : <TeamsBoard period={period} page={page} setPage={setPage} />}
+            {tab === "sellers"
+              ? <SellersBoard period={period} page={page} setPage={setPage} currentUserId={user?.id ?? null} />
+              : <TeamsBoard period={period} page={page} setPage={setPage} />}
+          </div>
+
+          <aside className="lg:sticky lg:top-4">
+            <NationalFeed />
+          </aside>
+        </div>
       </main>
     </div>
   );

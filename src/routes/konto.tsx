@@ -7,6 +7,7 @@ import { Certificate, snapshotToTemplate, type CertificateData } from "@/compone
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { PushToggle } from "@/components/push-toggle";
 import { AvatarUpload } from "@/components/avatar-upload";
+import { BadgeWall } from "@/components/badge-wall";
 
 export const Route = createFileRoute("/konto")({
   head: () => ({
@@ -193,6 +194,7 @@ function KontoPage() {
             </div>
 
             <AvatarUpload />
+            <BadgeWall />
             <PushToggle />
 
             {isAdmin && (
