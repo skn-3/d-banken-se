@@ -482,6 +482,22 @@ function HomeView({
   const maxSeller = Math.max(1, ...sellers.map((s) => s.trees));
   const maxTeam = Math.max(1, ...teams.map((t) => t.trees));
 
+  const buffsFn = useServerFn(getLeaderboardBuffs);
+  const [buffsMap, setBuffsMap] = useState<Record<string, SellerBuffs>>({});
+  useEffect(() => {
+    const ids = sellers.map((s) => s.userId).filter(Boolean);
+    if (ids.length === 0) { setBuffsMap({}); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await buffsFn({ data: { userIds: ids } });
+        if (!cancelled) setBuffsMap(r.buffs);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sellers.map((s) => s.userId).join("|")]);
+
   const bubble = !stage.next
     ? "Du är fullvuxen — vilken skog du har skapat! 🌳"
     : remaining <= 1
