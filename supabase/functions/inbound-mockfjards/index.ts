@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
   const treeCount = Math.floor(Number(p?.tree_count ?? 0));
   const customerName = String(p?.customer_name ?? "").trim();
   const recipientEmail = p?.recipient_email ? String(p.recipient_email).trim().toLowerCase() : null;
+  const sellerName = p?.seller_name ? String(p.seller_name).trim() : null;
 
   if (!orderNumber) return json(400, { ok: false, reason: "missing_order_number" });
   if (!customerName) return json(400, { ok: false, reason: "missing_customer_name" });
@@ -129,6 +130,7 @@ Deno.serve(async (req) => {
     tree_count: treeCount, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
     status: "paid", paid_at: new Date().toISOString(),
     registered_by_user_id: null, source: SOURCE, source_order_ref: orderNumber,
+    source_seller: sellerName,
   }).select("id, created_at").single();
 
   if (pur.error) {

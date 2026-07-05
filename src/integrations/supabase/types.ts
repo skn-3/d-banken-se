@@ -308,6 +308,7 @@ export type Database = {
           registered_by_user_id: string | null
           source: string | null
           source_order_ref: string | null
+          source_seller: string | null
           status: string
           total_amount_ore: number
           tree_count: number
@@ -324,6 +325,7 @@ export type Database = {
           registered_by_user_id?: string | null
           source?: string | null
           source_order_ref?: string | null
+          source_seller?: string | null
           status?: string
           total_amount_ore: number
           tree_count: number
@@ -340,6 +342,7 @@ export type Database = {
           registered_by_user_id?: string | null
           source?: string | null
           source_order_ref?: string | null
+          source_seller?: string | null
           status?: string
           total_amount_ore?: number
           tree_count?: number
