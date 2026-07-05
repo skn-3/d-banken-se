@@ -1258,6 +1258,30 @@ export type Database = {
         }
         Relationships: []
       }
+      welcome_emails_sent: {
+        Row: {
+          kind: string
+          sent_at: string
+          sent_to: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          kind: string
+          sent_at?: string
+          sent_to: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          kind?: string
+          sent_at?: string
+          sent_to?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       register_kunder: {

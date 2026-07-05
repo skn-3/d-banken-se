@@ -70,5 +70,12 @@ export const createTeamSelfService = createServerFn({ method: "POST" })
     } as any);
     if (error) throw new Error(error.message);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return res as { team_id: string; organization_id: string; join_code: string };
+    const out = res as { team_id: string; organization_id: string; join_code: string };
+    try {
+      const { sendLeaderWelcomeIfNew } = await import("@/lib/email/welcome.server");
+      await sendLeaderWelcomeIfNew({ userId: context.userId, teamId: out.team_id });
+    } catch (err) {
+      console.error("[team-signup] leader welcome dispatch failed", (err as Error).message);
+    }
+    return out;
   });
