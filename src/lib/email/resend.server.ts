@@ -9,19 +9,77 @@ interface SendArgs {
   from?: string;
 }
 
+export interface SendEmailResult {
+  ok: boolean;
+  provider: "resend" | "lovable-resend-gateway" | "none";
+  status: number | null;
+  body: string | null;
+  messageId?: string | null;
+  error?: string;
+  skipped?: boolean;
+}
+
 export const AUTH_EMAIL_FROM = "Smaarty <konto@send.smartklimat.org>";
 const SMARTKLIMAT_STAMP_WHITE = "https://smartklimat.org/brand/logo-stamp-vit.png";
 
-export async function sendEmail({ to, subject, html, from: fromOverride }: SendArgs) {
+function extractMessageId(body: string | null) {
+  if (!body) return null;
+  try {
+    const parsed = JSON.parse(body) as { id?: unknown; data?: { id?: unknown } };
+    return typeof parsed.id === "string" ? parsed.id : typeof parsed.data?.id === "string" ? parsed.data.id : null;
+  } catch {
+    return null;
+  }
+}
+
+function summarizeBody(body: string | null) {
+  if (!body) return null;
+  return body.length > 4000 ? `${body.slice(0, 4000)}…[truncated]` : body;
+}
+
+export async function sendEmail({ to, subject, html, from: fromOverride }: SendArgs): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.error("[Resend] RESEND_API_KEY missing — skipping email send");
-    return { ok: false, skipped: true };
+    const result: SendEmailResult = { ok: false, provider: "none", status: null, body: null, skipped: true, error: "RESEND_API_KEY missing" };
+    console.error("[Resend] RESEND_API_KEY missing in server runtime", { to, subject, from: fromOverride ?? null, result });
+    return result;
   }
 
   const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
 
   const payload = { from, to, subject, html };
+  const gatewayKey = process.env.LOVABLE_API_KEY;
+
+  if (gatewayKey) {
+    const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${gatewayKey}`,
+        "X-Connection-Api-Key": apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
+    const gatewayBody = await gatewayRes.text();
+    const gatewayResult: SendEmailResult = {
+      ok: gatewayRes.ok,
+      provider: "lovable-resend-gateway",
+      status: gatewayRes.status,
+      body: summarizeBody(gatewayBody),
+      messageId: extractMessageId(gatewayBody),
+      ...(!gatewayRes.ok ? { error: gatewayBody || `Gateway send failed ${gatewayRes.status}` } : {}),
+    };
+    console[gatewayRes.ok ? "log" : "error"]("[Resend] gateway response", {
+      to,
+      from,
+      subject,
+      status: gatewayResult.status,
+      body: gatewayResult.body,
+      messageId: gatewayResult.messageId,
+    });
+    return gatewayResult;
+  }
+
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
@@ -31,28 +89,22 @@ export async function sendEmail({ to, subject, html, from: fromOverride }: SendA
     body: JSON.stringify(payload),
   });
 
+  const text = await res.text();
+  const result: SendEmailResult = {
+    ok: res.ok,
+    provider: "resend",
+    status: res.status,
+    body: summarizeBody(text),
+    messageId: extractMessageId(text),
+    ...(!res.ok ? { error: text || `Resend send failed ${res.status}` } : {}),
+  };
+
   if (!res.ok) {
-    const text = await res.text();
-    const gatewayKey = process.env.LOVABLE_API_KEY;
-    if ((res.status === 401 || res.status === 403) && gatewayKey) {
-      const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${gatewayKey}`,
-          "X-Connection-Api-Key": apiKey,
-        },
-        body: JSON.stringify(payload),
-      });
-      if (gatewayRes.ok) return { ok: true };
-      const gatewayText = await gatewayRes.text();
-      console.error(`[Resend] Gateway send failed ${gatewayRes.status}: ${gatewayText}`);
-      return { ok: false, error: gatewayText };
-    }
-    console.error(`[Resend] Send failed ${res.status}: ${text}`);
-    return { ok: false, error: text };
+    console.error("[Resend] direct response", { to, from, subject, status: result.status, body: result.body });
+    return result;
   }
-  return { ok: true };
+  console.log("[Resend] direct response", { to, from, subject, status: result.status, body: result.body, messageId: result.messageId });
+  return result;
 }
 
 interface AuthEmailArgs {
