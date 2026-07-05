@@ -101,15 +101,74 @@ export function AvatarUpload() {
         Ladda upp vad du vill — men inget olämpligt och inga bilder på andra utan lov.
       </p>
 
-      <div className="mt-6 flex items-center gap-4">
-        {profile && user && (
-          <AvatarCircle subject={{ user_id: user.id, avatar_key: profile.avatar_key, photo_path: profile.photo_path }} urls={urls} size={80} />
-        )}
-        <div className="flex flex-col gap-2">
-          <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="text-sm" />
-          {profile?.photo_path && (
-            <button className="text-xs underline text-left" onClick={removePhoto} style={{ color: "var(--destructive)" }}>Ta bort bilden</button>
+      <div
+        className="mt-6 rounded-2xl border-2 border-dashed p-5 transition-colors"
+        style={{
+          borderColor: dragOver ? "var(--primary)" : "var(--border)",
+          background: dragOver ? "var(--mint-paper)" : "transparent",
+        }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+      >
+        <div className="flex items-center gap-5 flex-wrap">
+          {profile && user && (
+            <button
+              type="button"
+              onClick={openPicker}
+              aria-label="Byt profilbild"
+              className="relative group rounded-full press-scale"
+              style={{ width: 80, height: 80 }}
+            >
+              <AvatarCircle
+                subject={{ user_id: user.id, avatar_key: profile.avatar_key, photo_path: profile.photo_path }}
+                urls={urls}
+                size={80}
+              />
+              <span
+                className="absolute inset-0 rounded-full flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
+                style={{ background: "rgba(11,61,46,0.55)" }}
+              >
+                <Camera size={20} />
+                <span className="text-[10px] mt-0.5 font-medium">Byt bild</span>
+              </span>
+            </button>
           )}
+          <div className="flex flex-col gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={onFile}
+              className="sr-only"
+              aria-label="Välj profilbild"
+            />
+            <button
+              type="button"
+              onClick={openPicker}
+              className="press-scale inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+              style={{
+                border: "1.5px solid var(--primary)",
+                color: "var(--primary)",
+                background: "transparent",
+              }}
+            >
+              <Camera size={16} />
+              Ladda upp bild
+            </button>
+            <div className="flex items-center gap-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              <Upload size={12} />
+              <span>eller släpp en bild här</span>
+            </div>
+            {pickedName && (
+              <div className="text-xs truncate max-w-[220px]" style={{ color: "var(--muted-foreground)" }} title={pickedName}>
+                {pickedName}
+              </div>
+            )}
+            {profile?.photo_path && (
+              <button className="text-xs underline text-left" onClick={removePhoto} style={{ color: "var(--destructive)" }}>Ta bort bilden</button>
+            )}
+          </div>
         </div>
       </div>
 
