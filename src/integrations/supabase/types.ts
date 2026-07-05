@@ -867,10 +867,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      join_team_by_code: { Args: { _code: string }; Returns: Json }
       log_admin_activity: {
         Args: { _action: string; _detail?: Json }
         Returns: string
       }
+      lookup_team_by_code: { Args: { _code: string }; Returns: Json }
       purchase_reward: {
         Args: { _reward_id: string }
         Returns: {
