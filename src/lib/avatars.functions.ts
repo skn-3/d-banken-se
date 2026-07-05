@@ -2,7 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type Any = Record<string, unknown>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Any = any;
 
 export const getAvatarState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -175,7 +176,7 @@ export const adminRemovePhoto = createServerFn({ method: "POST" })
     // Friendly email (best effort)
     if (prof?.email) {
       try {
-        const { sendEmail } = await import("@/lib/email.server");
+        const { sendEmail } = await import("@/lib/email/resend.server");
         await sendEmail({
           to: prof.email,
           subject: "Din profilbild togs bort",
