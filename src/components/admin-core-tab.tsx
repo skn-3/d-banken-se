@@ -20,6 +20,7 @@ export function AdminCoreTab() {
   const loadFiles = useServerFn(listBackupFiles);
   const signUrl = useServerFn(getBackupSignedUrl);
   const loadNewsletters = useServerFn(listRecentNewsletters);
+  const loadUpdates = useServerFn(listRecentProjectUpdates);
   const loadRuns = useServerFn(listRecentBackupRuns);
   const doBackup = useServerFn(runBackupNow);
 
