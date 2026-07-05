@@ -126,63 +126,6 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return sendOnce({ ...payload, from: fallbackFrom });
   }
   return firstResult;
-
-  /* legacy path retained unreachable by the early return above */
-  if (gatewayKey) {
-    const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${gatewayKey}`,
-        "X-Connection-Api-Key": apiKey,
-      },
-      body: JSON.stringify(payload),
-    });
-    const gatewayBody = await gatewayRes.text();
-    const gatewayResult: SendEmailResult = {
-      ok: gatewayRes.ok,
-      provider: "lovable-resend-gateway",
-      status: gatewayRes.status,
-      body: summarizeBody(gatewayBody),
-      messageId: extractMessageId(gatewayBody),
-      ...(!gatewayRes.ok ? { error: gatewayBody || `Gateway send failed ${gatewayRes.status}` } : {}),
-    };
-    console[gatewayRes.ok ? "log" : "error"]("[Resend] gateway response", {
-      to,
-      from,
-      subject,
-      status: gatewayResult.status,
-      body: gatewayResult.body,
-      messageId: gatewayResult.messageId,
-    });
-    return gatewayResult;
-  }
-
-  const res = await fetch(RESEND_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const text = await res.text();
-  const result: SendEmailResult = {
-    ok: res.ok,
-    provider: "resend",
-    status: res.status,
-    body: summarizeBody(text),
-    messageId: extractMessageId(text),
-    ...(!res.ok ? { error: text || `Resend send failed ${res.status}` } : {}),
-  };
-
-  if (!res.ok) {
-    console.error("[Resend] direct response", { to, from, subject, status: result.status, body: result.body });
-    return result;
-  }
-  console.log("[Resend] direct response", { to, from, subject, status: result.status, body: result.body, messageId: result.messageId });
-  return result;
 }
 
 interface AuthEmailArgs {
