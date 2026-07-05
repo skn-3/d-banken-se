@@ -193,6 +193,7 @@ function KontoPage() {
             </div>
 
             <AvatarUpload />
+            <BadgeWall />
             <PushToggle />
 
             {isAdmin && (
