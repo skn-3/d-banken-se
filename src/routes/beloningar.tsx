@@ -314,7 +314,7 @@ function RewardsPage() {
   );
 }
 
-function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGoal }: {
+function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGoal, flipped = false }: {
   reward: RewardRow;
   balance: number;
   busy: boolean;
@@ -322,6 +322,7 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
   onBuy: () => void;
   isGoal?: boolean;
   onToggleGoal?: () => void;
+  flipped?: boolean;
 }) {
   const canAfford = balance >= reward.cost_points;
   const missing = Math.max(0, reward.cost_points - balance);
@@ -331,8 +332,10 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
+    <div className={`reward-flip ${flipped ? "is-flipped" : ""}`}>
+    <div className="reward-flip-inner">
     <article
-      className={`surface-card rw reward-card cursor-pointer p-4 ${canAfford ? "afford" : ""} ${open ? "open" : ""}`}
+      className={`reward-flip-face surface-card rw reward-card card-lift cursor-pointer p-4 ${canAfford ? "afford" : ""} ${open ? "open" : ""}`}
       onClick={() => setOpen(o => !o)}
       style={{
         background: canAfford ? "var(--card)" : "linear-gradient(180deg, var(--card) 0%, var(--mint-paper) 100%)",
@@ -341,6 +344,7 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
         ["--pct" as string]: `${pct}%`,
       } as React.CSSProperties}
     >
+
       <RewardArtwork reward={reward} canAfford={canAfford} />
 
       <div className="mt-4 flex items-start justify-between gap-3">
