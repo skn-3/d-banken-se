@@ -9,6 +9,7 @@ export interface ThanksArgs {
   verifyUrl: string;
   locationName?: string | null;
   giftMessage?: string | null;
+  heroStampUrl?: string | null;
 }
 
 function esc(s: string) {
