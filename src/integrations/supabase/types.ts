@@ -125,6 +125,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notes: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          note: string
+          subject_id: string
+          subject_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          note: string
+          subject_id: string
+          subject_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string
+          subject_id?: string
+          subject_type?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           id: number
@@ -643,6 +670,7 @@ export type Database = {
           avatar_key: string
           company_template_id: string | null
           created_at: string
+          disabled_at: string | null
           email: string
           guardian_email: string | null
           id: string
@@ -656,6 +684,7 @@ export type Database = {
           avatar_key?: string
           company_template_id?: string | null
           created_at?: string
+          disabled_at?: string | null
           email: string
           guardian_email?: string | null
           id?: string
@@ -669,6 +698,7 @@ export type Database = {
           avatar_key?: string
           company_template_id?: string | null
           created_at?: string
+          disabled_at?: string | null
           email?: string
           guardian_email?: string | null
           id?: string
