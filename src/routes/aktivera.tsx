@@ -53,7 +53,7 @@ function ActivatePage() {
     supabase.auth.getSession().then(({ data }) => {
       setHasSession(!!data.session);
       const hash = typeof window !== "undefined" ? window.location.hash : "";
-      setIsRecovery(hash.includes("type=recovery") || hash.includes("access_token"));
+      setIsRecovery(hash.includes("type=recovery"));
       setReady(true);
     });
     return () => subscription.unsubscribe();
