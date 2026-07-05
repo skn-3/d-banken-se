@@ -12,6 +12,7 @@ import {
 } from "@/lib/payouts.functions";
 import { getRewardEconomy, getRewardBudget, setRewardBudget } from "@/lib/reward-economy.functions";
 import { AdminPhotoReports } from "@/components/admin-photo-reports";
+import { AdminSupportSection } from "@/components/admin-support-section";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
 
