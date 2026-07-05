@@ -109,11 +109,20 @@ Deno.serve(async (req) => {
     // Email
     if (vid) {
       const verifyUrl = `${APP_PUBLIC_URL}/v/${vid}`;
-      const totalKr = `${(total / 100).toLocaleString("sv-SE")} kr`;
       const dateText = new Date(pur.data.created_at).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
-      const { subject, html } = renderThanksEmail({ recipientName, treeCount: quantity, totalKr, dateText, verificationId: vid, verifyUrl });
+      const locationName = (gen.data as any)?.location_name ?? null;
+      const { subject, html } = renderThanksEmail({
+        recipientName,
+        treeCount: quantity,
+        dateText,
+        verificationId: vid,
+        verifyUrl,
+        locationName,
+        giftMessage: greeting || null,
+      });
       await sendEmail(custEmail, subject, html);
     }
+
 
     console.log("stripe-webhook ok", { session: session.id, type, quantity, vid, greeting: greeting ? "yes" : "no" });
     return new Response(JSON.stringify({ received: true, verification_id: vid }), { status: 200, headers: { "content-type": "application/json" } });
