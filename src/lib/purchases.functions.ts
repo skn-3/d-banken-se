@@ -87,7 +87,9 @@ export const createPurchase = createServerFn({ method: "POST" })
       dateText,
       verificationId: certificate.verification_id,
       verifyUrl,
+      locationName: certificate.location_name,
     });
+
     const emailResult = await sendEmail({ to: email, subject, html });
 
     return {
