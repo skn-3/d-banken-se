@@ -8,7 +8,7 @@ async function dumpTable(table: string) {
   const chunk = 1000;
   let from = 0;
   while (true) {
-    const { data, error } = await supabaseAdmin.from(table).select("*").range(from, from + chunk - 1);
+    const { data, error } = await (supabaseAdmin as any).from(table).select("*").range(from, from + chunk - 1);
     if (error) throw new Error(`dump_${table}: ${error.message}`);
     if (!data || !data.length) break;
     rows.push(...data);
