@@ -80,11 +80,12 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: 12,
           letterSpacing: "0.42em",
-          color: "#4F6B5E",
+          color: "#6E9483",
           textTransform: "uppercase",
         }}>
-          {t.heading_text || "VÄRDEBEVIS"}
+          VÄRDEBEVIS
         </div>
+
 
         {/* Recipient */}
         <div style={{
