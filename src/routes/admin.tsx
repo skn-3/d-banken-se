@@ -291,8 +291,14 @@ function OrdersTab() {
 }
 
 interface CatalogReward {
-  id: string; name: string; description: string | null; cost_points: number;
+  id: string; name: string; description: string | null; cost_points: number; cost_ore: number;
   category: string; image_url: string | null; active: boolean; sort_order: number;
+}
+
+const BASE_POINTS_PER_TREE = 1;
+function recommendedMinPoints(costOre: number, budgetOre: number): number {
+  if (!costOre || !budgetOre) return 0;
+  return Math.ceil((costOre * (2 * BASE_POINTS_PER_TREE)) / budgetOre);
 }
 
 function RewardsCatalogTab() {
