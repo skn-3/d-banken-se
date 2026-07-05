@@ -9,6 +9,8 @@ import { getActiveEvent, type ActiveEvent } from "@/lib/events.functions";
 import { EventBanner } from "@/components/event-banner";
 import { rewardEmoji, getRewardGoal, setRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 import { REWARD_CATEGORY_EMOJI, REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
+import { celebrate, haptic } from "@/lib/celebrate";
+
 
 export const Route = createFileRoute("/beloningar")({
   head: () => ({ meta: [{ title: "Belöningar — Smaarty" }] }),
@@ -46,40 +48,9 @@ type Ctx = {
   orders?: OrderRow[];
 };
 
-function Confetti({ show }: { show: boolean }) {
-  if (!show) return null;
-  const pieces = Array.from({ length: 28 });
-  const colors = ["#1e9e6a", "#9fd9b6", "#fbe3c0", "#3fc78b", "#ffcf78"];
-  return (
-    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {pieces.map((_, i) => {
-        const left = Math.random() * 100;
-        const delay = Math.random() * 0.3;
-        const dur = 1.2 + Math.random() * 0.9;
-        const size = 8 + Math.random() * 8;
-        const color = colors[i % colors.length];
-        const rot = Math.random() * 360;
-        return (
-          <span
-            key={i}
-            style={{
-              position: "absolute",
-              left: `${left}%`,
-              top: "-20px",
-              width: size,
-              height: size,
-              background: color,
-              borderRadius: 2,
-              transform: `rotate(${rot}deg)`,
-              animation: `smaarty-confetti ${dur}s cubic-bezier(.2,.7,.4,1) ${delay}s forwards`,
-            }}
-          />
-        );
-      })}
-      <style>{`@keyframes smaarty-confetti { to { transform: translateY(110vh) rotate(720deg); opacity: 0.3; } }`}</style>
-    </div>
-  );
-}
+// Konfetti hanteras via canvas-confetti (celebrate()).
+
+
 
 function RewardArtwork({ reward, canAfford }: { reward: RewardRow; canAfford: boolean }) {
   const fallback = rewardEmoji(reward.name, reward.category);
@@ -120,7 +91,7 @@ function RewardsPage() {
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [confetti, setConfetti] = useState(false);
+  const [flippedId, setFlippedId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent>(null);
   const [goal, setGoalState] = useState<RewardGoal | null>(null);
@@ -159,10 +130,12 @@ function RewardsPage() {
     setBusyId(r.id);
     try {
       await buyFn({ data: { rewardId: r.id, targetUserId: previewAs } });
-      setConfetti(true);
+      setFlippedId(r.id);
+      celebrate({ emoji: "🎁" });
+      haptic(30);
       setToast(`Klart — du löste in ${r.name}. Din lärare ordnar resten.`);
-      setTimeout(() => setConfetti(false), 2200);
       setTimeout(() => setToast(null), 4500);
+      setTimeout(() => setFlippedId(null), 3500);
       await reload();
     } catch (e) {
       setToast((e as Error).message);
@@ -171,6 +144,7 @@ function RewardsPage() {
       setBusyId(null);
     }
   };
+
 
   const toggleGoal = (r: RewardRow) => {
     if (!goalUid) return;
@@ -205,7 +179,7 @@ function RewardsPage() {
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
       <Blobs />
       <SiteHeader />
-      <Confetti show={confetti} />
+      {/* konfetti via celebrate() */}
       <main className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-24 pt-4">
         {ctx?.isPreview && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 shadow-sm"
@@ -288,8 +262,10 @@ function RewardsPage() {
                           onBuy={() => handleBuy(r)}
                           isGoal={goal?.rewardId === r.id}
                           onToggleGoal={() => toggleGoal(r)}
+                          flipped={flippedId === r.id}
                         />
                       ))}
+
                     </div>
                   </section>
                 ))}
@@ -338,7 +314,7 @@ function RewardsPage() {
   );
 }
 
-function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGoal }: {
+function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGoal, flipped = false }: {
   reward: RewardRow;
   balance: number;
   busy: boolean;
@@ -346,6 +322,7 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
   onBuy: () => void;
   isGoal?: boolean;
   onToggleGoal?: () => void;
+  flipped?: boolean;
 }) {
   const canAfford = balance >= reward.cost_points;
   const missing = Math.max(0, reward.cost_points - balance);
@@ -355,8 +332,10 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
+    <div className={`reward-flip ${flipped ? "is-flipped" : ""}`}>
+    <div className="reward-flip-inner">
     <article
-      className={`surface-card rw reward-card cursor-pointer p-4 ${canAfford ? "afford" : ""} ${open ? "open" : ""}`}
+      className={`reward-flip-face surface-card rw reward-card card-lift cursor-pointer p-4 ${canAfford ? "afford" : ""} ${open ? "open" : ""}`}
       onClick={() => setOpen(o => !o)}
       style={{
         background: canAfford ? "var(--card)" : "linear-gradient(180deg, var(--card) 0%, var(--mint-paper) 100%)",
@@ -365,6 +344,7 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
         ["--pct" as string]: `${pct}%`,
       } as React.CSSProperties}
     >
+
       <RewardArtwork reward={reward} canAfford={canAfford} />
 
       <div className="mt-4 flex items-start justify-between gap-3">
@@ -423,8 +403,16 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
         </div>
       </div>
     </article>
+    <div className="reward-flip-back surface-card">
+      <div className="text-4xl">🎁</div>
+      <div className="font-display text-2xl font-semibold">Beställd!</div>
+      <div className="text-sm opacity-80">Din lärare ordnar resten</div>
+    </div>
+    </div>
+    </div>
   );
 }
+
 
 function GoalCard({ goal, balance, onRedeem, onClear, busy }: {
   goal: RewardGoal | null;

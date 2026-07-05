@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
+import { celebrate, haptic } from "@/lib/celebrate";
+
 import { getSellerBoostState, activateBoost, type SellerBuffs } from "@/lib/boosts.functions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -136,10 +138,12 @@ export function BoostHub() {
     setActivating(true);
     try {
       await activateFn({ data: { boostId: confirm.boost.id } });
-      popConfetti();
+      celebrate({ emoji: confirm.catalog.emoji });
+      haptic(30);
       toast(`${confirm.catalog.emoji} ${confirm.catalog.name} aktiverad!`, {
         description: describeEffect(confirm.catalog),
       });
+
       setConfirm(null);
       await load();
     } catch (e: any) {
