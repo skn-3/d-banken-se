@@ -386,11 +386,17 @@ function RewardsCatalogTab() {
               value={draft.cost_points} onChange={e => setDraft({ ...draft, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
             <input className="input-field font-mono" type="number" placeholder="Sortering"
               value={draft.sort_order} onChange={e => setDraft({ ...draft, sort_order: Number(e.target.value) || 0 })} />
+            <label className="text-xs sm:col-span-2" style={{ color: "var(--muted-foreground)" }}>
+              Verklig inköpskostnad (öre)
+              <input className="input-field font-mono mt-1" type="number" min={0}
+                value={draft.cost_ore} onChange={e => setDraft({ ...draft, cost_ore: Math.max(0, Number(e.target.value) || 0) })} />
+            </label>
             <input className="input-field sm:col-span-2" placeholder="Bild-URL (valfri)"
               value={draft.image_url ?? ""} onChange={e => setDraft({ ...draft, image_url: e.target.value || null })} />
             <textarea className="input-field sm:col-span-2" rows={2} placeholder="Beskrivning (valfri)"
               value={draft.description ?? ""} onChange={e => setDraft({ ...draft, description: e.target.value })} />
           </div>
+          <PriceGuard costOre={draft.cost_ore} costPoints={draft.cost_points} budgetOre={budgetOre} />
           <div className="mt-3 flex justify-end gap-2">
             <button className="btn-secondary" onClick={() => setShowNew(false)}>Avbryt</button>
             <button className="btn-primary" disabled={!draft.name.trim()} onClick={saveDraft}>Skapa</button>
