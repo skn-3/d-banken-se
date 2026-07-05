@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function assertAdmin(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
@@ -24,6 +24,7 @@ export const adminSetPassword = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.targetUserId, {
       password: data.newPassword,
     });
@@ -41,11 +42,7 @@ export const adminSendPasswordReset = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { data: link, error } = await supabaseAdmin.auth.admin.generateLink({
-      type: "recovery",
-      email: data.email,
-      options: { redirectTo: data.redirectTo },
-    });
-    if (error) throw new Error(error.message);
-    return { ok: true, actionLink: link?.properties?.action_link ?? null };
+    const { sendRecoveryEmail } = await import("@/lib/auth-email.server");
+    await sendRecoveryEmail({ email: data.email, redirectTo: data.redirectTo });
+    return { ok: true, actionLink: null };
   });

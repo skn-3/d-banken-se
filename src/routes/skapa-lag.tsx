@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { requestSignupConfirmation } from "@/lib/auth-email.functions";
 import { SiteHeader, SiteFooter, Blobs } from "@/components/site-chrome";
 import {
   searchOrganizations,
@@ -88,23 +89,24 @@ function SignupCard({ onDone }: { onDone: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const sendSignupConfirmation = useServerFn(requestSignupConfirmation);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null); setLoading(true);
+    setError(null); setInfo(null); setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: { data: { name, account_type: "saljare" }, emailRedirectTo: `${window.location.origin}/skapa-lag` },
+        await sendSignupConfirmation({
+          data: { email, password, name, accountType: "saljare", redirectTo: `${window.location.origin}/skapa-lag` },
         });
-        if (error) throw error;
+        setInfo("Vi har skickat ett bekräftelsemail. Öppna länken och fortsätt skapa laget.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        onDone();
       }
-      onDone();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -139,8 +141,9 @@ function SignupCard({ onDone }: { onDone: () => void }) {
           <input className="input-field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
         </div>
         {error && <div className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--destructive)", color: "var(--destructive)" }}>{error}</div>}
+        {info && <div className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", color: "var(--forest)", background: "rgba(30,158,106,0.06)" }}>{info}</div>}
         <button type="submit" disabled={loading} className="btn-primary w-full">
-          {loading ? "Skapar…" : mode === "signup" ? "Skapa konto och fortsätt" : "Logga in"}
+          {loading ? "Skickar…" : mode === "signup" ? "Skapa konto" : "Logga in"}
         </button>
       </form>
       <p className="mt-4 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>

@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { requestPasswordReset, requestSignupConfirmation } from "@/lib/auth-email.functions";
 import { SiteHeader, SiteFooter, Blobs, TAGLINE } from "@/components/site-chrome";
 import logo3d from "@/assets/logos/smartklimat-3d.png.asset.json";
 
@@ -25,6 +27,8 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const sendReset = useServerFn(requestPasswordReset);
+  const sendSignupConfirmation = useServerFn(requestSignupConfirmation);
 
   const switchMode = (m: Mode) => { setMode(m); setError(null); setInfo(null); };
 
@@ -35,27 +39,19 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name, account_type: "privat" },
-            emailRedirectTo: `${window.location.origin}/konto`,
-          },
+        await sendSignupConfirmation({
+          data: { email, password, name, accountType: "privat", redirectTo: `${window.location.origin}/konto` },
         });
-        if (error) throw error;
-        navigate({ to: "/konto" });
+        setInfo("Vi har skickat ett bekräftelsemail. Öppna länken för att aktivera kontot.");
       } else if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         navigate({ to: "/konto" });
       } else {
-        // forgot
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
+        const res = await sendReset({
+          data: { email, redirectTo: `${window.location.origin}/reset-password` },
         });
-        if (error) throw error;
-        setInfo("Om e-postadressen finns har vi skickat en återställningslänk. Kolla din inkorg (och skräppost).");
+        setInfo(res.message);
       }
     } catch (err) {
       const msg = (err as Error).message;

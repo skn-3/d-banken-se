@@ -4,6 +4,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { requestTeamSignupConfirmation } from "@/lib/auth-email.functions";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import {
   lookupTeamByCode,
@@ -29,6 +30,7 @@ const PROJECT_IMAGES: Record<string, string> = {
 };
 
 function ActivatePage() {
+  const navigate = useNavigate();
   const { lag } = Route.useSearch();
   const rawCode = (lag || "").toUpperCase();
 
@@ -38,8 +40,10 @@ function ActivatePage() {
   const [team, setTeam] = useState<NonNullable<TeamLookup> | null>(null);
   const [teamError, setTeamError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState("");
+  const [joining, setJoining] = useState(false);
 
   const doLookup = useServerFn(lookupTeamByCode);
+  const joinExisting = useServerFn(joinTeamByCode);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -61,6 +65,14 @@ function ActivatePage() {
       .catch((e) => setTeamError((e as Error).message));
   }, [rawCode, doLookup]);
 
+  useEffect(() => {
+    if (!hasSession || !rawCode || !team || joining) return;
+    setJoining(true);
+    joinExisting({ data: { code: rawCode } })
+      .catch(() => { /* membership may already exist */ })
+      .finally(() => setJoining(false));
+  }, [hasSession, rawCode, team, joining, joinExisting]);
+
   if (!ready) {
     return <Shell><p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Laddar…</p></Shell>;
   }
@@ -68,6 +80,10 @@ function ActivatePage() {
   // Existing invitation flow: recovery hash present → keep original set-password UI
   if (isRecovery || (hasSession && !rawCode && !team)) {
     return <Shell><InvitePasswordCard /></Shell>;
+  }
+
+  if (hasSession && rawCode && team) {
+    return <Shell wide><IntroCarousel team={team} onDone={() => navigate({ to: "/saljare" })} /></Shell>;
   }
 
   // Team code present in URL
@@ -185,7 +201,7 @@ function InvitePasswordCard() {
 /* -------- Seller signup via team code -------- */
 function SellerSignup({ team }: { team: NonNullable<TeamLookup> }) {
   const navigate = useNavigate();
-  const joinFn = useServerFn(joinTeamByCode);
+  const signup = useServerFn(requestTeamSignupConfirmation);
   const notify = useServerFn(notifyGuardian);
 
   const [firstName, setFirstName] = useState("");
@@ -195,7 +211,7 @@ function SellerSignup({ team }: { team: NonNullable<TeamLookup> }) {
   const [guardianEmail, setGuardianEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [phase, setPhase] = useState<"form" | "intro">("form");
+  const [phase, setPhase] = useState<"form" | "confirm">("form");
 
   const canSubmit = useMemo(() => {
     if (!firstName.trim() || !email.trim() || password.length < 8) return false;
@@ -208,30 +224,20 @@ function SellerSignup({ team }: { team: NonNullable<TeamLookup> }) {
     e.preventDefault();
     setError(null); setSubmitting(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: { name: firstName.trim(), account_type: "saljare" },
-          emailRedirectTo: `${window.location.origin}/saljare`,
+      const code = new URL(window.location.href).searchParams.get("lag") ?? "";
+      await signup({
+        data: {
+          email: email.trim(),
+          password,
+          firstName: firstName.trim(),
+          teamCode: code,
+          redirectTo: `${window.location.origin}/aktivera?lag=${encodeURIComponent(code)}`,
+          under13: !!under13,
+          guardianEmail: under13 ? guardianEmail.trim() : null,
         },
       });
-      if (error) throw error;
-
-      // If no session was returned (email confirm required), try to sign in immediately
-      if (!data.session) {
-        const { error: sErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-        if (sErr) throw new Error("Kontot skapades. Öppna länken i din e-post för att aktivera det.");
-      }
-
-      const code = new URL(window.location.href).searchParams.get("lag") ?? "";
-      await joinFn({ data: { code } });
 
       if (under13) {
-        await supabase.from("profiles")
-          .update({ is_minor: true, guardian_email: guardianEmail.trim() })
-          .eq("email", email.trim().toLowerCase())
-          .then(() => {}, () => {});
         await notify({
           data: {
             guardianEmail: guardianEmail.trim(),
@@ -242,7 +248,7 @@ function SellerSignup({ team }: { team: NonNullable<TeamLookup> }) {
         }).catch(() => { /* non-blocking */ });
       }
 
-      setPhase("intro");
+      setPhase("confirm");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -250,7 +256,18 @@ function SellerSignup({ team }: { team: NonNullable<TeamLookup> }) {
     }
   };
 
-  if (phase === "intro") return <IntroCarousel team={team} onDone={() => navigate({ to: "/saljare" })} />;
+  if (phase === "confirm") {
+    return (
+      <div className="surface-card p-8 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-2xl"
+             style={{ background: "var(--mint-paper, #EAF7EE)", color: "var(--forest, #0B3D2E)" }}>✉️</div>
+        <h1 className="font-display text-3xl font-semibold">Kolla din e-post</h1>
+        <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+          Vi har skickat en bekräftelselänk. Öppna den för att aktivera kontot och gå vidare till laget.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="surface-card p-7 animate-fade-in">
