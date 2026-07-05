@@ -253,3 +253,162 @@ export function AdminCoreTab() {
     </div>
   );
 }
+
+function ProjectUpdatesSection({
+  sources, projects, updates, refresh,
+}: {
+  sources: string[];
+  projects: string[];
+  updates: any[];
+  refresh: () => Promise<void>;
+}) {
+  const [subject, setSubject] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [body, setBody] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [ctaLabel, setCtaLabel] = useState("");
+  const [ctaUrl, setCtaUrl] = useState("");
+  const [audienceKind, setAudienceKind] = useState<AudienceKind>("all");
+  const [audienceValue, setAudienceValue] = useState<string>("");
+  const [count, setCount] = useState<number | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const call = async (mode: "count" | "preview" | "send") => {
+    const audience = {
+      kind: audienceKind,
+      value: audienceKind === "source" || audienceKind === "project" ? audienceValue : null,
+    };
+    const res = await supabase.functions.invoke("send-project-update", {
+      body: {
+        subject, headline, body,
+        imageUrl: imageUrl || null,
+        ctaLabel: ctaLabel || null,
+        ctaUrl: ctaUrl || null,
+        audience, mode,
+      },
+    });
+    if (res.error) throw new Error(res.error.message);
+    return res.data as any;
+  };
+
+  const doCount = async () => {
+    setBusy("count"); setMsg(null);
+    try { const r = await call("count"); setCount(r.recipient_count ?? 0); }
+    catch (e: any) { setMsg(e.message); }
+    finally { setBusy(null); }
+  };
+
+  const doPreview = async () => {
+    setBusy("preview"); setMsg(null);
+    try { const r = await call("preview"); setMsg(`Testmail skickat till ${r.test_to}`); }
+    catch (e: any) { setMsg(e.message); }
+    finally { setBusy(null); }
+  };
+
+  const doSend = async () => {
+    setBusy("count"); setMsg(null);
+    try {
+      const c = await call("count");
+      const n = c.recipient_count ?? 0;
+      if (!n) { setMsg("Inga mottagare — inget skickat."); setCount(0); return; }
+      if (!window.confirm(`Skicka uppdateringen till ${n} mottagare?`)) return;
+      setBusy("send");
+      const r = await call("send");
+      setCount(r.recipient_count ?? n);
+      setMsg(`Skickat till ${r.recipient_count ?? n} mottagare.`);
+      await refresh();
+    } catch (e: any) { setMsg(e.message); }
+    finally { setBusy(null); }
+  };
+
+  return (
+    <>
+      <section className="surface-card p-6">
+        <h2 className="font-display text-xl font-semibold">Uppdateringar</h2>
+        <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
+          Skickas till <strong>alla med värdebevis</strong> — köpare och gåvomottagare.
+          Använd <code>{"{namn}"}</code> och <code>{"{antal}"}</code> för att personifiera.
+        </p>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="text-sm">Målgrupp
+            <select className="input-field mt-1 w-full" value={audienceKind}
+              onChange={(e) => { setAudienceKind(e.target.value as AudienceKind); setAudienceValue(""); setCount(null); }}>
+              <option value="all">Alla med bevis</option>
+              <option value="manad">Månadsplanterare</option>
+              <option value="source">Per källa</option>
+              <option value="project">Per projekt</option>
+            </select>
+          </label>
+          {(audienceKind === "source" || audienceKind === "project") && (
+            <label className="text-sm">{audienceKind === "source" ? "Källa" : "Projekt"}
+              <select className="input-field mt-1 w-full" value={audienceValue}
+                onChange={(e) => { setAudienceValue(e.target.value); setCount(null); }}>
+                <option value="">— välj —</option>
+                {(audienceKind === "source" ? sources : projects).map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
+          )}
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <label className="block text-sm">Ämnesrad
+            <input className="input-field mt-1 w-full" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={140} />
+          </label>
+          <label className="block text-sm">Rubrik i mailet
+            <input className="input-field mt-1 w-full" value={headline} onChange={(e) => setHeadline(e.target.value)} maxLength={140} />
+          </label>
+          <label className="block text-sm">Brödtext (dela stycken med blankrad)
+            <textarea className="input-field mt-1 w-full" rows={8} value={body} onChange={(e) => setBody(e.target.value)} maxLength={8000} />
+          </label>
+          <label className="block text-sm">Bild-URL (valfri, visas överst i kortet)
+            <input className="input-field mt-1 w-full" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://…" maxLength={400} />
+          </label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="text-sm">Knapptext (valfri)
+              <input className="input-field mt-1 w-full" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} maxLength={60} />
+            </label>
+            <label className="text-sm">Knapplänk (valfri)
+              <input className="input-field mt-1 w-full" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} placeholder="https://…" maxLength={400} />
+            </label>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button className="chip" disabled={!!busy} onClick={doCount}>Räkna mottagare</button>
+          <button className="chip" disabled={!!busy || !subject || !headline || !body} onClick={doPreview}>Skicka testmail</button>
+          <button className="chip" style={{ background: "var(--mint)" }}
+            disabled={!!busy || !subject || !headline || !body}
+            onClick={doSend}>Skicka till målgrupp</button>
+          {count !== null && <span className="chip">{count} mottagare</span>}
+          {busy && <span className="chip">Arbetar…</span>}
+        </div>
+        {msg && <p className="mt-3 text-sm" style={{ color: "var(--muted-foreground)" }}>{msg}</p>}
+      </section>
+
+      <section className="surface-card p-6">
+        <h2 className="font-display text-xl font-semibold">Tidigare uppdateringar</h2>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+              <tr><th className="py-2">Skickat</th><th>Ämne</th><th>Målgrupp</th><th>Mottagare</th></tr>
+            </thead>
+            <tbody>
+              {updates.map((n) => (
+                <tr key={n.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                  <td className="py-2 font-mono text-xs">{new Date(n.sent_at).toLocaleString("sv-SE")}</td>
+                  <td>{n.subject}</td>
+                  <td className="text-xs">{n.audience_kind}{n.audience_value ? ` · ${n.audience_value}` : ""}</td>
+                  <td className="font-mono">{n.recipient_count}</td>
+                </tr>
+              ))}
+              {!updates.length && <tr><td colSpan={4} className="py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Inga uppdateringar ännu.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  );
+}
+
