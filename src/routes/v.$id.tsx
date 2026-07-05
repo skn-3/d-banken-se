@@ -24,8 +24,8 @@ interface Row {
   template_snapshot: Record<string, unknown>;
 }
 
-const PAPER_BG =
-  "radial-gradient(1000px 700px at 50% -10%, #EAF7EE 0%, transparent 70%), radial-gradient(800px 500px at 100% 100%, #DFF1E4 0%, transparent 70%), #F4FAF5";
+const PAPER_BG = "#EAF7EE";
+
 
 function VerifyPage() {
   const { id } = Route.useParams();
