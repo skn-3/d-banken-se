@@ -228,6 +228,10 @@ function SellerSignup({ team }: { team: NonNullable<TeamLookup> }) {
       await joinFn({ data: { code } });
 
       if (under13) {
+        await supabase.from("profiles")
+          .update({ is_minor: true, guardian_email: guardianEmail.trim() })
+          .eq("email", email.trim().toLowerCase())
+          .then(() => {}, () => {});
         await notify({
           data: {
             guardianEmail: guardianEmail.trim(),
