@@ -68,7 +68,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
         {/* Partner logo (optional) */}
         {t.logo_url && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginBottom: 20 }}>
-            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.18em", color: "#7A8F84", textTransform: "uppercase" }}>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.18em", color: "#6E9483", textTransform: "uppercase" }}>
               i samarbete med
             </span>
             <img src={t.logo_url} alt="Partner" style={{ maxHeight: 36, width: "auto", opacity: 0.9 }} />
