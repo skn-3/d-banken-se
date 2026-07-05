@@ -40,13 +40,15 @@ export function AdminCoreTab() {
   const [backups, setBackups] = useState<Array<{ folder: string; files: Array<{ name: string; size: number; path: string }> }>>([]);
   const [runs, setRuns] = useState<any[]>([]);
   const [newsletters, setNewsletters] = useState<any[]>([]);
+  const [updates, setUpdates] = useState<any[]>([]);
 
   const refreshAll = async () => {
-    const [o, f, r, n] = await Promise.all([loadOptions(), loadFiles(), loadRuns(), loadNewsletters()]);
+    const [o, f, r, n, u] = await Promise.all([loadOptions(), loadFiles(), loadRuns(), loadNewsletters(), loadUpdates()]);
     setSources(o.sources); setProjects(o.projects);
     setBackups(f.runs);
     setRuns(r.runs);
     setNewsletters(n.newsletters);
+    setUpdates(u.updates);
   };
 
   useEffect(() => { refreshAll().catch((e) => setMsg(String(e.message ?? e))); }, []);
