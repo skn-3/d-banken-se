@@ -6,6 +6,7 @@ import { AvatarCircle, useSignedAvatars } from "@/components/user-avatar";
 import { getSverigeSellers, getSverigeTeams, type SellerRow, type TeamRow } from "@/lib/sverige.functions";
 import { getLeaderboardBuffs, type SellerBuffs } from "@/lib/boosts.functions";
 import { BuffRow } from "@/components/boost-hub";
+import { NationalFeed } from "@/components/activity-feed";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/sverige")({
