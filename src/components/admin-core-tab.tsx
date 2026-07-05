@@ -94,8 +94,7 @@ export function AdminCoreTab() {
   const doBackupNow = async () => {
     setBusy("backup"); setMsg(null);
     try {
-      const res = await supabase.functions.invoke("run-backup", { body: {} });
-      if (res.error) throw new Error(res.error.message);
+      await doBackup();
       setMsg("Säkerhetskopiering klar.");
       await refreshAll();
     } catch (e: any) { setMsg(e.message); }
