@@ -322,6 +322,8 @@ function PriceGuard({ costOre, costPoints, budgetOre, compact = false }: { costO
       {under && <div className="mt-0.5">⚠ Priset ligger under rekommendation — subventionerar utöver budgeten.</div>}
     </div>
   );
+}
+
 
 function RewardsCatalogTab() {
   const listFn = useServerFn(adminListRewards);
