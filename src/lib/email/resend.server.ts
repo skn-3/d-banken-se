@@ -11,14 +11,14 @@ interface SendArgs {
 export const AUTH_EMAIL_FROM = "Smaarty <konto@send.smartklimat.org>";
 const SMARTKLIMAT_STAMP_WHITE = "https://smartklimat.org/brand/logo-stamp-vit.png";
 
-export async function sendEmail({ to, subject, html }: SendArgs) {
+export async function sendEmail({ to, subject, html, from: fromOverride }: SendArgs) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error("[Resend] RESEND_API_KEY missing — skipping email send");
     return { ok: false, skipped: true };
   }
 
-  const from = args.from || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
+  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
 
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
