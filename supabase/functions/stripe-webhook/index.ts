@@ -1,5 +1,6 @@
 import Stripe from "https://esm.sh/stripe@17.5.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { renderThanksEmail } from "../_shared/thanks-email.ts";
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
 const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
@@ -10,41 +11,6 @@ const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <onboardin
 const APP_PUBLIC_URL = (Deno.env.get("APP_PUBLIC_URL") ?? "https://smartklimat.org").replace(/\/+$/, "");
 const PRICE_PER_TREE_ORE = 3500;
 
-function esc(s: string) {
-  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c] as string));
-}
-
-function renderThanksEmail(a: { recipientName: string; treeCount: number; totalKr: string; dateText: string; verificationId: string; verifyUrl: string }) {
-  const subject = `Tack — ${a.treeCount} träd planterade i ditt namn`;
-  const stamp = "https://smartklimat.org/brand/logo-stamp-guld.png";
-  const html = `<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>${subject}</title></head>
-<body style="margin:0;padding:0;background:#F4FAF5;font-family:Helvetica,Arial,sans-serif;color:#0B3D2E;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4FAF5;padding:32px 0;"><tr><td align="center">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#FBF9F2;border:1px solid rgba(11,61,46,0.14);border-radius:24px;overflow:hidden;">
-<tr><td style="padding:44px 44px 8px;text-align:center;">
-<div style="font-family:'Menlo','Courier New',monospace;font-size:11px;letter-spacing:0.42em;color:#4F6B5E;text-transform:uppercase;">VÄRDEBEVIS</div>
-<h1 style="margin:22px 0 0;font-size:30px;font-weight:700;color:#0B3D2E;letter-spacing:-0.01em;">${esc(a.recipientName)}</h1>
-<div style="margin:28px 0 6px;font-size:88px;font-weight:700;color:#1E9E6A;line-height:0.9;letter-spacing:-0.03em;">${a.treeCount.toLocaleString("sv-SE")}</div>
-<div style="font-size:14px;color:#385248;">träd planterade</div>
-<div style="margin-top:14px;font-family:'Menlo','Courier New',monospace;font-size:11px;letter-spacing:0.06em;color:#4F6B5E;text-transform:uppercase;">${esc(a.dateText)}</div>
-<img src="${stamp}" width="72" height="72" alt="" style="display:block;margin:28px auto 0;width:72px;height:72px;" />
-</td></tr>
-<tr><td align="center" style="padding:24px 44px 40px;">
-<a href="${a.verifyUrl}" style="display:inline-block;background:#1E9E6A;color:#fff;text-decoration:none;padding:14px 26px;border-radius:999px;font-weight:600;font-size:14px;">Visa och verifiera ditt bevis</a>
-<p style="margin:14px 0 0;font-size:11px;color:#7A8F84;font-family:'Menlo','Courier New',monospace;">Verifierings-ID: ${esc(a.verificationId)}</p>
-</td></tr></table>
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#ffffff;border:1px solid rgba(11,61,46,0.10);border-radius:20px;">
-<tr><td style="padding:26px 32px;">
-<h2 style="margin:0 0 14px;font-size:15px;font-weight:700;color:#0B3D2E;">Varför träd?</h2>
-<p style="margin:0 0 10px;font-size:13px;line-height:1.55;color:#385248;">Ditt träd binder ungefär 20 kg koldioxid — varje år.</p>
-<p style="margin:0 0 10px;font-size:13px;line-height:1.55;color:#385248;">Det planteras i granskade WeForest-projekt i Indien, Zambia eller Brasilien.</p>
-<p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:#385248;">Det är spårbart — följ det via länken ovan.</p>
-<a href="https://smartklimat.org/projekt" style="font-size:13px;font-weight:600;color:#1E9E6A;text-decoration:none;">Läs mer om projekten →</a>
-</td></tr></table>
-<p style="margin:20px 0 0;font-size:11px;color:#7A8F84;">SmartKlimat · Tänk smart, vi har ett gemensamt klimat.</p>
-</td></tr></table></body></html>`;
-  return { subject, html };
-}
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_API_KEY) { console.error("RESEND_API_KEY missing"); return false; }
@@ -143,11 +109,20 @@ Deno.serve(async (req) => {
     // Email
     if (vid) {
       const verifyUrl = `${APP_PUBLIC_URL}/v/${vid}`;
-      const totalKr = `${(total / 100).toLocaleString("sv-SE")} kr`;
       const dateText = new Date(pur.data.created_at).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
-      const { subject, html } = renderThanksEmail({ recipientName, treeCount: quantity, totalKr, dateText, verificationId: vid, verifyUrl });
+      const locationName = (gen.data as any)?.location_name ?? null;
+      const { subject, html } = renderThanksEmail({
+        recipientName,
+        treeCount: quantity,
+        dateText,
+        verificationId: vid,
+        verifyUrl,
+        locationName,
+        giftMessage: greeting || null,
+      });
       await sendEmail(custEmail, subject, html);
     }
+
 
     console.log("stripe-webhook ok", { session: session.id, type, quantity, vid, greeting: greeting ? "yes" : "no" });
     return new Response(JSON.stringify({ received: true, verification_id: vid }), { status: 200, headers: { "content-type": "application/json" } });

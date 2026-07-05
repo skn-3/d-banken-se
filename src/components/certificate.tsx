@@ -50,14 +50,12 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
       style={{
         width: 720,
         minHeight: 980,
-        background: "#FBF9F2",
-        backgroundImage:
-          "radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.6), transparent 60%), radial-gradient(600px 400px at 100% 100%, rgba(11,110,79,0.05), transparent 70%)",
+        background: "#F4FAF5",
         position: "relative",
         overflow: "hidden",
         borderRadius: 24,
-        border: "1px solid rgba(11,61,46,0.14)",
-        boxShadow: "0 30px 80px -50px rgba(11,61,46,0.35)",
+        border: "1px solid #D9EBE0",
+        boxShadow: "0 30px 80px -50px rgba(11,61,46,0.25)",
         padding: "64px 56px 48px",
         fontFamily: '"Familjen Grotesk", system-ui, sans-serif',
         color: "#0B3D2E",
@@ -65,11 +63,12 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
         transformOrigin: "top left",
       }}
     >
+
       <div style={{ position: "relative", zIndex: 1, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 0, minHeight: 860 }}>
         {/* Partner logo (optional) */}
         {t.logo_url && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginBottom: 20 }}>
-            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.18em", color: "#7A8F84", textTransform: "uppercase" }}>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.18em", color: "#6E9483", textTransform: "uppercase" }}>
               i samarbete med
             </span>
             <img src={t.logo_url} alt="Partner" style={{ maxHeight: 36, width: "auto", opacity: 0.9 }} />
@@ -81,11 +80,12 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: 12,
           letterSpacing: "0.42em",
-          color: "#4F6B5E",
+          color: "#6E9483",
           textTransform: "uppercase",
         }}>
-          {t.heading_text || "VÄRDEBEVIS"}
+          VÄRDEBEVIS
         </div>
+
 
         {/* Recipient */}
         <div style={{
@@ -107,7 +107,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           fontWeight: 700,
           fontSize: 148,
           lineHeight: 0.9,
-          color: emerald,
+          color: "#1E9E6A",
           letterSpacing: "-0.03em",
         }}>
           {data.tree_count.toLocaleString("sv-SE")}
@@ -127,7 +127,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           marginTop: 22,
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: 11,
-          color: "#4F6B5E",
+          color: "#6E9483",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
         }}>
@@ -154,7 +154,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
             margin: "28px auto 0",
             fontSize: 13,
             lineHeight: 1.65,
-            color: "#4F6B5E",
+            color: "#6E9483",
           }}>
             {t.body_text}
           </p>
@@ -166,19 +166,17 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
         <div style={{
           marginTop: 48,
           paddingTop: 20,
-          borderTop: "1px solid rgba(11,61,46,0.12)",
+          borderTop: "1px solid #D9EBE0",
           width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          textAlign: "center",
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: 10,
-          color: "#7A8F84",
+          color: "#6E9483",
           letterSpacing: "0.06em",
         }}>
-          <span style={{ textTransform: "uppercase" }}>SmartKlimat</span>
-          <span>Verifiera: smartklimat.org/v/{data.verification_id}</span>
+          Verifiera: smartklimat.org/v/{data.verification_id}
         </div>
+
 
         {/* Hidden accent hint so accent_color is still used for partner branding */}
         <span style={{ display: "none" }} data-accent={accent} />
