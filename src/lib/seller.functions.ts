@@ -287,6 +287,7 @@ export const sellerCreatePurchase = createServerFn({ method: "POST" })
         status: "paid",
         paid_at: new Date().toISOString(),
         registered_by_user_id: context.userId,
+        source: "smaarty",
       })
       .select("id, created_at")
       .single();
