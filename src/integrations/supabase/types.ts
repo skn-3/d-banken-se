@@ -131,6 +131,7 @@ export type Database = {
           planting_latitude: number
           planting_location_name: string
           planting_longitude: number
+          reward_budget_ore_per_tree: number
           team_share_ore_per_tree: number
           updated_at: string
         }
@@ -139,6 +140,7 @@ export type Database = {
           planting_latitude?: number
           planting_location_name?: string
           planting_longitude?: number
+          reward_budget_ore_per_tree?: number
           team_share_ore_per_tree?: number
           updated_at?: string
         }
@@ -147,6 +149,7 @@ export type Database = {
           planting_latitude?: number
           planting_location_name?: string
           planting_longitude?: number
+          reward_budget_ore_per_tree?: number
           team_share_ore_per_tree?: number
           updated_at?: string
         }
@@ -916,6 +919,7 @@ export type Database = {
         Row: {
           active: boolean
           category: string
+          cost_ore: number
           cost_points: number
           created_at: string
           created_by: string | null
@@ -929,6 +933,7 @@ export type Database = {
         Insert: {
           active?: boolean
           category: string
+          cost_ore?: number
           cost_points: number
           created_at?: string
           created_by?: string | null
@@ -942,6 +947,7 @@ export type Database = {
         Update: {
           active?: boolean
           category?: string
+          cost_ore?: number
           cost_points?: number
           created_at?: string
           created_by?: string | null

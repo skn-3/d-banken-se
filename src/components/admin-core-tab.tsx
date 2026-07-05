@@ -10,6 +10,7 @@ import {
   adminListPayoutRequests, adminUpdatePayoutStatus,
   getTeamSharePrice, setTeamSharePrice,
 } from "@/lib/payouts.functions";
+import { getRewardEconomy, getRewardBudget, setRewardBudget } from "@/lib/reward-economy.functions";
 import { AdminPhotoReports } from "@/components/admin-photo-reports";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
@@ -204,6 +205,7 @@ export function AdminCoreTab() {
 
       <PayoutsSection />
       <TeamShareSettingSection />
+      <RewardEconomyPanel />
       <AdminPhotoReports />
 
 
@@ -579,3 +581,94 @@ function TeamShareSettingSection() {
 }
 
 
+
+
+function RewardEconomyPanel() {
+  const loadStats = useServerFn(getRewardEconomy);
+  const loadBudget = useServerFn(getRewardBudget);
+  const saveBudget = useServerFn(setRewardBudget);
+
+  const [stats, setStats] = useState<any>(null);
+  const [budget, setBudget] = useState<string>("0");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const refresh = async () => {
+    try {
+      const [s, b] = await Promise.all([loadStats(), loadBudget()]);
+      setStats(s); setBudget(String(b.orePerTree ?? 0));
+    } catch (e: any) { setMsg(e.message); }
+  };
+  useEffect(() => { refresh().catch(() => {}); /* eslint-disable-next-line */ }, []);
+
+  const save = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      const n = parseInt(budget, 10);
+      if (!Number.isFinite(n) || n < 0) throw new Error("Ogiltigt värde.");
+      await saveBudget({ data: { orePerTree: n } });
+      setMsg("Sparat.");
+      await refresh();
+    } catch (e: any) { setMsg(e.message); }
+    finally { setBusy(false); }
+  };
+
+  if (!stats) return null;
+  const perTreePts = stats.pointsPerTree30 || 0;
+  const boostShare = stats.pointsAwarded30 > 0 ? Math.round(100 * stats.boostPoints30 / stats.pointsAwarded30) : 0;
+  const over = !!stats.overBudget;
+
+  return (
+    <section className="surface-card p-6">
+      <h2 className="font-display text-xl font-semibold">Poängekonomi</h2>
+      <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
+        Nyckeltal för att hålla belöningsprogrammet inom budget. Alla 30-dagarssiffror är rullande.
+      </p>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard label="Utdelade poäng (totalt)" value={stats.pointsAwardedTotal.toLocaleString("sv-SE")} />
+        <StatCard label="Poäng senaste 30 dagar" value={stats.pointsAwarded30.toLocaleString("sv-SE")} sub={`varav boost-poäng: ${stats.boostPoints30.toLocaleString("sv-SE")} (${boostShare}%)`} />
+        <StatCard label="Poäng per träd (30 d)" value={perTreePts.toFixed(2)} sub={`${stats.trees30} träd`} />
+        <StatCard label="Inlösta belöningar (30 d)" value={String(stats.redeemedCount)} sub={`${stats.redeemedPoints.toLocaleString("sv-SE")} poäng · ${kr(stats.redeemedCostOre)} inköp`} />
+        <StatCard
+          label="Belöningskostnad per sålt träd (30 d)"
+          value={kr(Math.round(stats.costPerTreeOre))}
+          sub={stats.budgetOre > 0 ? `Budget: ${kr(stats.budgetOre)}/träd` : "Ingen budget satt"}
+          highlight={over ? "warn" : undefined}
+        />
+      </div>
+
+      <div className="mt-6 rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
+        <div className="font-medium">Belöningsbudget per sålt träd</div>
+        <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+          Används för att räkna ut rekommenderat minimipris på nya belöningar och för varning ovan.
+        </div>
+        <div className="mt-3 flex flex-wrap items-end gap-3">
+          <label className="text-sm">Ören per träd
+            <input className="input-field mt-1 w-40" inputMode="numeric" value={budget} onChange={e => setBudget(e.target.value)} />
+          </label>
+          <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+            = {kr(parseInt(budget, 10) || 0)} / träd
+          </div>
+          <button className="chip" style={{ background: "var(--mint)" }} disabled={busy} onClick={save}>Spara</button>
+          {msg && <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{msg}</span>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatCard({ label, value, sub, highlight }: { label: string; value: string; sub?: string; highlight?: "warn" }) {
+  const warn = highlight === "warn";
+  return (
+    <div className="rounded-2xl p-4" style={{
+      background: warn ? "#FFF1E8" : "var(--mint-paper)",
+      border: warn ? "1px solid #F59E0B" : "1px solid var(--border)",
+      color: warn ? "#B45309" : "var(--forest)",
+    }}>
+      <div className="text-xs opacity-80">{label}</div>
+      <div className="font-display text-2xl font-semibold mt-1">{value}{warn && " ⚠"}</div>
+      {sub && <div className="text-xs mt-1 opacity-80">{sub}</div>}
+    </div>
+  );
+}

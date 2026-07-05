@@ -10,6 +10,7 @@ import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions"
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
 import { AdminCoreTab } from "@/components/admin-core-tab";
 import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward, adminUpdateReward, adminDeleteReward } from "@/lib/rewards.functions";
+import { getRewardBudget } from "@/lib/reward-economy.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
 import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
 
@@ -291,25 +292,57 @@ function OrdersTab() {
 }
 
 interface CatalogReward {
-  id: string; name: string; description: string | null; cost_points: number;
+  id: string; name: string; description: string | null; cost_points: number; cost_ore: number;
   category: string; image_url: string | null; active: boolean; sort_order: number;
 }
+
+const BASE_POINTS_PER_TREE = 1;
+function recommendedMinPoints(costOre: number, budgetOre: number): number {
+  if (!costOre || !budgetOre) return 0;
+  return Math.ceil((costOre * (2 * BASE_POINTS_PER_TREE)) / budgetOre);
+}
+
+function PriceGuard({ costOre, costPoints, budgetOre, compact = false }: { costOre: number; costPoints: number; budgetOre: number; compact?: boolean }) {
+  const min = recommendedMinPoints(costOre, budgetOre);
+  if (!costOre) return null;
+  if (!budgetOre) return (
+    <div className="mt-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+      Sätt en <strong>belöningsbudget</strong> under Core för att se rekommenderat minimipris.
+    </div>
+  );
+  const under = costPoints < min;
+  return (
+    <div className={`mt-2 rounded-lg px-3 py-2 text-xs ${compact ? "" : ""}`}
+      style={{
+        background: under ? "#FFF1E8" : "var(--mint-paper)",
+        color: under ? "#B45309" : "var(--forest)",
+        border: under ? "1px solid #F59E0B" : "1px solid var(--border)",
+      }}>
+      Rekommenderat minimipris: <strong>{min} p</strong> ({(costOre/100).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2})} kr inköp)
+      {under && <div className="mt-0.5">⚠ Priset ligger under rekommendation — subventionerar utöver budgeten.</div>}
+    </div>
+  );
+}
+
 
 function RewardsCatalogTab() {
   const listFn = useServerFn(adminListRewards);
   const createFn = useServerFn(adminCreateReward);
   const updateFn = useServerFn(adminUpdateReward);
   const deleteFn = useServerFn(adminDeleteReward);
+  const loadBudget = useServerFn(getRewardBudget);
 
   const [rewards, setRewards] = useState<CatalogReward[]>([]);
+  const [budgetOre, setBudgetOre] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<CatalogReward | null>(null);
   const [showNew, setShowNew] = useState(false);
-  const [draft, setDraft] = useState<CatalogReward>({ id: "", name: "", description: "", cost_points: 10, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
+  const [draft, setDraft] = useState<CatalogReward>({ id: "", name: "", description: "", cost_points: 10, cost_ore: 0, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
 
   const reload = async () => {
     const r = await listFn({ data: {} });
     setRewards(r.rewards as CatalogReward[]);
+    try { const b = await loadBudget(); setBudgetOre(b.orePerTree); } catch { /* ignore */ }
   };
   useEffect(() => { (async () => { await reload(); setLoading(false); })(); /* eslint-disable-next-line */ }, []);
 
@@ -326,13 +359,14 @@ function RewardsCatalogTab() {
       name: draft.name.trim(),
       description: draft.description || null,
       costPoints: draft.cost_points,
+      costOre: draft.cost_ore,
       category: draft.category.trim() || "Övrigt",
       imageUrl: draft.image_url,
       active: draft.active,
       sortOrder: draft.sort_order,
     }});
     setShowNew(false);
-    setDraft({ id: "", name: "", description: "", cost_points: 10, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
+    setDraft({ id: "", name: "", description: "", cost_points: 10, cost_ore: 0, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
     await reload();
   };
 
@@ -342,6 +376,7 @@ function RewardsCatalogTab() {
       name: r.name.trim(),
       description: r.description || null,
       costPoints: r.cost_points,
+      costOre: r.cost_ore,
       category: r.category.trim() || "Övrigt",
       imageUrl: r.image_url,
       active: r.active,
@@ -374,11 +409,17 @@ function RewardsCatalogTab() {
               value={draft.cost_points} onChange={e => setDraft({ ...draft, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
             <input className="input-field font-mono" type="number" placeholder="Sortering"
               value={draft.sort_order} onChange={e => setDraft({ ...draft, sort_order: Number(e.target.value) || 0 })} />
+            <label className="text-xs sm:col-span-2" style={{ color: "var(--muted-foreground)" }}>
+              Verklig inköpskostnad (öre)
+              <input className="input-field font-mono mt-1" type="number" min={0}
+                value={draft.cost_ore} onChange={e => setDraft({ ...draft, cost_ore: Math.max(0, Number(e.target.value) || 0) })} />
+            </label>
             <input className="input-field sm:col-span-2" placeholder="Bild-URL (valfri)"
               value={draft.image_url ?? ""} onChange={e => setDraft({ ...draft, image_url: e.target.value || null })} />
             <textarea className="input-field sm:col-span-2" rows={2} placeholder="Beskrivning (valfri)"
               value={draft.description ?? ""} onChange={e => setDraft({ ...draft, description: e.target.value })} />
           </div>
+          <PriceGuard costOre={draft.cost_ore} costPoints={draft.cost_points} budgetOre={budgetOre} />
           <div className="mt-3 flex justify-end gap-2">
             <button className="btn-secondary" onClick={() => setShowNew(false)}>Avbryt</button>
             <button className="btn-primary" disabled={!draft.name.trim()} onClick={saveDraft}>Skapa</button>
@@ -409,12 +450,15 @@ function RewardsCatalogTab() {
                         <select className="input-field !py-1 !text-sm" value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })}>
                           {REWARD_CATEGORY_ORDER.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
-                        <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} value={editing.cost_points}
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} placeholder="Poäng" value={editing.cost_points}
                           onChange={e => setEditing({ ...editing, cost_points: Math.max(0, Number(e.target.value) || 0) })} />
-                        <input className="input-field !py-1 !text-sm font-mono" type="number" value={editing.sort_order}
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" min={0} placeholder="Inköp öre" value={editing.cost_ore}
+                          onChange={e => setEditing({ ...editing, cost_ore: Math.max(0, Number(e.target.value) || 0) })} />
+                        <input className="input-field !py-1 !text-sm font-mono" type="number" placeholder="Sortering" value={editing.sort_order}
                           onChange={e => setEditing({ ...editing, sort_order: Number(e.target.value) || 0 })} />
                       </div>
                       <div className="flex flex-col gap-2">
+                        <PriceGuard costOre={editing.cost_ore} costPoints={editing.cost_points} budgetOre={budgetOre} compact />
                         <button className="btn-primary !py-1 !px-2 text-xs" onClick={() => saveEdit(editing)}>Spara</button>
                         <button className="btn-secondary !py-1 !px-2 text-xs" onClick={() => setEditing(null)}>Avbryt</button>
                       </div>
