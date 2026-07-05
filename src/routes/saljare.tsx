@@ -653,6 +653,9 @@ function HomeView({
       )}
 
 
+      {/* Boosts */}
+      <BoostHub />
+
       {/* Topplista */}
       <section className="surface-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
