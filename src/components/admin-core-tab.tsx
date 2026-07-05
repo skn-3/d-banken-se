@@ -10,6 +10,7 @@ import {
   adminListPayoutRequests, adminUpdatePayoutStatus,
   getTeamSharePrice, setTeamSharePrice,
 } from "@/lib/payouts.functions";
+import { AdminPhotoReports } from "@/components/admin-photo-reports";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
 
@@ -203,6 +204,7 @@ export function AdminCoreTab() {
 
       <PayoutsSection />
       <TeamShareSettingSection />
+      <AdminPhotoReports />
 
 
 

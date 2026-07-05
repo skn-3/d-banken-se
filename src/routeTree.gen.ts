@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SverigeRouteImport } from './routes/sverige'
 import { Route as SkapaLagRouteImport } from './routes/skapa-lag'
 import { Route as SaljareRouteImport } from './routes/saljare'
 import { Route as SaljHjalpRouteImport } from './routes/salj-hjalp'
@@ -25,6 +26,11 @@ import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/un
 import { Route as ApiPublicPushNotifyRouteImport } from './routes/api/public/push-notify'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
 
+const SverigeRoute = SverigeRouteImport.update({
+  id: '/sverige',
+  path: '/sverige',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkapaLagRoute = SkapaLagRouteImport.update({
   id: '/skapa-lag',
   path: '/skapa-lag',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
+  '/sverige': typeof SverigeRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
+  '/sverige': typeof SverigeRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
+  '/sverige': typeof SverigeRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/salj-hjalp'
     | '/saljare'
     | '/skapa-lag'
+    | '/sverige'
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/unsubscribe'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/salj-hjalp'
     | '/saljare'
     | '/skapa-lag'
+    | '/sverige'
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/unsubscribe'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/salj-hjalp'
     | '/saljare'
     | '/skapa-lag'
+    | '/sverige'
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/unsubscribe'
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   SaljHjalpRoute: typeof SaljHjalpRoute
   SaljareRoute: typeof SaljareRoute
   SkapaLagRoute: typeof SkapaLagRoute
+  SverigeRoute: typeof SverigeRoute
   VIdRoute: typeof VIdRoute
   ApiPublicPushNotifyRoute: typeof ApiPublicPushNotifyRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
@@ -228,6 +241,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sverige': {
+      id: '/sverige'
+      path: '/sverige'
+      fullPath: '/sverige'
+      preLoaderRoute: typeof SverigeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skapa-lag': {
       id: '/skapa-lag'
       path: '/skapa-lag'
@@ -348,6 +368,7 @@ const rootRouteChildren: RootRouteChildren = {
   SaljHjalpRoute: SaljHjalpRoute,
   SaljareRoute: SaljareRoute,
   SkapaLagRoute: SkapaLagRoute,
+  SverigeRoute: SverigeRoute,
   VIdRoute: VIdRoute,
   ApiPublicPushNotifyRoute: ApiPublicPushNotifyRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,

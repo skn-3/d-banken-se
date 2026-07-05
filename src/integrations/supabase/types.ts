@@ -65,6 +65,42 @@ export type Database = {
         }
         Relationships: []
       }
+      avatar_catalog: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          emoji: string
+          key: string
+          name: string
+          sort_order: number
+          unlock_config: Json
+          unlock_type: string
+        }
+        Insert: {
+          active?: boolean
+          color: string
+          created_at?: string
+          emoji: string
+          key: string
+          name: string
+          sort_order?: number
+          unlock_config?: Json
+          unlock_type?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          emoji?: string
+          key?: string
+          name?: string
+          sort_order?: number
+          unlock_config?: Json
+          unlock_type?: string
+        }
+        Relationships: []
+      }
       backup_runs: {
         Row: {
           created_at: string
@@ -400,7 +436,50 @@ export type Database = {
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payout_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_team_ranking"
+            referencedColumns: ["team_id"]
+          },
         ]
+      }
+      photo_reports: {
+        Row: {
+          created_at: string
+          id: string
+          photo_path: string | null
+          reason: string
+          reported_by_user_id: string
+          reported_user_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_path?: string | null
+          reason: string
+          reported_by_user_id: string
+          reported_user_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_path?: string | null
+          reason?: string
+          reported_by_user_id?: string
+          reported_user_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: []
       }
       point_events: {
         Row: {
@@ -471,6 +550,7 @@ export type Database = {
       profiles: {
         Row: {
           account_type: string
+          avatar_key: string
           company_template_id: string | null
           created_at: string
           email: string
@@ -478,10 +558,12 @@ export type Database = {
           id: string
           is_minor: boolean
           name: string
+          photo_path: string | null
           user_id: string
         }
         Insert: {
           account_type?: string
+          avatar_key?: string
           company_template_id?: string | null
           created_at?: string
           email: string
@@ -489,10 +571,12 @@ export type Database = {
           id?: string
           is_minor?: boolean
           name: string
+          photo_path?: string | null
           user_id: string
         }
         Update: {
           account_type?: string
+          avatar_key?: string
           company_template_id?: string | null
           created_at?: string
           email?: string
@@ -500,6 +584,7 @@ export type Database = {
           id?: string
           is_minor?: boolean
           name?: string
+          photo_path?: string | null
           user_id?: string
         }
         Relationships: [
@@ -632,6 +717,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_team_ranking"
+            referencedColumns: ["team_id"]
           },
         ]
       }
@@ -879,6 +971,13 @@ export type Database = {
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_team_ranking"
+            referencedColumns: ["team_id"]
+          },
         ]
       }
       team_week_bonus: {
@@ -907,6 +1006,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_week_bonus_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_team_ranking"
+            referencedColumns: ["team_id"]
           },
         ]
       }
@@ -1063,6 +1169,49 @@ export type Database = {
         }
         Relationships: []
       }
+      v_public_seller_profile: {
+        Row: {
+          avatar_key: string | null
+          first_name: string | null
+          organization_name: string | null
+          photo_path: string | null
+          points_total: number | null
+          points_week: number | null
+          team_city: string | null
+          team_id: string | null
+          team_name: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_team_ranking"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
+      v_public_team_ranking: {
+        Row: {
+          city: string | null
+          members: number | null
+          organization_name: string | null
+          points_total: number | null
+          points_week: number | null
+          team_id: string | null
+          team_name: string | null
+          trees_total: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       activate_seller_boost: {
@@ -1144,6 +1293,10 @@ export type Database = {
         Returns: boolean
       }
       join_team_by_code: { Args: { _code: string }; Returns: Json }
+      leader_reset_member_photo: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       log_admin_activity: {
         Args: { _action: string; _detail?: Json }
         Returns: string
