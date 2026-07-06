@@ -133,6 +133,8 @@ function AdminMallarPage() {
                     className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>Duplicera</button>
                   <a href={`/admin/mallar/${r.id}`}
                     className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>Redigera</a>
+                  <button disabled={busy === r.id} onClick={() => remove(r)}
+                    className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)", color: "#c33" }}>Radera</button>
 
                 </div>
               </div>
