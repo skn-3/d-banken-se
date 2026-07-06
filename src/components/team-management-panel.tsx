@@ -357,11 +357,72 @@ export function TeamManagementPanel() {
         </Modal>
       )}
 
-      {/* Confirm rotate modal */}
-      {confirmRotate && (
-        <Modal onClose={() => setConfirmRotate(false)}>
-          <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Skapa ny lagkod?</h3>
-          <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+      {/* Cert picker modal */}
+      {certPickerOpen && (
+        <Modal onClose={() => setCertPickerOpen(false)}>
+          <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Välj värdebevis</h3>
+          <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Gäller alla nya köp genom laget. Redan utfärdade bevis ändras aldrig.
+          </p>
+          <label className="mt-3 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.showTeamName}
+              onChange={async (e) => {
+                const v = e.target.checked;
+                setForm((f) => ({ ...f, showTeamName: v }));
+                try {
+                  await updateCertFn({ data: { certTemplateId: team.certTemplateId, showTeamNameOnCertificate: v } });
+                  await refresh();
+                } catch (err) { setMsg((err as Error).message); }
+              }}
+            />
+            Visa lagnamn på beviset
+          </label>
+          <div className="mt-4 grid grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto">
+            {templates.map((t) => {
+              const active = team.certTemplateId === t.id;
+              return (
+                <button
+                  key={t.id}
+                  disabled={pickerBusy}
+                  onClick={async () => {
+                    setPickerBusy(true);
+                    try {
+                      await updateCertFn({ data: { certTemplateId: t.id } });
+                      await refresh();
+                      setCertPickerOpen(false);
+                      setMsg(`Bevis bytt till ${t.name}. Gäller framtida köp.`);
+                    } catch (err) { setMsg((err as Error).message); }
+                    finally { setPickerBusy(false); }
+                  }}
+                  className="text-left"
+                >
+                  <div
+                    className="aspect-[4/5] rounded-lg overflow-hidden border"
+                    style={{
+                      borderColor: active ? "var(--forest)" : "var(--border)",
+                      boxShadow: active ? "0 0 0 3px rgba(30,158,106,0.25)" : undefined,
+                      backgroundImage: t.kort_url ? `url("${t.kort_url}")` : `url("${t.bg_url}")`,
+                      backgroundSize: "cover", backgroundPosition: "center",
+                    }}
+                  />
+                  <div className="mt-1 text-xs font-semibold truncate">{t.name}</div>
+                </button>
+              );
+            })}
+            {templates.length === 0 && (
+              <div className="col-span-3 text-sm text-center py-6" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>
+            )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => setCertPickerOpen(false)} className="btn-secondary !py-2 !px-4 text-sm">Stäng</button>
+          </div>
+        </Modal>
+      )}
+    </section>
+  );
+}
             Den gamla koden slutar gälla direkt. Säljare som redan är med i laget påverkas inte, men nya måste få den nya koden.
           </p>
           <div className="mt-4 flex justify-end gap-2">
