@@ -41,7 +41,14 @@ export const Route = createFileRoute("/api/public/hooks/theme-test-mail")({
           theme: (theme.config ?? null) as never,
           heroImageUrl,
         });
-        const result = await sendEmail({ to, subject, html });
+        const result = await sendEmail({
+          to,
+          subject,
+          html,
+          from: "SmartKlimat <bevis@send.smartklimat.org>",
+          replyTo: "hej@smartklimat.org",
+        });
+
         return new Response(JSON.stringify({ slug, to, subject, result }), {
           status: 200, headers: { "content-type": "application/json" },
         });

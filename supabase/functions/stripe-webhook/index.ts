@@ -7,7 +7,8 @@ const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <hej@send.smartklimat.org>";
+const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <bevis@send.smartklimat.org>";
+const RESEND_REPLY_TO = "hej@smartklimat.org";
 const APP_PUBLIC_URL = (Deno.env.get("APP_PUBLIC_URL") ?? "https://app.smartklimat.org").replace(/\/+$/, "");
 const PRICE_PER_TREE_ORE = 3500;
 
@@ -17,11 +18,12 @@ async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${RESEND_API_KEY}` },
-    body: JSON.stringify({ from: RESEND_FROM, to, subject, html }),
+    body: JSON.stringify({ from: RESEND_FROM, to, subject, html, reply_to: RESEND_REPLY_TO }),
   });
   if (!res.ok) { console.error("Resend fail", res.status, await res.text()); return false; }
   return true;
 }
+
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("method_not_allowed", { status: 405 });

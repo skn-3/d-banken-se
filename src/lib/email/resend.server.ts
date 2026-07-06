@@ -8,7 +8,9 @@ interface SendArgs {
   html: string;
   from?: string;
   fallbackFrom?: string;
+  replyTo?: string;
 }
+
 
 export interface SendEmailResult {
   ok: boolean;
@@ -43,7 +45,7 @@ function summarizeBody(body: string | null) {
 // Fallback retry removed — auth mail always sends from AUTH_EMAIL_FROM (verified root domain).
 
 
-async function sendViaGateway(payload: { from: string; to: string; subject: string; html: string }, apiKey: string, gatewayKey: string) {
+async function sendViaGateway(payload: { from: string; to: string; subject: string; html: string; reply_to?: string }, apiKey: string, gatewayKey: string) {
   const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
     method: "POST",
     headers: {
@@ -64,7 +66,7 @@ async function sendViaGateway(payload: { from: string; to: string; subject: stri
   } satisfies SendEmailResult;
 }
 
-async function sendDirect(payload: { from: string; to: string; subject: string; html: string }, apiKey: string) {
+async function sendDirect(payload: { from: string; to: string; subject: string; html: string; reply_to?: string }, apiKey: string) {
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
@@ -84,7 +86,7 @@ async function sendDirect(payload: { from: string; to: string; subject: string; 
   } satisfies SendEmailResult;
 }
 
-export async function sendEmail({ to, subject, html, from: fromOverride, fallbackFrom }: SendArgs): Promise<SendEmailResult> {
+export async function sendEmail({ to, subject, html, from: fromOverride, fallbackFrom, replyTo }: SendArgs): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     const result: SendEmailResult = { ok: false, provider: "none", status: null, body: null, skipped: true, error: "RESEND_API_KEY missing" };
@@ -92,10 +94,11 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return result;
   }
 
-  // Bevismail / temamail får ALDRIG gå från resend.dev — använd alltid verifierade send.smartklimat.org.
-  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <hej@send.smartklimat.org>";
+  // Bevismail / temamail: alltid verifierade send.smartklimat.org (aldrig resend.dev).
+  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <bevis@send.smartklimat.org>";
+  const payload: { from: string; to: string; subject: string; html: string; reply_to?: string } = { from, to, subject, html };
+  if (replyTo) payload.reply_to = replyTo;
 
-  const payload = { from, to, subject, html };
   const gatewayKey = process.env.LOVABLE_API_KEY;
 
   const sendOnce = async (activePayload: typeof payload) => {
