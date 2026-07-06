@@ -338,7 +338,7 @@ function RewardsCatalogTab() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<CatalogReward | null>(null);
   const [showNew, setShowNew] = useState(false);
-  const [draft, setDraft] = useState<CatalogReward>({ id: "", name: "", description: "", cost_points: 10, cost_ore: 0, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
+  const [draft, setDraft] = useState<CatalogReward>({ id: "", name: "", description: "", cost_points: 10, cost_ore: 0, category: "Småpriser", image_url: null, active: true, sort_order: 100, stock: null, is_digital: false });
 
   const reload = async () => {
     const r = await listFn({ data: {} });
@@ -367,7 +367,7 @@ function RewardsCatalogTab() {
       sortOrder: draft.sort_order,
     }});
     setShowNew(false);
-    setDraft({ id: "", name: "", description: "", cost_points: 10, cost_ore: 0, category: "Småpriser", image_url: null, active: true, sort_order: 100 });
+    setDraft({ id: "", name: "", description: "", cost_points: 10, cost_ore: 0, category: "Småpriser", image_url: null, active: true, sort_order: 100, stock: null, is_digital: false });
     await reload();
   };
 
