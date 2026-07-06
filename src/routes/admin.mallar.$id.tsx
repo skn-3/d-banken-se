@@ -582,6 +582,57 @@ function EditorPage() {
               <div className="mt-1 text-[11px] underline">Byt bild</div>
             </label>
           </div>
+
+          {/* AI-STUDIO */}
+          <div className="mt-3 border rounded p-3 text-xs space-y-2" style={{ borderColor: "var(--border)", background: "rgba(120,80,200,0.05)" }}>
+            <div className="flex items-center justify-between">
+              <div className="font-semibold">🎨 Generera bakgrund (Claude)</div>
+              <div className="text-[10px]" style={{ color: "var(--muted-foreground)" }}>max 40/dag</div>
+            </div>
+            <label className="block">
+              <div className="mb-1">Brief</div>
+              <textarea value={aiBrief} rows={2}
+                placeholder="t.ex. Födelsedagskonfetti i rosa och teal, våg i botten"
+                onChange={(e) => setAiBrief(e.target.value)}
+                className="w-full border rounded px-2 py-1" style={{ borderColor: "var(--border)" }} />
+            </label>
+            <button onClick={generateBg} disabled={busy !== null || !aiBrief.trim()}
+              className="text-xs px-3 py-1.5 rounded" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
+              {busy === "ai" ? "Genererar…" : "Generera"}
+            </button>
+            {aiCurrentSvg && (
+              <>
+                <label className="block mt-2">
+                  <div className="mb-1">Justering</div>
+                  <input value={aiJust}
+                    placeholder="t.ex. byt rosa mot korall, färre former"
+                    onChange={(e) => setAiJust(e.target.value)}
+                    className="w-full border rounded px-2 py-1" style={{ borderColor: "var(--border)" }} />
+                </label>
+                <button onClick={adjustBg} disabled={busy !== null || !aiJust.trim()}
+                  className="text-xs px-3 py-1.5 rounded border" style={{ borderColor: "var(--border)" }}>
+                  {busy === "ai" ? "Justerar…" : "Justera"}
+                </button>
+              </>
+            )}
+            {aiHistory.length > 0 && (
+              <div className="mt-2">
+                <div className="font-semibold mb-1">Historik ({aiHistory.length}/5)</div>
+                <div className="space-y-1">
+                  {aiHistory.map((v, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <button onClick={() => restoreAi(v)}
+                        className="flex-1 text-left truncate px-2 py-1 rounded border"
+                        style={{ borderColor: "var(--border)", background: v.url === bgUrl ? "rgba(30,158,106,0.1)" : "transparent" }}>
+                        {v.url === bgUrl ? "✓ " : ""}{v.label}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* SIDOPANEL */}
