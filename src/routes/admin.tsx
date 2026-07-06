@@ -196,7 +196,10 @@ function AdminPage() {
                 </section>
 
                 <section className="surface-card mt-6 p-6">
-                  <h2 className="font-display text-xl font-semibold">Köp</h2>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="font-display text-xl font-semibold">Köp</h2>
+                    <AdminPurchasesExport />
+                  </div>
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
