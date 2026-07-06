@@ -28,6 +28,9 @@ type RewardRow = {
   category: string;
   image_url: string | null;
   sort_order: number;
+  stock: number | null;
+  is_digital: boolean;
+  sold_out: boolean;
 };
 
 type OrderRow = {
