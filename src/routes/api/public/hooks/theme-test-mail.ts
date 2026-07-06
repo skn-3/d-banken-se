@@ -25,7 +25,8 @@ export const Route = createFileRoute("/api/public/hooks/theme-test-mail")({
         if (!theme) return new Response(JSON.stringify({ error: `no theme ${slug}` }), { status: 404 });
 
         const kort = (theme.config as { kort?: string } | null)?.kort;
-        const heroImageUrl = kort ? (kort.startsWith("http") ? kort : `https://smartklimat.org${kort}`) : null;
+        const appBase = (process.env.APP_PUBLIC_URL ?? "https://app.smartklimat.org").replace(/\/+$/, "");
+        const heroImageUrl = kort ? (kort.startsWith("http") ? kort : `${appBase}${kort}`) : null;
 
         const { subject, html } = renderThanksEmail({
           recipientName,

@@ -95,42 +95,43 @@ function valueFor(key: string, d: FaltkartaData): string | null {
   }
 }
 
-function buildFontString(f: Falt): string {
+function buildFontString(f: Falt, s = 1): string {
   const style = f.italic ? "italic " : "";
   const w = /^\d+$/.test(f.weight) ? f.weight : (f.weight === "bold" ? "700" : "400");
-  return `${style}${w} ${f.size}px "${f.font}"`;
+  return `${style}${w} ${f.size * s}px "${f.font}"`;
 }
 
-async function preloadFonts(kartor: Karta): Promise<void> {
+async function preloadFonts(kartor: Karta, s = 1): Promise<void> {
   if (typeof document === "undefined" || !document.fonts) return;
   const specs = new Set<string>();
-  Object.values(kartor.falt).forEach((f) => specs.add(buildFontString(f)));
-  await Promise.all(Array.from(specs).map((s) =>
-    document.fonts.load(s, "ÅÄÖabcåäö0123456789· ").catch(() => null)
+  Object.values(kartor.falt).forEach((f) => specs.add(buildFontString(f, s)));
+  await Promise.all(Array.from(specs).map((spec) =>
+    document.fonts.load(spec, "ÅÄÖabcåäö0123456789· ").catch(() => null)
   ));
   await document.fonts.ready;
 }
 
-/** Rita en textrad med anchor + letterSpacing (canvas letterSpacing polyfill). */
-function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt) {
+/** Rita en textrad med anchor + letterSpacing, skalad med faktorn s. */
+function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: number) {
   ctx.save();
-  ctx.font = buildFontString(f);
+  ctx.font = buildFontString(f, s);
   ctx.fillStyle = f.color;
-  ctx.textBaseline = "alphabetic"; // y = baseline
-  ctx.textAlign = "left";          // vi hanterar anchor manuellt
+  ctx.textBaseline = "alphabetic";
+  ctx.textAlign = "left";
 
-  const ls = f.letterSpacing || 0;
-  // Mät bredd inkl letterSpacing
+  const ls = (f.letterSpacing || 0) * s;
   let totalWidth = 0;
   for (const ch of Array.from(text)) totalWidth += ctx.measureText(ch).width + ls;
-  totalWidth -= ls; // ingen efter sista tecknet
+  totalWidth -= ls;
 
-  let x = f.x;
-  if (f.anchor === "middle") x = f.x - totalWidth / 2;
-  else if (f.anchor === "end") x = f.x - totalWidth;
+  const ax = f.x * s;
+  const y = f.y * s;
+  let x = ax;
+  if (f.anchor === "middle") x = ax - totalWidth / 2;
+  else if (f.anchor === "end") x = ax - totalWidth;
 
   for (const ch of Array.from(text)) {
-    ctx.fillText(ch, x, f.y);
+    ctx.fillText(ch, x, y);
     x += ctx.measureText(ch).width + ls;
   }
   ctx.restore();
@@ -142,29 +143,34 @@ export async function downloadFaltkartaCertPdf(kartaSlug: string, data: Faltkart
   const karta = kartor[kartaSlug];
   if (!karta) throw new Error(`Fältkarta saknas för slug: ${kartaSlug}`);
 
-  const { w, h } = karta.canvas;
-  const canvas = document.createElement("canvas");
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext("2d")!;
-
-  // 1) Bakgrund fullbleed
+  // 1) Ladda bg först — skalfaktorn härleds ur bg-bildens verkliga bredd
+  //    jämfört med kartans referens-canvas (nya 2480×3508-bakgrunder ger s=2).
   const bg = await loadImage(karta.bg);
-  ctx.drawImage(bg, 0, 0, w, h);
+  const s = bg.naturalWidth > 0 ? bg.naturalWidth / karta.canvas.w : 1;
 
-  // 2) Ladda fonter så mätningen blir korrekt
-  await preloadFonts(karta);
+  const outW = Math.round(karta.canvas.w * s);
+  const outH = Math.round(karta.canvas.h * s);
+  const canvas = document.createElement("canvas");
+  canvas.width = outW; canvas.height = outH;
+  const ctx = canvas.getContext("2d")!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bg, 0, 0, outW, outH);
 
-  // 3) Rita varje fält
+  // 2) Ladda fonter i skalad storlek
+  await preloadFonts(karta, s);
+
+  // 3) Rita fälten
   for (const [key, f] of Object.entries(karta.falt)) {
     const raw = valueFor(key, data);
     if (raw == null || raw === "") continue;
     const text = f.template ? f.template.replace("{v}", raw) : raw;
-    drawFieldText(ctx, text, f);
+    drawFieldText(ctx, text, f, s);
   }
 
-  // 4) Ut till A4-PDF
-  const img = canvas.toDataURL("image/png");
+  // 4) A4-PDF (JPEG 0.95 håller filstorleken nere utan synlig kvalitetsförlust)
+  const img = canvas.toDataURL("image/jpeg", 0.95);
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
-  pdf.addImage(img, "PNG", 0, 0, 210, 297, undefined, "FAST");
+  pdf.addImage(img, "JPEG", 0, 0, 210, 297, undefined, "FAST");
   pdf.save(`vardebevis-${data.verification_id}.pdf`);
 }
