@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/public/hooks/theme-test-mail")({
           verifyUrl: "https://app.smartklimat.org/v/test",
           locationName: "Khasi Hills",
           giftMessage: "Grattis på födelsedagen från oss alla!",
-          theme: theme.config,
+          theme: (theme.config ?? null) as never,
         });
         const result = await sendEmail({ to, subject, html });
         return new Response(JSON.stringify({ slug, to, subject, result }), {

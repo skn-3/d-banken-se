@@ -29,6 +29,7 @@ import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/un
 import { Route as ApiPublicSiteEventRouteImport } from './routes/api/public/site-event'
 import { Route as ApiPublicPushNotifyRouteImport } from './routes/api/public/push-notify'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
+import { Route as ApiPublicHooksThemeTestMailRouteImport } from './routes/api/public/hooks/theme-test-mail'
 import { Route as ApiPublicHooksTeamWeeklyReportRouteImport } from './routes/api/public/hooks/team-weekly-report'
 
 const SverigeRoute = SverigeRouteImport.update({
@@ -132,6 +133,12 @@ const ApiPublicHooksWeeklyBackupRoute =
     path: '/api/public/hooks/weekly-backup',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksThemeTestMailRoute =
+  ApiPublicHooksThemeTestMailRouteImport.update({
+    id: '/api/public/hooks/theme-test-mail',
+    path: '/api/public/hooks/theme-test-mail',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTeamWeeklyReportRoute =
   ApiPublicHooksTeamWeeklyReportRouteImport.update({
     id: '/api/public/hooks/team-weekly-report',
@@ -160,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
+  '/api/public/hooks/theme-test-mail': typeof ApiPublicHooksThemeTestMailRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
 export interface FileRoutesByTo {
@@ -183,6 +191,7 @@ export interface FileRoutesByTo {
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
+  '/api/public/hooks/theme-test-mail': typeof ApiPublicHooksThemeTestMailRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
 export interface FileRoutesById {
@@ -207,6 +216,7 @@ export interface FileRoutesById {
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
+  '/api/public/hooks/theme-test-mail': typeof ApiPublicHooksThemeTestMailRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
 }
 export interface FileRouteTypes {
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/team-weekly-report'
+    | '/api/public/hooks/theme-test-mail'
     | '/api/public/hooks/weekly-backup'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/team-weekly-report'
+    | '/api/public/hooks/theme-test-mail'
     | '/api/public/hooks/weekly-backup'
   id:
     | '__root__'
@@ -278,6 +290,7 @@ export interface FileRouteTypes {
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/team-weekly-report'
+    | '/api/public/hooks/theme-test-mail'
     | '/api/public/hooks/weekly-backup'
   fileRoutesById: FileRoutesById
 }
@@ -302,6 +315,7 @@ export interface RootRouteChildren {
   ApiPublicSiteEventRoute: typeof ApiPublicSiteEventRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   ApiPublicHooksTeamWeeklyReportRoute: typeof ApiPublicHooksTeamWeeklyReportRoute
+  ApiPublicHooksThemeTestMailRoute: typeof ApiPublicHooksThemeTestMailRoute
   ApiPublicHooksWeeklyBackupRoute: typeof ApiPublicHooksWeeklyBackupRoute
 }
 
@@ -447,6 +461,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksWeeklyBackupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/theme-test-mail': {
+      id: '/api/public/hooks/theme-test-mail'
+      path: '/api/public/hooks/theme-test-mail'
+      fullPath: '/api/public/hooks/theme-test-mail'
+      preLoaderRoute: typeof ApiPublicHooksThemeTestMailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/team-weekly-report': {
       id: '/api/public/hooks/team-weekly-report'
       path: '/api/public/hooks/team-weekly-report'
@@ -478,6 +499,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSiteEventRoute: ApiPublicSiteEventRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   ApiPublicHooksTeamWeeklyReportRoute: ApiPublicHooksTeamWeeklyReportRoute,
+  ApiPublicHooksThemeTestMailRoute: ApiPublicHooksThemeTestMailRoute,
   ApiPublicHooksWeeklyBackupRoute: ApiPublicHooksWeeklyBackupRoute,
 }
 export const routeTree = rootRouteImport
