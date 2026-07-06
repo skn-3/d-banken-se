@@ -1866,6 +1866,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_search: { Args: { q: string }; Returns: Json }
       award_achievement: {
         Args: { _key: string; _meta?: Json; _user_id: string }
         Returns: boolean
@@ -2026,6 +2027,8 @@ export type Database = {
       }
       refresh_insights_daily_trees: { Args: never; Returns: undefined }
       seller_points_balance: { Args: { _user_id: string }; Returns: number }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       update_team_self_service: {
         Args: {
           _certificate_template_id: string
