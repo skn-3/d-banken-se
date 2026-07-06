@@ -40,8 +40,16 @@ async function fetchTemplate(): Promise<string> {
   return await res.text();
 }
 
+// Extraherar @font-face-block ur mallens <style> så vi kan injicera dem i
+// huvuddokumentet — html2canvas klonar noder till förälderdokumentet, och
+// utan detta hittar den inte de inbäddade fontfilerna som bara finns i iframen.
+function extractFontFaceCss(html: string): string {
+  const style = /<style>([\s\S]*?)<\/style>/i.exec(html)?.[1] ?? "";
+  const rules = style.match(/@font-face\{[^}]*\}/g) ?? [];
+  return rules.join("\n");
+}
+
 function populate(html: string, d: OriginalCertData): string {
-  // Ersätt data-falt-spans utan att röra mallens övriga struktur.
   const doc = new DOMParser().parseFromString(html, "text/html");
   const setFalt = (key: string, value: string) => {
     doc.querySelectorAll(`[data-falt="${key}"]`).forEach((el) => {
