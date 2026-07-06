@@ -26,6 +26,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VIdRouteImport } from './routes/v.$id'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as ApiPublicSiteEventRouteImport } from './routes/api/public/site-event'
 import { Route as ApiPublicPushNotifyRouteImport } from './routes/api/public/push-notify'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
 import { Route as ApiPublicHooksTeamWeeklyReportRouteImport } from './routes/api/public/hooks/team-weekly-report'
@@ -115,6 +116,11 @@ const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
   path: '/api/public/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSiteEventRoute = ApiPublicSiteEventRouteImport.update({
+  id: '/api/public/site-event',
+  path: '/api/public/site-event',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPushNotifyRoute = ApiPublicPushNotifyRouteImport.update({
   id: '/api/public/push-notify',
   path: '/api/public/push-notify',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/sverige': typeof SverigeRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
+  '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/sverige': typeof SverigeRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
+  '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/sverige': typeof SverigeRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
+  '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/sverige'
     | '/v/$id'
     | '/api/public/push-notify'
+    | '/api/public/site-event'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/weekly-backup'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/sverige'
     | '/v/$id'
     | '/api/public/push-notify'
+    | '/api/public/site-event'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/weekly-backup'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/sverige'
     | '/v/$id'
     | '/api/public/push-notify'
+    | '/api/public/site-event'
     | '/api/public/unsubscribe'
     | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/weekly-backup'
@@ -287,6 +299,7 @@ export interface RootRouteChildren {
   SverigeRoute: typeof SverigeRoute
   VIdRoute: typeof VIdRoute
   ApiPublicPushNotifyRoute: typeof ApiPublicPushNotifyRoute
+  ApiPublicSiteEventRoute: typeof ApiPublicSiteEventRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   ApiPublicHooksTeamWeeklyReportRoute: typeof ApiPublicHooksTeamWeeklyReportRoute
   ApiPublicHooksWeeklyBackupRoute: typeof ApiPublicHooksWeeklyBackupRoute
@@ -413,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/site-event': {
+      id: '/api/public/site-event'
+      path: '/api/public/site-event'
+      fullPath: '/api/public/site-event'
+      preLoaderRoute: typeof ApiPublicSiteEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push-notify': {
       id: '/api/public/push-notify'
       path: '/api/public/push-notify'
@@ -455,6 +475,7 @@ const rootRouteChildren: RootRouteChildren = {
   SverigeRoute: SverigeRoute,
   VIdRoute: VIdRoute,
   ApiPublicPushNotifyRoute: ApiPublicPushNotifyRoute,
+  ApiPublicSiteEventRoute: ApiPublicSiteEventRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   ApiPublicHooksTeamWeeklyReportRoute: ApiPublicHooksTeamWeeklyReportRoute,
   ApiPublicHooksWeeklyBackupRoute: ApiPublicHooksWeeklyBackupRoute,
