@@ -294,6 +294,7 @@ function OrdersTab() {
 interface CatalogReward {
   id: string; name: string; description: string | null; cost_points: number; cost_ore: number;
   category: string; image_url: string | null; active: boolean; sort_order: number;
+  stock: number | null; is_digital: boolean;
 }
 
 const BASE_POINTS_PER_TREE = 1;
