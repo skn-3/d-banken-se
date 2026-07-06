@@ -12,6 +12,7 @@ import { getRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 import { EventBanner } from "@/components/event-banner";
 import { Onboarding, hasSeenOnboarding, markOnboardingSeen } from "@/components/onboarding";
 import { PlantingForm } from "@/components/planting-form";
+import { GreetingThemePicker } from "@/components/greeting-theme-picker";
 import skottAsset from "@/assets/stages/skott.png.asset.json";
 import plantaAsset from "@/assets/stages/planta.png.asset.json";
 import ungtAsset from "@/assets/stages/ungt-trad.png.asset.json";
@@ -198,6 +199,7 @@ function SellerPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [themeValue, setThemeValue] = useState<{ themeId: string | null; greeting: string }>({ themeId: null, greeting: "" });
   const [resultEmail, setResultEmail] = useState("");
   const [emailSent, setEmailSent] = useState(true);
   const [plantingResult, setPlantingResult] = useState<{ trees: number; prevTotal: number; points: number } | null>(null);
@@ -342,7 +344,13 @@ function SellerPage() {
     const treesPlanted = count;
     try {
       const res = await purchaseFn({
-        data: { treeCount: count, recipientName: name.trim(), recipientEmail: email.trim() },
+        data: {
+          treeCount: count,
+          recipientName: name.trim(),
+          recipientEmail: email.trim(),
+          themeId: themeValue.themeId,
+          greeting: themeValue.greeting.trim() || null,
+        },
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cert = JSON.parse(res.certificateJson) as any;
@@ -439,6 +447,7 @@ function SellerPage() {
             total={total} error={error} submitting={submitting}
             onBack={() => setView("home")}
             onSubmit={submit}
+            themeValue={themeValue} setThemeValue={setThemeValue}
           />
         ) : (
           <>
@@ -940,31 +949,37 @@ function HomeView({
 
 function RegisterView({
   count, setCount, name, setName, email, setEmail, total: _total, error, submitting, onBack, onSubmit,
+  themeValue, setThemeValue,
 }: {
   count: number; setCount: (n: number) => void;
   name: string; setName: (s: string) => void;
   email: string; setEmail: (s: string) => void;
   total: number; error: string | null; submitting: boolean;
   onBack: () => void; onSubmit: () => void;
+  themeValue: { themeId: string | null; greeting: string };
+  setThemeValue: (v: { themeId: string | null; greeting: string }) => void;
 }) {
   return (
-    <PlantingForm
-      count={count} setCount={setCount}
-      name={name} setName={setName}
-      email={email} setEmail={setEmail}
-      error={error} submitting={submitting}
-      onSubmit={onSubmit}
-      title="Plantera träd"
-      intro="Välj hur många träd du vill plantera och vem de planteras för. Personen får ett värdebevis på mejlen — inget konto behövs."
-      topRight={
-        <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm whitespace-nowrap">← Tillbaka</button>
-      }
-      footer={
-        <p className="mt-3 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
-          Värdebeviset skickas direkt till mottagaren.
-        </p>
-      }
-    />
+    <div className="space-y-4">
+      <PlantingForm
+        count={count} setCount={setCount}
+        name={name} setName={setName}
+        email={email} setEmail={setEmail}
+        error={error} submitting={submitting}
+        onSubmit={onSubmit}
+        title="Plantera träd"
+        intro="Välj hur många träd du vill plantera och vem de planteras för. Personen får ett värdebevis på mejlen — inget konto behövs."
+        topRight={
+          <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm whitespace-nowrap">← Tillbaka</button>
+        }
+        footer={
+          <p className="mt-3 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Värdebeviset skickas direkt till mottagaren.
+          </p>
+        }
+      />
+      <GreetingThemePicker value={themeValue} onChange={setThemeValue} compact title="Välj hälsning (valfritt)" />
+    </div>
   );
 }
 

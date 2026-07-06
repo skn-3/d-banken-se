@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendEmail, renderThanksEmail } from "@/lib/email/resend.server";
+import { getGreetingThemeById } from "@/lib/greeting-themes.functions";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
 const PRICE_PER_TREE_ORE = 3500;
@@ -237,6 +238,8 @@ const PurchaseSchema = z.object({
   treeCount: z.number().int().min(1).max(10000),
   recipientName: z.string().trim().min(1).max(120),
   recipientEmail: z.string().trim().email().max(255),
+  themeId: z.string().uuid().nullable().optional(),
+  greeting: z.string().trim().max(120).nullable().optional(),
 });
 
 export const sellerCreatePurchase = createServerFn({ method: "POST" })
@@ -274,6 +277,17 @@ export const sellerCreatePurchase = createServerFn({ method: "POST" })
       customerId = inserted.id;
     }
 
+    // Server-side greeting moderation
+    let cleanGreeting: string | null = data.greeting?.trim() || null;
+    if (cleanGreeting) {
+      const { data: blocks } = await supabaseAdmin.from("greeting_blocklist").select("word");
+      const lower = cleanGreeting.toLowerCase();
+      const hit = (blocks ?? []).find((r) => r.word && lower.includes(r.word.toLowerCase()));
+      if (hit) throw new Error("Hälsningen innehåller olämpligt ord.");
+    }
+
+    const theme = await getGreetingThemeById(data.themeId ?? null);
+
     const total = data.treeCount * PRICE_PER_TREE_ORE;
     const { data: purchase, error: pErr } = await supabaseAdmin
       .from("purchases")
@@ -288,7 +302,10 @@ export const sellerCreatePurchase = createServerFn({ method: "POST" })
         paid_at: new Date().toISOString(),
         registered_by_user_id: context.userId,
         source: "smaarty",
-      })
+        theme_id: theme?.id ?? null,
+        greeting: cleanGreeting,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
       .select("id, created_at")
       .single();
     if (pErr) throw new Error(`Köpet misslyckades: ${pErr.message}`);
@@ -317,12 +334,14 @@ export const sellerCreatePurchase = createServerFn({ method: "POST" })
       verificationId: certificate.verification_id,
       verifyUrl,
       locationName: certificate.location_name,
+      giftMessage: cleanGreeting,
+      theme: theme?.config ? { ...theme.config, name: theme.name } : null,
     });
 
     const emailResult = await sendEmail({ to: email, subject, html });
 
     return {
-      certificateJson: JSON.stringify(certificate),
+      certificateJson: JSON.stringify({ ...certificate, theme_id: theme?.id ?? null, theme: theme?.config ?? null }),
       emailSent: emailResult.ok === true,
       recipientEmail: email,
     };

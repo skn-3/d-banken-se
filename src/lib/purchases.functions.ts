@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendEmail, renderThanksEmail } from "@/lib/email/resend.server";
+import { getGreetingThemeById } from "@/lib/greeting-themes.functions";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
 const PRICE_PER_TREE_ORE = 3500;
@@ -11,6 +12,7 @@ const PurchaseSchema = z.object({
   recipientName: z.string().trim().min(1).max(120),
   recipientEmail: z.string().trim().email().max(255),
   templateId: z.string().uuid().nullable().optional(),
+  themeId: z.string().uuid().nullable().optional(),
   greeting: z.string().trim().max(120).nullable().optional(),
 });
 
@@ -46,7 +48,10 @@ export const createPurchase = createServerFn({ method: "POST" })
       if (hit) throw new Error("Hälsningen innehåller olämpligt ord.");
     }
 
-    // 3) Insert purchase
+    // 3) Resolve theme
+    const theme = await getGreetingThemeById(data.themeId ?? null);
+
+    // 4) Insert purchase
     const total = data.treeCount * PRICE_PER_TREE_ORE;
     const { data: purchase, error: pErr } = await supabaseAdmin
       .from("purchases")
@@ -61,6 +66,7 @@ export const createPurchase = createServerFn({ method: "POST" })
         paid_at: new Date().toISOString(),
         source: "web",
         certificate_template_id: data.templateId ?? null,
+        theme_id: theme?.id ?? null,
         greeting: cleanGreeting,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
@@ -68,7 +74,7 @@ export const createPurchase = createServerFn({ method: "POST" })
       .single();
     if (pErr) throw new Error(`Purchase failed: ${pErr.message}`);
 
-    // 3) Generate certificate
+    // 5) Generate certificate
     const { data: cert, error: cErr } = await supabaseAdmin.rpc("generate_certificate", {
       _purchase_id: purchase.id,
     });
@@ -76,7 +82,7 @@ export const createPurchase = createServerFn({ method: "POST" })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const certificate = cert as any;
 
-    // 4) Send thank-you email
+    // 6) Send thank-you email (themed)
     const host = getRequestHeader("host") || "smartklimat.app";
     const proto = (getRequestHeader("x-forwarded-proto") || "https").split(",")[0];
     const verifyUrl = `${proto}://${host}/v/${certificate.verification_id}`;
@@ -94,13 +100,16 @@ export const createPurchase = createServerFn({ method: "POST" })
       verificationId: certificate.verification_id,
       verifyUrl,
       locationName: certificate.location_name,
+      giftMessage: cleanGreeting,
+      theme: theme?.config ? { ...theme.config, name: theme.name } : null,
     });
 
     const emailResult = await sendEmail({ to: email, subject, html });
 
     return {
-      certificateJson: JSON.stringify(certificate),
+      certificateJson: JSON.stringify({ ...certificate, theme_id: theme?.id ?? null, theme: theme?.config ?? null }),
       emailSent: emailResult.ok === true,
       recipientEmail: email,
     };
   });
+

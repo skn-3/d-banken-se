@@ -16,6 +16,7 @@ import { AdminSupportSection } from "@/components/admin-support-section";
 import { AdminInsightsSection } from "@/components/admin-insights";
 import { AdminClubSection } from "@/components/admin-club-section";
 import { AdminCertificateDesigner } from "@/components/admin-certificate-designer";
+import { AdminGreetingThemes } from "@/components/admin-greeting-themes";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
 
@@ -127,6 +128,7 @@ export function AdminCoreTab() {
       <AdminInsightsSection />
       <AdminClubSection />
       <AdminCertificateDesigner />
+      <AdminGreetingThemes />
       <section className="surface-card p-6">
         <h2 className="font-display text-xl font-semibold">Utskick</h2>
         <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>

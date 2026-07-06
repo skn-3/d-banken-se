@@ -165,6 +165,13 @@ function renderAuthShell(a: {
   return { subject: a.subject, html };
 }
 
+export interface ThanksTheme {
+  palette?: { bg?: string; accent?: string; soft?: string; ink?: string; muted?: string };
+  heading_template?: string;
+  eyebrow?: string;
+  name?: string;
+}
+
 interface ThanksArgs {
   recipientName: string;
   recipientEmail: string;
@@ -176,6 +183,7 @@ interface ThanksArgs {
   locationName?: string | null;
   giftMessage?: string | null;
   heroStampUrl?: string | null;
+  theme?: ThanksTheme | null;
 }
 
 export function renderThanksEmail(a: ThanksArgs): { subject: string; html: string } {
@@ -246,6 +254,15 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
   const body = "Helvetica,Arial,sans-serif";
   const mono = "'Courier New',monospace";
 
+  // Theme-derived hero styling (falls back to classic look)
+  const tp = a.theme?.palette ?? {};
+  const themeBg = tp.bg || "#0B3D2E";
+  const themeSoft = tp.soft || "#9FD9B6";
+  const themeSoftHeading = tp.soft && tp.soft !== "#EAF7EE" ? tp.soft : "#ffffff";
+  const themeEyebrow = a.theme?.eyebrow || "DITT TRÄD HAR FÅTT EN PLATS";
+  const rawHeading = a.theme?.heading_template || "Tack, från ett gemensamt klimat.";
+  const themeHeading = rawHeading.replace(/\{recipient_name\}/g, a.recipientName);
+
   const greetingBlock = a.giftMessage && a.giftMessage.trim()
     ? `<tr><td style="padding:0 0 20px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EAF7EE;border-radius:14px;"><tr><td style="padding:16px 20px;font-family:${body};font-style:italic;font-size:15px;line-height:1.5;color:#15784F;">${escapeHtml(a.giftMessage)}</td></tr></table></td></tr>`
     : "";
@@ -269,13 +286,13 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-      <!-- A: HERO -->
+      <!-- A: HERO (themed) -->
       <tr><td style="padding:0 0 18px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0B3D2E;border-radius:20px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${themeBg};border-radius:20px;">
           <tr><td align="center" style="padding:36px 28px 32px;">
             <img src="${stampWhite}" width="68" height="68" alt="" style="display:block;margin:0 auto 18px;width:68px;height:68px;" />
-            <div style="font-family:${mono};font-size:11px;letter-spacing:0.32em;color:#9FD9B6;text-transform:uppercase;">DITT TRÄD HAR FÅTT EN PLATS</div>
-            <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:#ffffff;">Tack, från ett gemensamt klimat.</div>
+            <div style="font-family:${mono};font-size:11px;letter-spacing:0.32em;color:${themeSoft};text-transform:uppercase;">${escapeHtml(themeEyebrow)}</div>
+            <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:${themeSoftHeading};">${escapeHtml(themeHeading)}</div>
           </td></tr>
         </table>
       </td></tr>
