@@ -194,6 +194,15 @@ Deno.serve(async (req) => {
       const verifyUrl = `${APP_PUBLIC_URL}/v/${vid}`;
       const dateText = new Date(pur.data.created_at).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
       const locationName = (gen.data as any)?.location_name ?? null;
+
+      // Temats kort-bild används som hero när köpets tema har en /kort/-asset.
+      let heroImageUrl: string | null = null;
+      if (themeId) {
+        const th = await db.from("greeting_themes").select("config").eq("id", themeId).maybeSingle();
+        const kort = (th.data?.config as any)?.kort as string | undefined;
+        if (kort) heroImageUrl = kort.startsWith("http") ? kort : `https://smartklimat.org${kort}`;
+      }
+
       const { subject, html } = renderThanksEmail({
         recipientName,
         treeCount: quantity,
@@ -202,6 +211,7 @@ Deno.serve(async (req) => {
         verifyUrl,
         locationName,
         giftMessage: greeting || null,
+        heroImageUrl,
       });
       await sendEmail(custEmail, subject, html);
     }
