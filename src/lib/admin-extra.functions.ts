@@ -56,7 +56,7 @@ export const adminListActivity = createServerFn({ method: "GET" })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: distinctRows } = await (supabaseAdmin as any).from("admin_activity")
       .select("action").order("created_at", { ascending: false }).limit(500);
-    const actions = Array.from(new Set((distinctRows ?? []).map((r: { action: string }) => r.action))).sort();
+    const actions = Array.from(new Set((distinctRows ?? []).map((r: { action: string }) => r.action))).sort() as string[];
 
     return {
       rows: (rows ?? []).map((r: { id: string; user_id: string | null; action: string; detail: unknown; created_at: string }) => ({
