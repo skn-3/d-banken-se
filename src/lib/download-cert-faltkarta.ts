@@ -29,7 +29,7 @@ export interface FaltkartaData {
 }
 
 let cache: Promise<Faltkartor> | null = null;
-async function loadKartor(): Promise<Faltkartor> {
+async function loadKartorFallback(): Promise<Faltkartor> {
   if (!cache) {
     cache = fetch(KARTOR_URL, { cache: "force-cache" }).then((r) => {
       if (!r.ok) throw new Error(`Kunde inte ladda fältkartor (${r.status})`);
@@ -38,6 +38,34 @@ async function loadKartor(): Promise<Faltkartor> {
   }
   return cache;
 }
+
+// Hämtar en mall från cert_templates via slug. Faller tillbaka till statisk JSON
+// om raden saknas eller är inaktiv. Cache per slug i minnet.
+const dbCache = new Map<string, Karta>();
+async function loadKartaFromDb(slug: string): Promise<Karta | null> {
+  if (dbCache.has(slug)) return dbCache.get(slug)!;
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("cert_templates")
+      .select("bg_url, falt, canvas, aktiv")
+      .eq("slug", slug)
+      .eq("aktiv", true)
+      .maybeSingle();
+    if (error || !data) return null;
+    const karta: Karta = {
+      bg: data.bg_url,
+      canvas: data.canvas ?? { w: 1240, h: 1754 },
+      falt: data.falt ?? {},
+    };
+    dbCache.set(slug, karta);
+    return karta;
+  } catch {
+    return null;
+  }
+}
+
 
 // ---------- Font-registrering ----------
 // De sju family-namnen som kartorna använder. Google Fonts-inbäddningar för
@@ -139,9 +167,13 @@ function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: 
 
 export async function downloadFaltkartaCertPdf(kartaSlug: string, data: FaltkartaData): Promise<void> {
   ensureFonts();
-  const kartor = await loadKartor();
-  const karta = kartor[kartaSlug];
+  let karta = await loadKartaFromDb(kartaSlug);
+  if (!karta) {
+    const kartor = await loadKartorFallback();
+    karta = kartor[kartaSlug] ?? null;
+  }
   if (!karta) throw new Error(`Fältkarta saknas för slug: ${kartaSlug}`);
+
 
   // 1) Ladda bg först — skalfaktorn härleds ur bg-bildens verkliga bredd
   //    jämfört med kartans referens-canvas (nya 2480×3508-bakgrunder ger s=2).

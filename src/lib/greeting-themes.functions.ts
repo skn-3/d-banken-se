@@ -24,8 +24,22 @@ export const listGreetingThemes = createServerFn({ method: "GET" })
       .eq("active", true)
       .order("sort", { ascending: true });
     if (error) throw new Error(error.message);
-    return { themes: (data ?? []) as any[] };
+    // Filtrera bort greeting_themes-rader vars slug finns i cert_templates men är inaktiverade.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: certs } = await (supabaseAdmin as any)
+      .from("cert_templates").select("slug, aktiv, sort");
+    const inactiveSlugs = new Set<string>();
+    const certSort = new Map<string, number>();
+    for (const c of (certs ?? []) as Array<{ slug: string; aktiv: boolean; sort: number }>) {
+      if (!c.aktiv) inactiveSlugs.add(c.slug);
+      certSort.set(c.slug, c.sort);
+    }
+    const filtered = (data ?? []).filter((t) => !inactiveSlugs.has(t.slug));
+    // Använd cert_templates.sort som primär om finns
+    filtered.sort((a, b) => (certSort.get(a.slug) ?? a.sort) - (certSort.get(b.slug) ?? b.sort));
+    return { themes: filtered as any[] };
   });
+
 
 export const getGreetingThemeById = async (id: string | null | undefined) => {
   if (!id) {
