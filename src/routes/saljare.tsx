@@ -343,7 +343,13 @@ function SellerPage() {
     const treesPlanted = count;
     try {
       const res = await purchaseFn({
-        data: { treeCount: count, recipientName: name.trim(), recipientEmail: email.trim() },
+        data: {
+          treeCount: count,
+          recipientName: name.trim(),
+          recipientEmail: email.trim(),
+          themeId: themeValue.themeId,
+          greeting: themeValue.greeting.trim() || null,
+        },
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cert = JSON.parse(res.certificateJson) as any;
