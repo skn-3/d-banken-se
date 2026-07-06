@@ -83,7 +83,7 @@ function KopPage() {
   const [greetingIssue, setGreetingIssue] = useState<string | null>(null);
   const [themeValue, setThemeValue] = useState<GreetingThemeValue>({ themeId: null, greeting: "" });
   const [themeResolved, setThemeResolved] = useState<Record<string, unknown> | null>(null);
-  const [, setReveal] = useState(false);
+  
   const loadThemes = useServerFn(listGreetingThemes);
 
   useEffect(() => {
