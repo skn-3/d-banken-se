@@ -65,7 +65,8 @@ function AdminPage() {
     const [p, q, t, s] = await Promise.all([
       supabase.from("profiles").select("user_id, name, email, created_at, company_template_id").order("created_at", { ascending: false }),
       supabase.from("purchases").select("id, user_id, tree_count, total_amount_ore, status, created_at").order("created_at", { ascending: false }),
-      supabase.from("certificate_templates").select("*").order("is_default", { ascending: false }).order("created_at", { ascending: true }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from("cert_templates").select("*").order("is_default", { ascending: false }).order("created_at", { ascending: true }),
       supabase.from("app_settings").select("planting_location_name, planting_latitude, planting_longitude").eq("id", 1).maybeSingle(),
     ]);
     setProfiles((p.data ?? []) as AdminProfile[]);
