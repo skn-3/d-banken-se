@@ -125,6 +125,27 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_ai_usage: {
+        Row: {
+          admin_id: string
+          count: number
+          day: string
+          kind: string
+        }
+        Insert: {
+          admin_id: string
+          count?: number
+          day?: string
+          kind: string
+        }
+        Update: {
+          admin_id?: string
+          count?: number
+          day?: string
+          kind?: string
+        }
+        Relationships: []
+      }
       admin_notes: {
         Row: {
           created_at: string
@@ -1851,6 +1872,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_bump_ai_usage: {
+        Args: { _kind: string; _limit: number }
+        Returns: boolean
       }
       admin_insights_channel_mix_30d: { Args: never; Returns: Json }
       admin_insights_kpis: { Args: never; Returns: Json }
