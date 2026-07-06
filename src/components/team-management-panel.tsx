@@ -55,9 +55,13 @@ function relative(iso: string | null): string {
   return `${Math.floor(days / 30)} mån sen`;
 }
 
+type Tmpl = { id: string; slug: string; name: string; sort: number; kort_url: string | null; bg_url: string; allows_greeting: boolean; is_default: boolean };
+
 export function TeamManagementPanel() {
   const loadFn = useServerFn(getTeamManagement);
   const updateFn = useServerFn(updateTeamSettings);
+  const updateCertFn = useServerFn(updateTeamCertTemplate);
+  const listTemplatesFn = useServerFn(listCertificateTemplatesPublic);
   const removeFn = useServerFn(removeTeamMember);
   const rotateFn = useServerFn(rotateJoinCode);
 
@@ -68,6 +72,9 @@ export function TeamManagementPanel() {
   const [confirmRemove, setConfirmRemove] = useState<Member | null>(null);
   const [confirmRotate, setConfirmRotate] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [certPickerOpen, setCertPickerOpen] = useState(false);
+  const [templates, setTemplates] = useState<Tmpl[]>([]);
+  const [pickerBusy, setPickerBusy] = useState(false);
 
   const [form, setForm] = useState({ name: "", weeklyGoal: 0, goalTrees: "", goalEndDate: "", showTeamName: true });
 
