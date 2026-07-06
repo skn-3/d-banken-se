@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
       if (themeId) {
         const th = await db.from("greeting_themes").select("config").eq("id", themeId).maybeSingle();
         const kort = (th.data?.config as any)?.kort as string | undefined;
-        if (kort) heroImageUrl = kort.startsWith("http") ? kort : `https://smartklimat.org${kort}`;
+        if (kort) heroImageUrl = kort.startsWith("http") ? kort : `${APP_PUBLIC_URL}${kort}`;
       }
 
       const { subject, html } = renderThanksEmail({
