@@ -76,7 +76,8 @@ export const adminUpdatePurchaseCorrection = createServerFn({ method: "POST" })
     if (data.status !== undefined) patch.status = data.status;
     if (data.adminNote !== undefined) patch.admin_note = data.adminNote;
     if (Object.keys(patch).length === 0) throw new Error("Inget att uppdatera");
-    const { error: updErr } = await supabaseAdmin.from("purchases").update(patch).eq("id", data.purchaseId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: updErr } = await (supabaseAdmin as any).from("purchases").update(patch).eq("id", data.purchaseId);
     if (updErr) throw new Error(updErr.message);
     await logAdminActivity(context.userId, "purchase.correction", {
       purchase_id: data.purchaseId,
