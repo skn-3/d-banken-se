@@ -464,6 +464,7 @@ function SellerPage() {
                 </Link>
               </div>
             )}
+            {!ctx.isPreview && <div className="mt-6"><TeamInsightsPanel /></div>}
             {!ctx.isPreview && <div className="mt-6"><TeamManagementPanel /></div>}
             {!ctx.isPreview && (
               <div className="mt-6">
