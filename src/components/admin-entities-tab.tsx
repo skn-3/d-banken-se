@@ -2,6 +2,7 @@ import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { X } from "lucide-react";
+import { PurchaseCorrectButton, CertReissueButton, PointsAdjustButton } from "@/components/admin-corrections";
 
 // Types
 interface Customer { id: string; name: string; email: string; created_at: string }
