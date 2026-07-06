@@ -15,6 +15,7 @@ import { AdminPhotoReports } from "@/components/admin-photo-reports";
 import { AdminSupportSection } from "@/components/admin-support-section";
 import { AdminInsightsSection } from "@/components/admin-insights";
 import { AdminClubSection } from "@/components/admin-club-section";
+import { AdminCertificateDesigner } from "@/components/admin-certificate-designer";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
 
