@@ -9,14 +9,14 @@ export const Route = createFileRoute("/api/public/hooks/theme-test-mail")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = request.headers.get("x-secret");
-        if (!secret || secret !== process.env.SMARTKLIMAT_CRON_SECRET) {
-          return new Response("Unauthorized", { status: 401 });
-        }
         const body = (await request.json().catch(() => ({}))) as {
           to?: string; theme_slug?: string; recipient_name?: string;
         };
         const to = body.to || "invoice@malke.se";
+        // Internt designverktyg — begränsat till interna adresser.
+        if (!/@malke\.se$/i.test(to) && !/@smartklimat\.org$/i.test(to)) {
+          return new Response("Forbidden recipient", { status: 403 });
+        }
         const slug = body.theme_slug || "standard";
         const recipientName = body.recipient_name || "Anna";
 
