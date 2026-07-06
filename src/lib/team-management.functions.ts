@@ -201,3 +201,168 @@ export const rotateJoinCode = createServerFn({ method: "POST" })
     }
     throw new Error("Kunde inte generera unik kod. Försök igen.");
   });
+
+// ==== INSIKTER (leader-only) ====
+function mondayStockholm(d: Date): Date {
+  const dow = weekdayMonStockholm(d);
+  const startStr = ymdStockholm(new Date(d.getTime() - (dow - 1) * 86400000));
+  // Anchor at Stockholm midnight of that Monday
+  return new Date(`${startStr}T00:00:00+01:00`);
+}
+
+export const getTeamInsights = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: team } = await supabaseAdmin
+      .from("teams")
+      .select("id, name, goal_trees, goal_end_date, weekly_goal_trees")
+      .eq("created_by_user_id", context.userId)
+      .maybeSingle();
+    if (!team) return { isLeader: false as const };
+
+    const { data: members } = await supabaseAdmin
+      .from("team_members")
+      .select("user_id, role")
+      .eq("team_id", team.id);
+    const memberIds = (members ?? []).map((m) => m.user_id);
+    const nonLeaderIds = (members ?? []).filter((m) => m.role !== "team_leader").map((m) => m.user_id);
+    const safe = memberIds.length ? memberIds : ["00000000-0000-0000-0000-000000000000"];
+
+    const now = new Date();
+    const currentMonday = mondayStockholm(now);
+    const from = new Date(currentMonday.getTime() - 8 * 7 * 86400000); // 8 completed weeks + current
+
+    const { data: purchases } = await supabaseAdmin
+      .from("purchases")
+      .select("tree_count, paid_at, created_at, registered_by_user_id")
+      .in("registered_by_user_id", safe)
+      .eq("status", "paid")
+      .gte("created_at", from.toISOString());
+
+    // Aggregate per-week (last 8 weeks including current)
+    const weeks: { weekStart: string; label: string; trees: number }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      const wsDate = new Date(currentMonday.getTime() - i * 7 * 86400000);
+      weeks.push({ weekStart: ymdStockholm(wsDate), label: ymdStockholm(wsDate).slice(5), trees: 0 });
+    }
+    const currentWeekStr = ymdStockholm(currentMonday);
+
+    // Also track per-user week/28d/7d
+    const dayMs = 86400000;
+    const cutoff7 = now.getTime() - 7 * dayMs;
+    const cutoff28 = now.getTime() - 28 * dayMs;
+    const soldThisWeekBy = new Set<string>();
+    const active7 = new Set<string>();
+    const active28 = new Set<string>();
+    const lastActiveBy: Record<string, number> = {};
+
+    (purchases ?? []).forEach((p: { tree_count: number; paid_at: string | null; created_at: string; registered_by_user_id: string }) => {
+      const ts = p.paid_at ?? p.created_at;
+      const day = ymdStockholm(new Date(ts));
+      const t = new Date(ts).getTime();
+      // Find matching bucket
+      for (let i = weeks.length - 1; i >= 0; i--) {
+        if (day >= weeks[i].weekStart) { weeks[i].trees += p.tree_count; break; }
+      }
+      const uid = p.registered_by_user_id;
+      if (day >= currentWeekStr) soldThisWeekBy.add(uid);
+      if (t >= cutoff7) active7.add(uid);
+      if (t >= cutoff28) active28.add(uid);
+      if (!lastActiveBy[uid] || t > lastActiveBy[uid]) lastActiveBy[uid] = t;
+    });
+
+    // Forecast: average of the last 3 fully-elapsed weeks (indices 4,5,6 in 0..7)
+    const lastThreeAvg = weeks.slice(-4, -1).reduce((s, w) => s + w.trees, 0) / 3;
+    const totalTrees = (purchases ?? []).reduce((s, p) => s + p.tree_count, 0);
+    // Total trees across all time (may extend before window)
+    const { data: allTrees } = await supabaseAdmin
+      .from("purchases")
+      .select("tree_count")
+      .in("registered_by_user_id", safe)
+      .eq("status", "paid");
+    const allTotal = (allTrees ?? []).reduce((s, p) => s + (p.tree_count ?? 0), 0);
+
+    let forecast: {
+      pace: number; onTrack: boolean; requiredWeekly: number | null;
+      forecastDate: string | null; goalTrees: number | null; goalEndDate: string | null;
+      remaining: number;
+    } | null = null;
+
+    if (team.goal_trees && team.goal_trees > 0) {
+      const remaining = Math.max(0, team.goal_trees - allTotal);
+      let forecastDate: string | null = null;
+      if (remaining === 0) {
+        forecastDate = ymdStockholm(now);
+      } else if (lastThreeAvg > 0) {
+        const weeksNeeded = remaining / lastThreeAvg;
+        const ms = weeksNeeded * 7 * dayMs;
+        forecastDate = ymdStockholm(new Date(now.getTime() + ms));
+      }
+      let onTrack = true;
+      let requiredWeekly: number | null = null;
+      if (team.goal_end_date && remaining > 0) {
+        const endMs = new Date(team.goal_end_date + "T23:59:59+01:00").getTime();
+        const weeksLeft = Math.max(0.1, (endMs - now.getTime()) / (7 * dayMs));
+        requiredWeekly = Math.ceil(remaining / weeksLeft);
+        onTrack = lastThreeAvg >= requiredWeekly;
+      }
+      forecast = {
+        pace: Math.round(lastThreeAvg * 10) / 10,
+        onTrack,
+        requiredWeekly,
+        forecastDate,
+        goalTrees: team.goal_trees,
+        goalEndDate: team.goal_end_date,
+        remaining,
+      };
+    }
+
+    // Streak risk: members with streak >= 2 who haven't sold this week
+    const { data: streaks } = await supabaseAdmin
+      .from("seller_streaks")
+      .select("user_id, current_weeks")
+      .in("user_id", nonLeaderIds.length ? nonLeaderIds : ["00000000-0000-0000-0000-000000000000"]);
+    const { data: profs } = await supabaseAdmin
+      .from("profiles")
+      .select("user_id, name, avatar_key, photo_path")
+      .in("user_id", nonLeaderIds.length ? nonLeaderIds : ["00000000-0000-0000-0000-000000000000"]);
+    const profByUser: Record<string, { name: string; avatarKey: string | null; photoPath: string | null }> = {};
+    (profs ?? []).forEach((p: { user_id: string; name: string; avatar_key: string | null; photo_path: string | null }) => {
+      profByUser[p.user_id] = { name: p.name, avatarKey: p.avatar_key, photoPath: p.photo_path };
+    });
+    const streakRisk = (streaks ?? [])
+      .filter((s: { user_id: string; current_weeks: number }) => (s.current_weeks ?? 0) >= 2 && !soldThisWeekBy.has(s.user_id))
+      .map((s: { user_id: string; current_weeks: number }) => {
+        const p = profByUser[s.user_id];
+        const full = (p?.name ?? "").trim();
+        return {
+          userId: s.user_id,
+          firstName: full ? full.split(/\s+/)[0] : "Säljare",
+          streak: s.current_weeks,
+          avatarKey: p?.avatarKey ?? null,
+          photoPath: p?.photoPath ?? null,
+        };
+      })
+      .sort((a, b) => b.streak - a.streak);
+
+    // Activity split
+    const totalSellers = nonLeaderIds.length;
+    const a7 = nonLeaderIds.filter((id) => active7.has(id)).length;
+    const a28 = nonLeaderIds.filter((id) => active28.has(id)).length;
+    const idle = Math.max(0, totalSellers - a28);
+
+    const weekTrees = weeks[weeks.length - 1].trees;
+
+    return {
+      isLeader: true as const,
+      team: { id: team.id, name: team.name },
+      weeks,
+      weekTrees,
+      totalTrees,
+      forecast,
+      streakRisk,
+      activity: { active7: a7, active28: a28, idle, total: totalSellers },
+    };
+  });
+
