@@ -30,6 +30,7 @@ import { TeamFeed } from "@/components/activity-feed";
 import { BoostHub, BuffRow } from "@/components/boost-hub";
 import { getLeaderboardBuffs, type SellerBuffs } from "@/lib/boosts.functions";
 import { celebrate, celebrateBig, haptic, prefersReducedMotion } from "@/lib/celebrate";
+import { PlantButton } from "@/components/plant-button";
 
 
 const WEEKEND_SPRINT_GOAL = 5;
@@ -584,6 +585,16 @@ function HomeView({
         </div>
       </section>
 
+      {/* Plantera träd — primär pill-knapp */}
+      {!readOnly && (
+        <section aria-label="Plantera träd">
+          <PlantButton
+            onClick={onRegister}
+            fireMode={streak >= 1 && week === 0}
+          />
+        </section>
+      )}
+
       {/* Statistik */}
       <section className="grid grid-cols-2 gap-4">
         <div className="surface-card p-6 text-center">
@@ -901,16 +912,8 @@ function HomeView({
         </section>
       )}
 
-      {/* Plantera träd — huvudknapp */}
-      {!readOnly && (
-        <div className="sticky bottom-4 z-20">
-          <button onClick={onRegister}
-            className="btn-primary w-full !py-5 text-lg shadow-lg"
-            style={{ boxShadow: "0 14px 36px -10px rgba(30,158,106,.6)" }}>
-            🌱 Plantera träd
-          </button>
-        </div>
-      )}
+      {/* (Huvudknappen ligger direkt under nivåkortet; mini-flytande knapp hanteras av PlantButton.) */}
+
 
 
       <style>{`
