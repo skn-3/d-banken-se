@@ -9,6 +9,8 @@ import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/compone
 import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
 import { AdminCoreTab } from "@/components/admin-core-tab";
+import { AdminGlobalSearch } from "@/components/admin-global-search";
+import { AdminEntitiesTab } from "@/components/admin-entities-tab";
 import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward, adminUpdateReward, adminDeleteReward, adminListPackQueue, adminMarkTeamPacked, adminMarkTeamShipped } from "@/lib/rewards.functions";
 import { getRewardBudget } from "@/lib/reward-economy.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
@@ -17,6 +19,18 @@ import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — SmartKlimat" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: (search.tab as string | undefined) || undefined,
+    sub: (search.sub as string | undefined) || undefined,
+    q: (search.q as string | undefined) || undefined,
+    from: (search.from as string | undefined) || undefined,
+    to: (search.to as string | undefined) || undefined,
+    tema: (search.tema as string | undefined) || undefined,
+    status: (search.status as string | undefined) || undefined,
+    team: (search.team as string | undefined) || undefined,
+    proj: (search.proj as string | undefined) || undefined,
+    highlight: (search.highlight as string | undefined) || undefined,
+  }),
   component: AdminPage,
 });
 
