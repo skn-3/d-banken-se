@@ -67,6 +67,12 @@ function AdminMallarPage() {
     try { await dupFn({ data: { id: row.id } }); await load(); }
     finally { setBusy(null); }
   };
+  const remove = async (row: CertTemplateRow) => {
+    if (!confirm(`Radera "${row.namn}"? Kan inte ångras.`)) return;
+    setBusy(row.id);
+    try { await delFn({ data: { id: row.id } }); await load(); }
+    finally { setBusy(null); }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
