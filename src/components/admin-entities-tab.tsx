@@ -272,7 +272,7 @@ function CustomersView({ rows, purchases, highlight, setParams }: { rows: Custom
             const cPurchases = purchases.filter(p => p.customer_id === c.id);
             const isOpen = openId === c.id;
             return (
-              <>
+              <Fragment key={c.id}>
                 <tr key={c.id} className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === c.id) }} onClick={() => setOpenId(isOpen ? null : c.id)}>
                   <td className="py-3 font-medium">{c.name}</td>
                   <td className="font-mono text-xs">{c.email}</td>
@@ -295,7 +295,7 @@ function CustomersView({ rows, purchases, highlight, setParams }: { rows: Custom
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </tbody>
@@ -390,7 +390,7 @@ function TeamsView({ rows, sellers, templateById, highlight, setParams }: { rows
             const isOpen = openId === t.id;
             const tmpl = t.cert_template_id ? templateById.get(t.cert_template_id) : null;
             return (
-              <>
+              <Fragment key={c.id}>
                 <tr key={t.id} className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === t.id) }} onClick={() => setOpenId(isOpen ? null : t.id)}>
                   <td className="py-3 font-medium">{t.name}</td>
                   <td className="text-xs">{t.city ?? "—"}</td>
@@ -411,7 +411,7 @@ function TeamsView({ rows, sellers, templateById, highlight, setParams }: { rows
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </tbody>
@@ -435,7 +435,7 @@ function SellersView({ rows, purchases, highlight, setParams }: { rows: Seller[]
             const sPurchases = purchases.filter(p => p.team_id === s.team_id);
             const isOpen = openId === s.user_id;
             return (
-              <>
+              <Fragment key={c.id}>
                 <tr key={s.user_id} className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === s.user_id) }} onClick={() => setOpenId(isOpen ? null : s.user_id)}>
                   <td className="py-3 font-medium">{s.name}</td>
                   <td className="font-mono text-xs">{s.email}</td>
@@ -455,7 +455,7 @@ function SellersView({ rows, purchases, highlight, setParams }: { rows: Seller[]
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </tbody>
