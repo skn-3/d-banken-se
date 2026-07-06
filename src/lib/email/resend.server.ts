@@ -92,7 +92,8 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return result;
   }
 
-  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
+  // Bevismail / temamail får ALDRIG gå från resend.dev — använd alltid verifierade send.smartklimat.org.
+  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <hej@send.smartklimat.org>";
 
   const payload = { from, to, subject, html };
   const gatewayKey = process.env.LOVABLE_API_KEY;
