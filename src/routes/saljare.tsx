@@ -198,6 +198,7 @@ function SellerPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [themeValue, setThemeValue] = useState<{ themeId: string | null; greeting: string }>({ themeId: null, greeting: "" });
   const [resultEmail, setResultEmail] = useState("");
   const [emailSent, setEmailSent] = useState(true);
   const [plantingResult, setPlantingResult] = useState<{ trees: number; prevTotal: number; points: number } | null>(null);
