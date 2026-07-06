@@ -92,7 +92,8 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return result;
   }
 
-  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <onboarding@resend.dev>";
+  // Bevismail / temamail får ALDRIG gå från resend.dev — använd alltid verifierade send.smartklimat.org.
+  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <hej@send.smartklimat.org>";
 
   const payload = { from, to, subject, html };
   const gatewayKey = process.env.LOVABLE_API_KEY;
@@ -166,9 +167,10 @@ function renderAuthShell(a: {
 }
 
 export interface ThanksTheme {
-  palette?: { bg?: string; accent?: string; soft?: string; ink?: string; muted?: string };
+  palette?: { bg?: string; accent?: string; soft?: string; ink?: string; muted?: string; hero_text?: string; count_color?: string };
   heading_template?: string;
   eyebrow?: string;
+  motif?: string;
   name?: string;
 }
 
@@ -249,7 +251,7 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
     ? `${a.recipientName} — ${N} träd planterade i ditt namn`
     : `${a.recipientName} — dina ${N} träd växer i ${proj.name}`;
 
-  const stampWhite = a.heroStampUrl && a.heroStampUrl.trim() ? a.heroStampUrl : "https://smartklimat.org/brand/logo-stamp-vit.png";
+  void a.heroStampUrl; // hero-stämpeln utelämnas tills brand-assets ligger på publik CDN
   const bricolage = "'Bricolage Grotesque',Helvetica,Arial,sans-serif";
   const body = "Helvetica,Arial,sans-serif";
   const mono = "'Courier New',monospace";
@@ -258,10 +260,13 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
   const tp = a.theme?.palette ?? {};
   const themeBg = tp.bg || "#0B3D2E";
   const themeSoft = tp.soft || "#9FD9B6";
-  const themeSoftHeading = tp.soft && tp.soft !== "#EAF7EE" ? tp.soft : "#ffffff";
+  const themeHeroText = tp.hero_text || (tp.soft && tp.soft !== "#EAF7EE" ? tp.soft : "#ffffff");
+  const themeAccent = tp.accent || "#DCBE6E";
+  const themeCount = tp.count_color || "#1E9E6A";
   const themeEyebrow = a.theme?.eyebrow || "DITT TRÄD HAR FÅTT EN PLATS";
   const rawHeading = a.theme?.heading_template || "Tack, från ett gemensamt klimat.";
   const themeHeading = rawHeading.replace(/\{recipient_name\}/g, a.recipientName);
+  const heroMotif = renderHeroMotif(a.theme?.motif);
 
   const greetingBlock = a.giftMessage && a.giftMessage.trim()
     ? `<tr><td style="padding:0 0 20px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EAF7EE;border-radius:14px;"><tr><td style="padding:16px 20px;font-family:${body};font-style:italic;font-size:15px;line-height:1.5;color:#15784F;">${escapeHtml(a.giftMessage)}</td></tr></table></td></tr>`
@@ -290,9 +295,9 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
       <tr><td style="padding:0 0 18px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${themeBg};border-radius:20px;">
           <tr><td align="center" style="padding:36px 28px 32px;">
-            <img src="${stampWhite}" width="68" height="68" alt="" style="display:block;margin:0 auto 18px;width:68px;height:68px;" />
             <div style="font-family:${mono};font-size:11px;letter-spacing:0.32em;color:${themeSoft};text-transform:uppercase;">${escapeHtml(themeEyebrow)}</div>
-            <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:${themeSoftHeading};">${escapeHtml(themeHeading)}</div>
+            <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:${themeHeroText};">${escapeHtml(themeHeading)}</div>
+            ${heroMotif}
           </td></tr>
         </table>
       </td></tr>
@@ -309,9 +314,9 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
             <!-- ceremonial count -->
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 6px;">
               <tr>
-                <td width="40%" style="border-right:1px solid #DCBE6E;height:96px;">&nbsp;</td>
-                <td align="center" style="font-family:${bricolage};font-weight:700;font-size:76px;line-height:1;color:#1E9E6A;padding:0 12px;">${N}</td>
-                <td width="40%" style="border-left:1px solid #DCBE6E;height:96px;">&nbsp;</td>
+                <td width="40%" style="border-right:1px solid ${themeAccent};height:96px;">&nbsp;</td>
+                <td align="center" style="font-family:${bricolage};font-weight:700;font-size:76px;line-height:1;color:${themeCount};padding:0 12px;">${N}</td>
+                <td width="40%" style="border-left:1px solid ${themeAccent};height:96px;">&nbsp;</td>
               </tr>
             </table>
             <div style="text-align:center;font-family:${mono};font-size:11px;letter-spacing:0.28em;color:#0B3D2E;text-transform:uppercase;margin-top:14px;">TRÄD PLANTERADE I DITT NAMN</div>
@@ -387,6 +392,28 @@ function whyRow(label: string, text: string, bricolage: string, body: string, mo
       <div style="font-family:${body};font-size:14px;line-height:1.55;color:#52705F;margin-top:4px;">${text}</div>
     </td>
   </tr></table>`;
+}
+
+function dot(color: string, size = 8) {
+  return `<span style="display:inline-block;width:${size}px;height:${size}px;border-radius:50%;background:${color};margin:0 4px;"></span>`;
+}
+
+function renderHeroMotif(motif?: string | null): string {
+  if (!motif) return "";
+  const m = motif.toLowerCase();
+  if (m === "confetti" || m === "confetti_balloons") {
+    const cols = ["#1E9E6A","#DCBE6E","#FFFFFF","#1E9E6A","#DCBE6E","#FFFFFF","#1E9E6A","#DCBE6E"];
+    return `<div style="margin-top:16px;line-height:0;">${cols.map((c) => dot(c, 8)).join("")}</div>`;
+  }
+  if (m === "stars") {
+    const dots = Array.from({ length: 12 }, () => dot("#FFFFFF", 4)).join("");
+    return `<div style="margin-top:16px;line-height:0;opacity:0.85;">${dots}</div>`;
+  }
+  if (m === "snow" || m === "snowflakes") {
+    const dots = Array.from({ length: 10 }, () => dot("#FFFFFF", 5)).join("");
+    return `<div style="margin-top:16px;line-height:0;opacity:0.9;">${dots}</div>`;
+  }
+  return "";
 }
 
 
