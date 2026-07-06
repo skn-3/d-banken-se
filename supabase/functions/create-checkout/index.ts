@@ -41,11 +41,13 @@ Deno.serve(async (req) => {
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
   let themeId: string | null = null;
+  let themeSlug: string | null = null;
   if (rawThemeId !== null && rawThemeId !== "") {
     const idStr = String(rawThemeId);
-    const t = await db.from("greeting_themes").select("id, aktiv").eq("id", idStr).maybeSingle();
-    if (!t.data || !t.data.aktiv) return json(400, { error: "invalid_theme_id" });
+    const t = await db.from("greeting_themes").select("id, slug, active").eq("id", idStr).maybeSingle();
+    if (!t.data || !t.data.active) return json(400, { error: "invalid_theme_id" });
     themeId = t.data.id;
+    themeSlug = t.data.slug;
   }
 
   let greeting: string | null = null;
@@ -76,7 +78,7 @@ Deno.serve(async (req) => {
   const params: any = {
     mode: isSubscription ? "subscription" : "payment",
     line_items: [{ price_data: priceData, quantity }],
-    success_url: `https://smartklimat.org/plantera?tack=1${themeId ? `&tema=${encodeURIComponent(themeId)}` : ""}`,
+    success_url: `https://smartklimat.org/plantera?tack=1${themeSlug ? `&tema=${encodeURIComponent(themeSlug)}` : ""}`,
     cancel_url: "https://smartklimat.org/plantera",
     metadata,
   };
