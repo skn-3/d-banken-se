@@ -120,9 +120,9 @@ function SellersBoard({ period, page, setPage, currentUserId }: { period: Period
                   <span className="font-semibold truncate" style={{ color: "var(--forest)" }}>{r.first_name || "Säljare"}</span>
                   {b && <BuffRow buffs={b} />}
                 </div>
-                {r.team_name && (
+                {(r.team_name || r.organization_name) && (
                   <div className="text-xs font-medium" style={{ color: "#B8912B" }}>
-                    ‹{r.team_name}{r.team_city ? `, ${r.team_city}` : ""}›
+                    ‹{r.team_name || r.organization_name}{r.team_city ? `, ${r.team_city}` : ""}›
                   </div>
                 )}
               </div>
@@ -144,7 +144,7 @@ function SellersBoard({ period, page, setPage, currentUserId }: { period: Period
           <AvatarCircle subject={{ user_id: state.me.user_id, avatar_key: state.me.avatar_key, photo_path: state.me.photo_path }} urls={urls} size={40} />
           <div className="flex-1 min-w-0">
             <div className="font-semibold">Du: plats {state.myRank} av {state.total}</div>
-            {state.me.team_name && <div className="text-xs opacity-80">‹{state.me.team_name}›</div>}
+            {(state.me.team_name || state.me.organization_name) && <div className="text-xs opacity-80">‹{state.me.team_name || state.me.organization_name}›</div>}
           </div>
           <div className="font-mono font-semibold">{state.me[key]}</div>
         </div>

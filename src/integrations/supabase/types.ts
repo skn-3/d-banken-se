@@ -1732,6 +1732,7 @@ export type Database = {
           team_city: string | null
           team_id: string | null
           team_name: string | null
+          trees_total: number | null
           user_id: string | null
         }
         Relationships: [
