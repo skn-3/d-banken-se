@@ -29,6 +29,7 @@ function AdminMallarPage() {
   const toggleFn = useServerFn(adminSetCertTemplateActive);
   const moveFn = useServerFn(adminMoveCertTemplate);
   const dupFn = useServerFn(adminDuplicateCertTemplate);
+  const delFn = useServerFn(adminDeleteCertTemplate);
 
   const load = useCallback(async () => {
     const r = await listFn();
