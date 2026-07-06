@@ -174,6 +174,7 @@ Deno.serve(async (req) => {
       tree_count: quantity, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
       status: "paid", paid_at: new Date().toISOString(),
       source: (type === "gava" ? "gift" : type === "manad" ? "monthly" : "web"), source_order_ref: orderRef,
+      theme_id: themeId, greeting: greeting || null,
     }).select("id, created_at").single();
 
     if (pur.error) {
