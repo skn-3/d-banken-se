@@ -68,8 +68,14 @@ function populate(html: string, d: OriginalCertData): string {
 export async function downloadOriginalCertPdf(data: OriginalCertData): Promise<void> {
   const raw = await fetchTemplate();
   const html = populate(raw, data);
+  const fontCss = extractFontFaceCss(raw);
 
-  // Rendera i sandboxad iframe med A4-mått i CSS-pixlar; låt fonts hinna laddas.
+  // Injicera @font-face i huvuddokumentet så html2canvas-klonen hittar fonterna.
+  const fontStyle = document.createElement("style");
+  fontStyle.setAttribute("data-cert-original-fonts", "1");
+  fontStyle.textContent = fontCss;
+  document.head.appendChild(fontStyle);
+
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
   iframe.style.position = "fixed";
@@ -88,11 +94,12 @@ export async function downloadOriginalCertPdf(data: OriginalCertData): Promise<v
     });
 
     const doc = iframe.contentDocument!;
-    // Vänta in fonts + bakgrund
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fontsReady: Promise<unknown> = (doc as any).fonts?.ready ?? Promise.resolve();
-    await fontsReady;
-    await new Promise((r) => setTimeout(r, 250));
+    const iframeFonts: Promise<unknown> = (doc as any).fonts?.ready ?? Promise.resolve();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const parentFonts: Promise<unknown> = (document as any).fonts?.ready ?? Promise.resolve();
+    await Promise.all([iframeFonts, parentFonts]);
+    await new Promise((r) => setTimeout(r, 300));
 
     const body = doc.body;
     body.style.width = `${A4_W_PX}px`;
@@ -114,5 +121,6 @@ export async function downloadOriginalCertPdf(data: OriginalCertData): Promise<v
     pdf.save(`vardebevis-${data.verification_id}.pdf`);
   } finally {
     iframe.remove();
+    fontStyle.remove();
   }
 }
