@@ -447,6 +447,7 @@ function SellerPage() {
             total={total} error={error} submitting={submitting}
             onBack={() => setView("home")}
             onSubmit={submit}
+            themeValue={themeValue} setThemeValue={setThemeValue}
           />
         ) : (
           <>
