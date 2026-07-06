@@ -105,7 +105,6 @@ Deno.serve(async (req) => {
 
   try {
     const session = await stripe.checkout.sessions.create(params);
-    console.log("create-checkout success_url", params.success_url, "themeSlug", themeSlug);
     return json(200, { url: session.url });
   } catch (e) {
     console.error("create-checkout error", e);
