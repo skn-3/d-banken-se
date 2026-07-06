@@ -10,11 +10,13 @@ interface Purchase {
   id: string; created_at: string; recipient_name: string | null; recipient_email: string | null;
   tree_count: number; total_amount_ore: number; status: string;
   customer_id: string | null; team_id: string | null; certificate_template_id: string | null;
+  admin_note: string | null;
 }
 interface Certificate {
   id: string; verification_id: string; recipient_name: string; tree_count: number;
   location_name: string; issued_date: string; purchase_id: string;
   customer_id: string | null; template_id: string | null;
+  greeting: string | null; superseded_by: string | null;
 }
 interface Team {
   id: string; name: string; city: string | null; join_code: string | null;
