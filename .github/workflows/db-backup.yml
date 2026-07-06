@@ -1,0 +1,25 @@
+name: Nattlig databas-backup
+# Kräver GitHub-secret: SUPABASE_DB_URL
+# (Supabase Dashboard -> Project Settings -> Database -> Connection string, URI-varianten)
+on:
+  schedule:
+    - cron: '15 2 * * *'   # 02:15 UTC varje natt
+  workflow_dispatch: {}     # + manuell körning via Actions-fliken
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dumpa databasen (versionssäkert via postgres 17-container)
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$DB_URL" ]; then echo "::error::SUPABASE_DB_URL saknas som repo-secret"; exit 1; fi
+          docker run --rm -e DB_URL postgres:17-alpine \
+            sh -c 'pg_dump "$DB_URL" --no-owner --no-privileges' | gzip > backup-$(date +%F).sql.gz
+          ls -lh backup-*.sql.gz
+      - name: Spara (90 dagars retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backup-*.sql.gz
+          retention-days: 90
