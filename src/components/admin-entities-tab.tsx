@@ -129,6 +129,7 @@ export function AdminEntitiesTab() {
   });
 
   const filteredCerts = certs.filter(c => {
+    if (c.superseded_by) return false; // hide historic rows from default view
     if (!inDate(c.issued_date)) return false;
     if (temaSlug) {
       const t = templateById.get(c.template_id ?? "");
