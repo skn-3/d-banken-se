@@ -53,7 +53,11 @@ export interface MyCertificate {
   longitude: number | null;
   issued_date: string;
   theme_slug: string | null;
+  status: string | null;
+  deliver_at: string | null;
+  recipient_delivery_email: string | null;
 }
+
 
 export interface MyForestData {
   email: string;
@@ -74,12 +78,12 @@ export const getMyForest = createServerFn({ method: "GET" })
     // the user owns without extra filtering.
     const { data: certs, error } = await context.supabase
       .from("certificates")
-      .select("id, verification_id, recipient_name, tree_count, location_name, latitude, longitude, issued_date, purchase_id")
+      .select("id, verification_id, recipient_name, tree_count, location_name, latitude, longitude, issued_date, purchase_id, status, deliver_at, recipient_delivery_email")
       .order("issued_date", { ascending: false });
     if (error) throw new Error(error.message);
 
     const purchaseIds = Array.from(new Set((certs ?? []).map((c) => c.purchase_id).filter(Boolean))) as string[];
-    let themeByPurchase = new Map<string, string | null>();
+    const themeByPurchase = new Map<string, string | null>();
     let firstPurchaseAt: string | null = null;
     if (purchaseIds.length) {
       const { data: pur } = await context.supabase
@@ -112,7 +116,11 @@ export const getMyForest = createServerFn({ method: "GET" })
       longitude: c.longitude == null ? null : Number(c.longitude),
       issued_date: c.issued_date as string,
       theme_slug: c.purchase_id ? themeByPurchase.get(c.purchase_id as string) ?? null : null,
+      status: (c as { status?: string | null }).status ?? null,
+      deliver_at: (c as { deliver_at?: string | null }).deliver_at ?? null,
+      recipient_delivery_email: (c as { recipient_delivery_email?: string | null }).recipient_delivery_email ?? null,
     }));
+
 
     const totalTrees = certificates.reduce((s, c) => s + c.tree_count, 0);
     const totalCo2Kg = totalTrees * 20;

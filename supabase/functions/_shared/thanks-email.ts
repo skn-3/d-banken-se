@@ -9,9 +9,11 @@ export interface ThanksArgs {
   verifyUrl: string;
   locationName?: string | null;
   giftMessage?: string | null;
+  giftFromName?: string | null;
   heroStampUrl?: string | null;
   heroImageUrl?: string | null;
   variant?: "mockfjards" | null;
+
 }
 
 function esc(s: string) {
@@ -117,9 +119,13 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
       </td></tr>`
     : "";
 
-  const greetingBlock = !isMf && a.giftMessage && a.giftMessage.trim()
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;"><tr><td style="background:#EAF7EE;border-radius:14px;padding:16px 20px;font-family:${body};font-style:italic;font-size:15px;line-height:1.5;color:#15784F;">${esc(a.giftMessage)}</td></tr></table>`
+  const giftFromLine = !isMf && a.giftFromName && a.giftFromName.trim()
+    ? `<div style="font-family:${body};font-size:13px;letter-spacing:0.04em;color:#15784F;margin:0 0 10px;text-align:center;">En gåva från <b>${esc(a.giftFromName)}</b></div>`
     : "";
+  const greetingBlock = !isMf && (a.giftMessage && a.giftMessage.trim() || a.giftFromName)
+    ? `${giftFromLine}${a.giftMessage && a.giftMessage.trim() ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;"><tr><td style="background:#EAF7EE;border-radius:14px;padding:16px 20px;font-family:${body};font-style:italic;font-size:15px;line-height:1.5;color:#15784F;">${esc(a.giftMessage)}</td></tr></table>` : ""}`
+    : "";
+
 
   const projectPhoto = proj.photo
     ? `<tr><td style="padding:0 0 18px;"><img src="${proj.photo}" width="536" alt="${esc(proj.name)}" style="display:block;width:100%;max-width:536px;height:auto;border-radius:10px;" /></td></tr>`

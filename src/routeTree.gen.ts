@@ -35,6 +35,7 @@ import { Route as AdminMallarIdRouteImport } from './routes/admin.mallar.$id'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
 import { Route as ApiPublicHooksThemeTestMailRouteImport } from './routes/api/public/hooks/theme-test-mail'
 import { Route as ApiPublicHooksTeamWeeklyReportRouteImport } from './routes/api/public/hooks/team-weekly-report'
+import { Route as ApiPublicHooksDeliverScheduledCertsRouteImport } from './routes/api/public/hooks/deliver-scheduled-certs'
 
 const SverigeRoute = SverigeRouteImport.update({
   id: '/sverige',
@@ -169,6 +170,12 @@ const ApiPublicHooksTeamWeeklyReportRoute =
     path: '/api/public/hooks/team-weekly-report',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksDeliverScheduledCertsRoute =
+  ApiPublicHooksDeliverScheduledCertsRouteImport.update({
+    id: '/api/public/hooks/deliver-scheduled-certs',
+    path: '/api/public/hooks/deliver-scheduled-certs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/hooks/deliver-scheduled-certs': typeof ApiPublicHooksDeliverScheduledCertsRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/theme-test-mail': typeof ApiPublicHooksThemeTestMailRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -222,6 +230,7 @@ export interface FileRoutesByTo {
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/hooks/deliver-scheduled-certs': typeof ApiPublicHooksDeliverScheduledCertsRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/theme-test-mail': typeof ApiPublicHooksThemeTestMailRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -251,6 +260,7 @@ export interface FileRoutesById {
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/hooks/deliver-scheduled-certs': typeof ApiPublicHooksDeliverScheduledCertsRoute
   '/api/public/hooks/team-weekly-report': typeof ApiPublicHooksTeamWeeklyReportRoute
   '/api/public/hooks/theme-test-mail': typeof ApiPublicHooksThemeTestMailRoute
   '/api/public/hooks/weekly-backup': typeof ApiPublicHooksWeeklyBackupRoute
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/api/public/push-notify'
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
+    | '/api/public/hooks/deliver-scheduled-certs'
     | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/theme-test-mail'
     | '/api/public/hooks/weekly-backup'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/api/public/push-notify'
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
+    | '/api/public/hooks/deliver-scheduled-certs'
     | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/theme-test-mail'
     | '/api/public/hooks/weekly-backup'
@@ -337,6 +349,7 @@ export interface FileRouteTypes {
     | '/api/public/push-notify'
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
+    | '/api/public/hooks/deliver-scheduled-certs'
     | '/api/public/hooks/team-weekly-report'
     | '/api/public/hooks/theme-test-mail'
     | '/api/public/hooks/weekly-backup'
@@ -364,6 +377,7 @@ export interface RootRouteChildren {
   ApiPublicPushNotifyRoute: typeof ApiPublicPushNotifyRoute
   ApiPublicSiteEventRoute: typeof ApiPublicSiteEventRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
+  ApiPublicHooksDeliverScheduledCertsRoute: typeof ApiPublicHooksDeliverScheduledCertsRoute
   ApiPublicHooksTeamWeeklyReportRoute: typeof ApiPublicHooksTeamWeeklyReportRoute
   ApiPublicHooksThemeTestMailRoute: typeof ApiPublicHooksThemeTestMailRoute
   ApiPublicHooksWeeklyBackupRoute: typeof ApiPublicHooksWeeklyBackupRoute
@@ -553,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTeamWeeklyReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/deliver-scheduled-certs': {
+      id: '/api/public/hooks/deliver-scheduled-certs'
+      path: '/api/public/hooks/deliver-scheduled-certs'
+      fullPath: '/api/public/hooks/deliver-scheduled-certs'
+      preLoaderRoute: typeof ApiPublicHooksDeliverScheduledCertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -600,6 +621,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPushNotifyRoute: ApiPublicPushNotifyRoute,
   ApiPublicSiteEventRoute: ApiPublicSiteEventRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
+  ApiPublicHooksDeliverScheduledCertsRoute:
+    ApiPublicHooksDeliverScheduledCertsRoute,
   ApiPublicHooksTeamWeeklyReportRoute: ApiPublicHooksTeamWeeklyReportRoute,
   ApiPublicHooksThemeTestMailRoute: ApiPublicHooksThemeTestMailRoute,
   ApiPublicHooksWeeklyBackupRoute: ApiPublicHooksWeeklyBackupRoute,
@@ -607,13 +630,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

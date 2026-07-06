@@ -190,19 +190,41 @@ function ForestView() {
         </section>
       )}
 
+      {/* Scheduled gifts */}
+      {data.certificates.some((c) => c.status === "scheduled") && (
+        <section>
+          <h2 className="mb-3 font-display text-2xl font-semibold" style={{ color: "var(--forest)" }}>Schemalagda gåvor</h2>
+          <div className="space-y-3">
+            {data.certificates
+              .filter((c) => c.status === "scheduled")
+              .map((c) => (
+                <ScheduledGiftRow key={c.id} cert={c} />
+              ))}
+          </div>
+        </section>
+      )}
+
       {/* Certificate gallery */}
       <section>
-        <h2 className="mb-3 font-display text-2xl font-semibold" style={{ color: "var(--forest)" }}>Dina bevis ({data.certificates.length})</h2>
-        {data.certificates.length === 0 ? (
-          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Inga bevis än — plantera dina första träd nedan.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-            {data.certificates.map((c) => (
-              <CertCard key={c.id} cert={c} />
-            ))}
-          </div>
-        )}
+        {(() => {
+          const delivered = data.certificates.filter((c) => c.status !== "scheduled");
+          return (
+            <>
+              <h2 className="mb-3 font-display text-2xl font-semibold" style={{ color: "var(--forest)" }}>Dina bevis ({delivered.length})</h2>
+              {delivered.length === 0 ? (
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Inga bevis än — plantera dina första träd nedan.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                  {delivered.map((c) => (
+                    <CertCard key={c.id} cert={c} />
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </section>
+
 
       {/* CTA */}
       <section className="surface-card flex flex-wrap items-center justify-between gap-4 p-6">
@@ -265,4 +287,40 @@ function CertCard({ cert }: { cert: { id: string; verification_id: string; theme
       </div>
     </div>
   );
+}
+
+function ScheduledGiftRow({ cert }: { cert: { id: string; verification_id: string; tree_count: number; deliver_at: string | null; recipient_delivery_email: string | null } }) {
+  const target = cert.deliver_at ? new Date(cert.deliver_at) : null;
+  const [countdown, setCountdown] = useState(() => target ? formatCountdown(target) : "");
+  useEffect(() => {
+    if (!target) return;
+    const t = setInterval(() => setCountdown(formatCountdown(target)), 60_000);
+    return () => clearInterval(t);
+  }, [target]);
+  return (
+    <div className="surface-card flex flex-wrap items-center justify-between gap-3 p-4">
+      <div>
+        <div className="font-mono text-[10px] uppercase tracking-widest" style={{ color: "var(--muted-foreground)" }}>{cert.verification_id}</div>
+        <div className="mt-1 text-sm font-medium">
+          {cert.tree_count} träd → {cert.recipient_delivery_email ?? "—"}
+        </div>
+        <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+          Levereras {target ? target.toLocaleString("sv-SE", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+        </div>
+      </div>
+      <div className="font-mono text-sm" style={{ color: "var(--forest)" }}>{countdown}</div>
+    </div>
+  );
+}
+
+function formatCountdown(target: Date): string {
+  const diff = target.getTime() - Date.now();
+  if (diff <= 0) return "levereras nu…";
+  const s = Math.floor(diff / 1000);
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (d > 0) return `om ${d} d ${h} h`;
+  if (h > 0) return `om ${h} h ${m} min`;
+  return `om ${m} min`;
 }

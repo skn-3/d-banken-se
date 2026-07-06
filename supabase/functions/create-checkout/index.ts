@@ -37,6 +37,9 @@ Deno.serve(async (req) => {
   // Optional theme + greeting
   const rawThemeId = p?.theme_id ?? p?.themeId ?? null;
   const rawGreeting = p?.halsning ?? p?.greeting ?? null;
+  const rawRecipientDeliveryEmail = String(p?.recipient_delivery_email ?? "").trim().toLowerCase();
+  const rawDeliverAt = String(p?.deliver_at ?? "").trim(); // ISO date "YYYY-MM-DD" eller full ISO
+
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
@@ -61,6 +64,32 @@ Deno.serve(async (req) => {
     greeting = g;
   }
 
+  // Validera schemalagd gåvoleverans (endast tillåtet på type === 'gava')
+  let deliverAtIso: string | null = null;
+  let recipientDeliveryEmail: string | null = null;
+  if (type === "gava" && rawDeliverAt) {
+    if (!rawRecipientDeliveryEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawRecipientDeliveryEmail)) {
+      return json(400, { error: "invalid_recipient_delivery_email" });
+    }
+    // Godta både "YYYY-MM-DD" (tolkas som 08:00 Europe/Stockholm) och full ISO.
+    let parsed: Date | null = null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawDeliverAt)) {
+      // Stockholm 08:00 → UTC 06:00 (CET) eller 07:00 (CEST). Vi väljer UTC 06:00 och accepterar
+      // en timmes glidning i vintertid — cronet levererar ändå på timme.
+      parsed = new Date(`${rawDeliverAt}T06:00:00Z`);
+    } else {
+      const d = new Date(rawDeliverAt);
+      if (!isNaN(d.getTime())) parsed = d;
+    }
+    if (!parsed) return json(400, { error: "invalid_deliver_at" });
+    const now = Date.now();
+    const twelveMonths = now + 366 * 24 * 60 * 60 * 1000;
+    if (parsed.getTime() < now + 60_000) return json(400, { error: "deliver_at_in_past" });
+    if (parsed.getTime() > twelveMonths) return json(400, { error: "deliver_at_too_far" });
+    deliverAtIso = parsed.toISOString();
+    recipientDeliveryEmail = rawRecipientDeliveryEmail;
+  }
+
   const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2024-11-20.acacia" });
 
   const isSubscription = type === "manad";
@@ -74,6 +103,9 @@ Deno.serve(async (req) => {
   const metadata: Record<string, string> = { type, quantity: String(quantity) };
   if (themeId) metadata.theme_id = themeId;
   if (greeting) metadata.halsning = greeting;
+  if (deliverAtIso) metadata.deliver_at = deliverAtIso;
+  if (recipientDeliveryEmail) metadata.recipient_delivery_email = recipientDeliveryEmail;
+
 
   const params: any = {
     mode: isSubscription ? "subscription" : "payment",

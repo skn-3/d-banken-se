@@ -293,3 +293,75 @@ export const adminChangeTeamLeader = createServerFn({ method: "POST" })
       mail_new: mailNew, mail_old: mailOld,
     };
   });
+
+// ---- 5) Deliver scheduled gift now (admin manual push) ----------------
+
+export const adminDeliverGiftNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ certificateId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { renderThanksEmail, sendEmail } = await import("@/lib/email/resend.server");
+
+    // Lease: sätt status='delivering' bara om raden fortfarande är 'scheduled'.
+    const { data: leased, error: leaseErr } = await supabaseAdmin
+      .from("certificates")
+      .update({ status: "delivering" })
+      .eq("id", data.certificateId)
+      .eq("status", "scheduled")
+      .select("id, verification_id, recipient_name, tree_count, location_name, greeting, deliver_at, recipient_delivery_email, buyer_name_snapshot, purchase_id")
+      .maybeSingle();
+    if (leaseErr) throw new Error(leaseErr.message);
+    if (!leased) throw new Error("not_scheduled");
+
+    const to = String(leased.recipient_delivery_email ?? "").trim();
+    if (!to) {
+      await supabaseAdmin.from("certificates").update({ status: "scheduled" }).eq("id", leased.id).eq("status", "delivering");
+      throw new Error("missing_recipient_delivery_email");
+    }
+
+    let heroImageUrl: string | null = null;
+    if (leased.purchase_id) {
+      const { data: pur } = await supabaseAdmin
+        .from("purchases").select("theme_id").eq("id", leased.purchase_id).maybeSingle();
+      if (pur?.theme_id) {
+        const { data: th } = await supabaseAdmin
+          .from("greeting_themes").select("config").eq("id", pur.theme_id).maybeSingle();
+        const kort = (th?.config as { kort?: string } | null)?.kort;
+        if (kort) heroImageUrl = kort.startsWith("http") ? kort : `https://app.smartklimat.org${kort}`;
+      }
+    }
+
+    const dateText = new Date().toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
+    const { subject, html } = renderThanksEmail({
+      recipientName: leased.recipient_name as string,
+      recipientEmail: to,
+      treeCount: Number(leased.tree_count ?? 0),
+      totalKr: "",
+      dateText,
+      verificationId: leased.verification_id as string,
+      verifyUrl: `https://app.smartklimat.org/v/${leased.verification_id}`,
+      locationName: (leased.location_name as string | null) ?? null,
+      giftMessage: (leased.greeting as string | null) ?? null,
+      giftFromName: (leased.buyer_name_snapshot as string | null) ?? null,
+      heroImageUrl,
+    });
+    try {
+      const ok = await sendEmail({ to, subject, html });
+      if (!ok) throw new Error("send_failed");
+    } catch (e) {
+      await supabaseAdmin.from("certificates").update({ status: "scheduled" }).eq("id", leased.id).eq("status", "delivering");
+      throw e;
+    }
+
+    await supabaseAdmin.from("certificates")
+      .update({ status: "delivered", delivered_at: new Date().toISOString() })
+      .eq("id", leased.id).eq("status", "delivering");
+
+    await logActivity(context.userId, "gift_delivered_manual", {
+      certificate_id: leased.id, verification_id: leased.verification_id,
+      recipient_delivery_email: to,
+    });
+    return { ok: true };
+  });

@@ -408,8 +408,11 @@ export type Database = {
       }
       certificates: {
         Row: {
+          buyer_name_snapshot: string | null
           created_at: string
           customer_id: string | null
+          deliver_at: string | null
+          delivered_at: string | null
           greeting: string | null
           id: string
           issued_date: string
@@ -417,7 +420,9 @@ export type Database = {
           location_name: string
           longitude: number
           purchase_id: string
+          recipient_delivery_email: string | null
           recipient_name: string
+          status: string
           superseded_by: string | null
           template_id: string | null
           template_snapshot: Json
@@ -426,8 +431,11 @@ export type Database = {
           verification_id: string
         }
         Insert: {
+          buyer_name_snapshot?: string | null
           created_at?: string
           customer_id?: string | null
+          deliver_at?: string | null
+          delivered_at?: string | null
           greeting?: string | null
           id?: string
           issued_date?: string
@@ -435,7 +443,9 @@ export type Database = {
           location_name: string
           longitude: number
           purchase_id: string
+          recipient_delivery_email?: string | null
           recipient_name: string
+          status?: string
           superseded_by?: string | null
           template_id?: string | null
           template_snapshot: Json
@@ -444,8 +454,11 @@ export type Database = {
           verification_id: string
         }
         Update: {
+          buyer_name_snapshot?: string | null
           created_at?: string
           customer_id?: string | null
+          deliver_at?: string | null
+          delivered_at?: string | null
           greeting?: string | null
           id?: string
           issued_date?: string
@@ -453,7 +466,9 @@ export type Database = {
           location_name?: string
           longitude?: number
           purchase_id?: string
+          recipient_delivery_email?: string | null
           recipient_name?: string
+          status?: string
           superseded_by?: string | null
           template_id?: string | null
           template_snapshot?: Json
@@ -1888,8 +1903,11 @@ export type Database = {
       admin_replace_greeting: {
         Args: { _certificate_id: string; _new_greeting: string }
         Returns: {
+          buyer_name_snapshot: string | null
           created_at: string
           customer_id: string | null
+          deliver_at: string | null
+          delivered_at: string | null
           greeting: string | null
           id: string
           issued_date: string
@@ -1897,7 +1915,9 @@ export type Database = {
           location_name: string
           longitude: number
           purchase_id: string
+          recipient_delivery_email: string | null
           recipient_name: string
+          status: string
           superseded_by: string | null
           template_id: string | null
           template_snapshot: Json

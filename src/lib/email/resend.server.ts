@@ -187,9 +187,11 @@ interface ThanksArgs {
   verifyUrl: string;
   locationName?: string | null;
   giftMessage?: string | null;
+  giftFromName?: string | null;
   heroStampUrl?: string | null;
   heroImageUrl?: string | null;
   theme?: ThanksTheme | null;
+
 }
 
 export function renderThanksEmail(a: ThanksArgs): { subject: string; html: string } {
@@ -272,9 +274,14 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
   const themeHeading = rawHeading.replace(/\{recipient_name\}/g, a.recipientName);
   const heroMotif = renderHeroMotif(a.theme?.motif);
 
-  const greetingBlock = a.giftMessage && a.giftMessage.trim()
+  const giftFromLine = a.giftFromName && a.giftFromName.trim()
+    ? `<tr><td style="padding:0 0 10px;text-align:center;font-family:${body};font-size:13px;color:#15784F;">En gåva från <b>${escapeHtml(a.giftFromName)}</b></td></tr>`
+    : "";
+  const greetingBody = a.giftMessage && a.giftMessage.trim()
     ? `<tr><td style="padding:0 0 20px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EAF7EE;border-radius:14px;"><tr><td style="padding:16px 20px;font-family:${body};font-style:italic;font-size:15px;line-height:1.5;color:#15784F;">${escapeHtml(a.giftMessage)}</td></tr></table></td></tr>`
     : "";
+  const greetingBlock = `${giftFromLine}${greetingBody}`;
+
 
   const projectPhoto = proj.photo
     ? `<tr><td style="padding:0 0 18px;"><img src="${proj.photo}" width="536" alt="${escapeHtml(proj.name)}" style="display:block;width:100%;max-width:536px;height:auto;border-radius:10px;" /></td></tr>`

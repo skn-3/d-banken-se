@@ -17,7 +17,9 @@ interface Certificate {
   location_name: string; issued_date: string; purchase_id: string;
   customer_id: string | null; template_id: string | null;
   greeting: string | null; superseded_by: string | null;
+  status: string | null; deliver_at: string | null; recipient_delivery_email: string | null;
 }
+
 interface Team {
   id: string; name: string; city: string | null; join_code: string | null;
   organization_id: string; created_at: string; cert_template_id: string | null;
@@ -75,7 +77,7 @@ export function AdminEntitiesTab() {
       const [c, p, ct, t, prof, tmpl, o] = await Promise.all([
         supabase.from("customers").select("id, name, email, created_at").order("created_at", { ascending: false }).limit(500),
         supabase.from("purchases").select("id, created_at, recipient_name, recipient_email, tree_count, total_amount_ore, status, customer_id, team_id, certificate_template_id, admin_note").order("created_at", { ascending: false }).limit(500),
-        supabase.from("certificates").select("id, verification_id, recipient_name, tree_count, location_name, issued_date, purchase_id, customer_id, template_id, greeting, superseded_by").order("issued_date", { ascending: false }).limit(500),
+        supabase.from("certificates").select("id, verification_id, recipient_name, tree_count, location_name, issued_date, purchase_id, customer_id, template_id, greeting, superseded_by, status, deliver_at, recipient_delivery_email").order("issued_date", { ascending: false }).limit(500),
         supabase.from("teams").select("id, name, city, join_code, organization_id, created_at, cert_template_id").order("created_at", { ascending: false }),
         supabase.from("team_members").select("user_id, team_id, teams:team_id(name), profiles:user_id(name, email)"),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -323,17 +325,30 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams, onRelo
           {rows.map(p => {
             const cert = certByPurchase.get(p.id);
             const tmpl = p.certificate_template_id ? templateById.get(p.certificate_template_id) : null;
+            const scheduled = cert?.status === "scheduled" && cert.deliver_at;
+            const scheduledDate = scheduled ? new Date(cert!.deliver_at!).toLocaleDateString("sv-SE") : null;
             return (
               <tr key={p.id} className="border-t" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === p.id) }}>
                 <td className="py-3 font-mono text-xs">{formatDate(p.created_at)}</td>
                 <td>
                   <div>{p.recipient_name || "—"}</div>
                   <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{p.recipient_email ?? ""}</div>
+                  {scheduled && cert?.recipient_delivery_email && (
+                    <div className="text-xs" style={{ color: "var(--forest)" }}>→ {cert.recipient_delivery_email}</div>
+                  )}
                   {p.admin_note && <div className="mt-1 text-xs italic" style={{ color: "var(--muted-foreground)" }}>📝 {p.admin_note}</div>}
                 </td>
                 <td className="font-mono">{p.tree_count}</td>
                 <td className="font-mono">{formatKr(p.total_amount_ore)}</td>
-                <td className="font-mono text-xs">{p.status}</td>
+                <td className="font-mono text-xs">
+                  {scheduled ? (
+                    <span style={{ color: "var(--forest)" }}>Schemalagd {scheduledDate}</span>
+                  ) : cert?.status === "delivered" ? (
+                    <span>levererad</span>
+                  ) : (
+                    p.status
+                  )}
+                </td>
                 <td className="text-xs">{tmpl?.namn ?? "—"}</td>
                 <td>
                   {cert ? (
@@ -342,8 +357,9 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams, onRelo
                     </button>
                   ) : <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>—</span>}
                 </td>
-                <td>
+                <td className="flex flex-wrap gap-2">
                   <PurchaseCorrectButton purchaseId={p.id} currentStatus={p.status} currentNote={p.admin_note} onDone={onReload} />
+                  {scheduled && cert && <DeliverNowButton certificateId={cert.id} onDone={onReload} />}
                 </td>
               </tr>
             );
@@ -353,6 +369,31 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams, onRelo
     </div>
   );
 }
+
+function DeliverNowButton({ certificateId, onDone }: { certificateId: string; onDone: () => void }) {
+  const [loading, setLoading] = useState(false);
+  return (
+    <button
+      className="rounded border px-2 py-1 text-xs"
+      style={{ borderColor: "var(--border)", color: "var(--forest)" }}
+      disabled={loading}
+      onClick={async () => {
+        if (!confirm("Skicka gåvobeviset till mottagaren nu?")) return;
+        setLoading(true);
+        try {
+          const { adminDeliverGiftNow } = await import("@/lib/admin-extra.functions");
+          await adminDeliverGiftNow({ data: { certificateId } });
+          onDone();
+        } catch (e) {
+          alert("Fel: " + (e as Error).message);
+        } finally { setLoading(false); }
+      }}
+    >
+      {loading ? "Skickar…" : "Skicka nu"}
+    </button>
+  );
+}
+
 
 function CertsView({ rows, templateById, highlight, onReload }: { rows: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; onReload: () => void }) {
   return (
