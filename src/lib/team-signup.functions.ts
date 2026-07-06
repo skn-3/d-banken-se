@@ -16,12 +16,10 @@ export const searchOrganizations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ query: z.string().trim().max(200).default("") }).parse(input))
   .handler(async ({ data, context }) => {
-    const q = data.query;
-    let sel = context.supabase.from("organizations").select("id, name, type").order("name").limit(20);
-    if (q.length > 0) sel = sel.ilike("name", `%${q}%`);
-    const { data: rows, error } = await sel;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: rows, error } = await (context.supabase as any).rpc("search_organizations", { q: data.query });
     if (error) throw new Error(error.message);
-    return { organizations: rows ?? [] };
+    return { organizations: (rows ?? []) as Array<{ id: string; name: string; type: string }> };
   });
 
 // Returnerar aktiva cert-mallar ur mallgalleriet (de tio konstnärstemana +

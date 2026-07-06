@@ -126,7 +126,14 @@ export const moderateGreeting = createServerFn({ method: "POST" })
 export const adminListGreetings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { has_role } = await (async () => {
+      const { data } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+      return { has_role: !!data };
+    })();
+    if (!has_role) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabaseAdmin as any)
       .from("admin_greetings_view")
       .select("*")
       .order("purchase_created_at", { ascending: false })
