@@ -150,6 +150,15 @@ Deno.serve(async (req) => {
     if (greeting.length > 120) greeting = greeting.slice(0, 120);
     if (!custEmail) return new Response("missing_email", { status: 400 });
 
+    // Schemalagd leverans: endast gåvor, framtida datum + separat mottagar-epost.
+    const deliverAtRaw = String(md.deliver_at ?? "").trim();
+    const recipientDeliveryEmail = String(md.recipient_delivery_email ?? "").trim().toLowerCase() || null;
+    let deliverAt: Date | null = null;
+    if (type === "gava" && deliverAtRaw && recipientDeliveryEmail) {
+      const d = new Date(deliverAtRaw);
+      if (!isNaN(d.getTime()) && d.getTime() > Date.now() + 60_000) deliverAt = d;
+    }
+
     // Idempotens
     const orderRef = `stripe:${session.id}`;
     const existing = await db.from("purchases").select("id").eq("source_order_ref", orderRef).maybeSingle();
@@ -190,21 +199,44 @@ Deno.serve(async (req) => {
     const gen = await db.rpc("generate_certificate", { _purchase_id: pur.data.id });
     if (gen.error) throw new Error("certificate: " + gen.error.message);
     const vid = (gen.data as any)?.verification_id ?? null;
+    const locationName = (gen.data as any)?.location_name ?? null;
 
-    // Email
-    if (vid) {
+    // Temats kort-bild används som hero när köpets tema har en /kort/-asset.
+    let heroImageUrl: string | null = null;
+    if (themeId) {
+      const th = await db.from("greeting_themes").select("config").eq("id", themeId).maybeSingle();
+      const kort = (th.data?.config as any)?.kort as string | undefined;
+      if (kort) heroImageUrl = kort.startsWith("http") ? kort : `${APP_PUBLIC_URL}${kort}`;
+    }
+
+    // Schemalagd gåva: markera cert som 'scheduled', skicka bekräftelse till köparen.
+    if (vid && deliverAt) {
+      const upd = await db.from("certificates").update({
+        status: "scheduled",
+        deliver_at: deliverAt.toISOString(),
+        recipient_delivery_email: recipientDeliveryEmail,
+        buyer_name_snapshot: buyerName || null,
+      }).eq("verification_id", vid);
+      if (upd.error) console.error("schedule_cert_update", upd.error.message);
+
+      const dateText = deliverAt.toLocaleDateString("sv-SE", {
+        year: "numeric", month: "long", day: "numeric", timeZone: "Europe/Stockholm",
+      });
+      const confHtml = `<!doctype html><html><body style="margin:0;padding:0;background:#EAF7EE;font-family:Helvetica,Arial,sans-serif;color:#0B3D2E;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 24px;">
+          <tr><td style="background:#fff;border-radius:16px;padding:28px;">
+            <h1 style="font-size:22px;margin:0 0 12px 0;">Din gåva är planterad 🌳</h1>
+            <p style="font-size:15px;line-height:1.55;color:#15784F;">Tack ${recipientName ? "" : ""}för att du planterade <b>${quantity} träd</b> som gåva till <b>${recipientDeliveryEmail}</b>.</p>
+            <p style="font-size:15px;line-height:1.55;color:#15784F;">Beviset skickas automatiskt till mottagaren <b>${dateText} kl 08:00</b>.</p>
+            <p style="font-size:13px;color:#4F6B5E;margin-top:20px;">Vill du ändra datum eller mottagare? Mejla <a href="mailto:hej@smartklimat.org" style="color:#15784F;">hej@smartklimat.org</a>.</p>
+            <p style="font-size:13px;color:#4F6B5E;margin-top:16px;">Bevis-ID: ${vid}</p>
+          </td></tr>
+        </table></body></html>`;
+      await sendEmail(custEmail, `Din gåva är planterad — beviset skickas ${dateText}`, confHtml);
+    } else if (vid) {
+      // Direkt-leverans: dagens flöde.
       const verifyUrl = `${APP_PUBLIC_URL}/v/${vid}`;
       const dateText = new Date(pur.data.created_at).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
-      const locationName = (gen.data as any)?.location_name ?? null;
-
-      // Temats kort-bild används som hero när köpets tema har en /kort/-asset.
-      let heroImageUrl: string | null = null;
-      if (themeId) {
-        const th = await db.from("greeting_themes").select("config").eq("id", themeId).maybeSingle();
-        const kort = (th.data?.config as any)?.kort as string | undefined;
-        if (kort) heroImageUrl = kort.startsWith("http") ? kort : `${APP_PUBLIC_URL}${kort}`;
-      }
-
       const { subject, html } = renderThanksEmail({
         recipientName,
         treeCount: quantity,
@@ -217,6 +249,7 @@ Deno.serve(async (req) => {
       });
       await sendEmail(custEmail, subject, html);
     }
+
 
 
     console.log("stripe-webhook ok", { session: session.id, type, quantity, vid, greeting: greeting ? "yes" : "no" });
