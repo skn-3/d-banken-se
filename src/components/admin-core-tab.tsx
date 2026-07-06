@@ -14,6 +14,7 @@ import { getRewardEconomy, getRewardBudget, setRewardBudget } from "@/lib/reward
 import { AdminPhotoReports } from "@/components/admin-photo-reports";
 import { AdminSupportSection } from "@/components/admin-support-section";
 import { AdminInsightsSection } from "@/components/admin-insights";
+import { AdminClubSection } from "@/components/admin-club-section";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
 
