@@ -9,6 +9,7 @@ import {
   adminSetCertTemplateActive,
   adminMoveCertTemplate,
   adminDuplicateCertTemplate,
+  adminDeleteCertTemplate,
   type CertTemplateRow,
 } from "@/lib/cert-templates.functions";
 
