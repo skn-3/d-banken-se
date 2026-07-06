@@ -7,9 +7,10 @@ interface Props {
   trees: number;
   recipientName?: string | null;
   latestLocation?: string | null;
+  levelName?: string | null;
 }
 
-export function TreeBankHero({ trees, recipientName, latestLocation }: Props) {
+export function TreeBankHero({ trees, recipientName, latestLocation, levelName }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [display, setDisplay] = useState(prefersReducedMotion() ? trees : 0);
   const [visible, setVisible] = useState(false);
