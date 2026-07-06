@@ -10,6 +10,8 @@ const PurchaseSchema = z.object({
   treeCount: z.number().int().min(1).max(10000),
   recipientName: z.string().trim().min(1).max(120),
   recipientEmail: z.string().trim().email().max(255),
+  templateId: z.string().uuid().nullable().optional(),
+  greeting: z.string().trim().max(120).nullable().optional(),
 });
 
 export const createPurchase = createServerFn({ method: "POST" })
@@ -18,33 +20,33 @@ export const createPurchase = createServerFn({ method: "POST" })
     const email = data.recipientEmail.toLowerCase();
     const name = data.recipientName;
 
-    // 1) Upsert customer by email (update latest name)
+    // 1) Upsert customer
     const { data: existing } = await supabaseAdmin
-      .from("customers")
-      .select("*")
-      .eq("email", email)
-      .maybeSingle();
+      .from("customers").select("*").eq("email", email).maybeSingle();
 
     let customerId: string;
     if (existing) {
       customerId = existing.id;
       if (existing.name !== name) {
-        await supabaseAdmin
-          .from("customers")
-          .update({ name, updated_at: new Date().toISOString() })
-          .eq("id", customerId);
+        await supabaseAdmin.from("customers").update({ name, updated_at: new Date().toISOString() }).eq("id", customerId);
       }
     } else {
       const { data: inserted, error } = await supabaseAdmin
-        .from("customers")
-        .insert({ email, name })
-        .select("id")
-        .single();
+        .from("customers").insert({ email, name }).select("id").single();
       if (error) throw new Error(`Customer create failed: ${error.message}`);
       customerId = inserted.id;
     }
 
-    // 2) Insert purchase (simulated payment, status=paid)
+    // 2) Server-side greeting moderation
+    let cleanGreeting: string | null = data.greeting?.trim() || null;
+    if (cleanGreeting) {
+      const { data: blocks } = await supabaseAdmin.from("greeting_blocklist").select("word");
+      const lower = cleanGreeting.toLowerCase();
+      const hit = (blocks ?? []).find((r) => r.word && lower.includes(r.word.toLowerCase()));
+      if (hit) throw new Error("Hälsningen innehåller olämpligt ord.");
+    }
+
+    // 3) Insert purchase
     const total = data.treeCount * PRICE_PER_TREE_ORE;
     const { data: purchase, error: pErr } = await supabaseAdmin
       .from("purchases")
@@ -58,7 +60,10 @@ export const createPurchase = createServerFn({ method: "POST" })
         status: "paid",
         paid_at: new Date().toISOString(),
         source: "web",
-      })
+        certificate_template_id: data.templateId ?? null,
+        greeting: cleanGreeting,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
       .select("id, created_at")
       .single();
     if (pErr) throw new Error(`Purchase failed: ${pErr.message}`);
