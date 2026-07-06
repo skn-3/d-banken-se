@@ -62,7 +62,8 @@ export const Route = createFileRoute("/api/public/site-event")({
         if (metaStr.length > 2000) return new Response("meta_too_large", { status: 400, headers: cors });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin.from("site_events").insert({ event, path, meta: meta as Record<string, unknown> });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await supabaseAdmin.from("site_events").insert({ event, path, meta: meta as any });
         if (error) {
           console.error("site-event insert failed", error.message);
           return new Response("insert_failed", { status: 500, headers: cors });
