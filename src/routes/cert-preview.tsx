@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { CertificateA4, type CertA4Data } from "@/components/certificate-a4";
+import { downloadOriginalCertPdf } from "@/lib/download-cert-original";
 
 // QA-route: renderar A4-värdebeviset i 4 tema-varianter för synkontroll mot faciten.
 // URL: /cert-preview
@@ -67,10 +69,27 @@ const SAMPLES: Array<{ label: string; data: CertA4Data }> = [
 ];
 
 function CertPreview() {
+  const [dl, setDl] = useState(false);
+  const original = {
+    verification_id: "SK-2026-ORIG01",
+    recipient_name: "Anna Testsson",
+    tree_count: 5,
+    location_name: "Luanshya, Copperbelt, Zambia",
+    latitude: -13.131725,
+    longitude: 28.418843,
+    issued_date: new Date().toISOString(),
+  };
   return (
     <div style={{ background: "#111", padding: 24, minHeight: "100vh" }}>
       <div style={{ color: "#fff", fontFamily: "system-ui", marginBottom: 16, fontSize: 14 }}>
-        Cert QA: fyra teman renderade i A4 (1240×1754). Skala 0.5 för att få plats.
+        Cert QA. Original renderas via HTML-mall — klicka för att ladda ner PDF.
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <button
+          disabled={dl}
+          onClick={async () => { setDl(true); try { await downloadOriginalCertPdf(original); } finally { setDl(false); } }}
+          style={{ padding: "10px 16px", background: "#1E9E6A", color: "#fff", border: 0, borderRadius: 8, cursor: "pointer" }}
+        >{dl ? "Genererar…" : "Ladda ner Original test-PDF"}</button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 620px)", gap: 24 }}>
         {SAMPLES.map((s) => (

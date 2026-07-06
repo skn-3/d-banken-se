@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { CertificateA4, type CertA4Data } from "@/components/certificate-a4";
 import { downloadA4CertificateAsPdf } from "@/lib/download-cert-a4";
+import { downloadOriginalCertPdf } from "@/lib/download-cert-original";
 
 
 export const Route = createFileRoute("/v/$id")({
@@ -87,12 +88,24 @@ function VerifyPage() {
   }
 
   async function handleDownload() {
-    if (!a4Ref.current) return;
+    if (!a4) return;
     setDownloading(true);
     try {
-      // Ge bilderna (bakgrund + QR + stämpel) en tick att renderas.
-      await new Promise((r) => setTimeout(r, 300));
-      await downloadA4CertificateAsPdf(a4Ref.current, id);
+      if ((a4.themeSlug || "").toLowerCase() === "original") {
+        await downloadOriginalCertPdf({
+          verification_id: a4.verification_id,
+          recipient_name: a4.recipient_name,
+          tree_count: a4.tree_count,
+          location_name: a4.location_name,
+          latitude: a4.latitude,
+          longitude: a4.longitude,
+          issued_date: a4.issued_date,
+        });
+      } else {
+        if (!a4Ref.current) return;
+        await new Promise((r) => setTimeout(r, 300));
+        await downloadA4CertificateAsPdf(a4Ref.current, id);
+      }
     } finally {
       setDownloading(false);
     }

@@ -53,6 +53,8 @@ export function GreetingThemePicker({ value, onChange, compact, title }: Props) 
   };
 
   if (themes.length === 0) return null;
+  const selected = themes.find((t) => t.id === value.themeId) ?? null;
+  const hideGreeting = selected?.slug === "original" || selected?.config?.allows_greeting === false;
 
   return (
     <section className={compact ? "rounded-2xl border p-4" : "surface-card p-6"} style={{ borderColor: "var(--border)" }}>
@@ -91,22 +93,24 @@ export function GreetingThemePicker({ value, onChange, compact, title }: Props) 
         })}
       </div>
 
-      <div className="mt-4">
-        <label className="mb-1.5 block text-sm font-medium">Personlig hälsning (valfritt)</label>
-        <textarea
-          value={value.greeting}
-          onChange={(e) => setGreeting(e.target.value)}
-          placeholder="T.ex. Grattis på födelsedagen från oss alla!"
-          maxLength={120}
-          rows={2}
-          className="w-full rounded-xl border px-3 py-2 text-sm resize-none"
-          style={{ borderColor: "var(--border)", background: "var(--input)" }}
-        />
-        <div className="mt-1 flex justify-between text-xs" style={{ color: "var(--muted-foreground)" }}>
-          <span>{issue ? <span style={{ color: "var(--destructive)" }}>{issue}</span> : "Syns i mailet och som liten rad på beviset."}</span>
-          <span>{value.greeting.length}/120</span>
+      {!hideGreeting && (
+        <div className="mt-4">
+          <label className="mb-1.5 block text-sm font-medium">Personlig hälsning (valfritt)</label>
+          <textarea
+            value={value.greeting}
+            onChange={(e) => setGreeting(e.target.value)}
+            placeholder="T.ex. Grattis på födelsedagen från oss alla!"
+            maxLength={120}
+            rows={2}
+            className="w-full rounded-xl border px-3 py-2 text-sm resize-none"
+            style={{ borderColor: "var(--border)", background: "var(--input)" }}
+          />
+          <div className="mt-1 flex justify-between text-xs" style={{ color: "var(--muted-foreground)" }}>
+            <span>{issue ? <span style={{ color: "var(--destructive)" }}>{issue}</span> : "Syns i mailet och som liten rad på beviset."}</span>
+            <span>{value.greeting.length}/120</span>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }
