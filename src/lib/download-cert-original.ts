@@ -35,7 +35,7 @@ function ensureDot(s: string): string {
 }
 
 async function fetchTemplate(): Promise<string> {
-  const res = await fetch(TEMPLATE_URL, { cache: "force-cache" });
+  const res = await fetch(`${TEMPLATE_URL}?v=${Date.now()}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`Kunde inte ladda mall (${res.status})`);
   return await res.text();
 }
