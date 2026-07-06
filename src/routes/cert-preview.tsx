@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { CertificateA4, type CertA4Data } from "@/components/certificate-a4";
+import { downloadOriginalCertPdf } from "@/lib/download-cert-original";
 
 // QA-route: renderar A4-värdebeviset i 4 tema-varianter för synkontroll mot faciten.
 // URL: /cert-preview
