@@ -36,8 +36,28 @@ export const joinTeamByCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ code: z.string().trim().min(1).max(24) }).parse(input))
   .handler(async ({ data, context }) => {
+    // SEC-3: max 10 misslyckade lagkodsförsök per användare per timme.
+    const ONE_HOUR_AGO = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sb = context.supabase as any;
+    const { count } = await sb
+      .from("team_join_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
+      .eq("success", false)
+      .gte("attempted_at", ONE_HOUR_AGO);
+    if ((count ?? 0) >= 10) {
+      throw new Error("För många försök. Vänta en timme innan du provar igen.");
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: res, error } = await context.supabase.rpc("join_team_by_code" as any, { _code: data.code } as any);
+    try {
+      await sb.from("team_join_attempts").insert({
+        user_id: context.userId, code: data.code, success: !error,
+      });
+    } catch { /* ignore */ }
+
     if (error) throw new Error(error.message);
     const joined = res as { team_id: string; team_name: string };
     // Fire-and-forget welcome mail (idempotent per user+team).
