@@ -912,16 +912,8 @@ function HomeView({
         </section>
       )}
 
-      {/* Plantera träd — huvudknapp */}
-      {!readOnly && (
-        <div className="sticky bottom-4 z-20">
-          <button onClick={onRegister}
-            className="btn-primary w-full !py-5 text-lg shadow-lg"
-            style={{ boxShadow: "0 14px 36px -10px rgba(30,158,106,.6)" }}>
-            🌱 Plantera träd
-          </button>
-        </div>
-      )}
+      {/* (Huvudknappen ligger direkt under nivåkortet; mini-flytande knapp hanteras av PlantButton.) */}
+
 
 
       <style>{`
