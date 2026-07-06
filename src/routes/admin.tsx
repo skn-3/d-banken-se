@@ -804,11 +804,15 @@ function TemplateEditor({ template, onClose, onSaved }: {
         company_user_id: t.company_user_id || null,
         is_default: t.is_default,
       };
+      // cert_templates har `namn`/`aktiv` — säkerställ båda skrivs för kompat.
+      const dbRow = { ...payload, namn: payload.name, aktiv: true, slug: `admin-${payload.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sb = supabase as any;
       if (t.id) {
-        const { error } = await supabase.from("certificate_templates").update(payload).eq("id", t.id);
+        const { error } = await sb.from("cert_templates").update(dbRow).eq("id", t.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("certificate_templates").insert(payload);
+        const { error } = await sb.from("cert_templates").insert(dbRow);
         if (error) throw error;
       }
       await onSaved();
