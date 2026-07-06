@@ -126,7 +126,8 @@ export const purchaseSellerReward = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let buyerUserId = context.userId;
-    let orderRow: { id: string; reward_id: string; cost_points: number; status: string } | null = null;
+    type OrderMin = { id: string; reward_id: string; cost_points: number; status: string };
+    let orderRow: OrderMin | null = null;
 
     if (data.targetUserId && data.targetUserId !== context.userId) {
       // Admin agerar för en säljare (förhandsvisning). Speglar RPC-logiken manuellt.
@@ -162,12 +163,12 @@ export const purchaseSellerReward = createServerFn({ method: "POST" })
         seller_user_id: buyerUserId, delta: -reward.cost_points, type: "spend",
         reference_id: order.id, description: `Köpte ${reward.name}`,
       });
-      orderRow = order as typeof orderRow;
+      orderRow = order as unknown as OrderMin;
     } else {
       // Vanlig säljare — kör atomisk RPC
       const { data: order, error } = await context.supabase.rpc("purchase_reward", { _reward_id: data.rewardId });
       if (error) throw new Error(error.message);
-      orderRow = order as typeof orderRow;
+      orderRow = order as unknown as OrderMin;
     }
 
     // Skicka bekräftelsemail (best-effort, tystar sig men loggas)
