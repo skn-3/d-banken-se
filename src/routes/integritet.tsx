@@ -26,8 +26,11 @@ function IntegritetPage() {
             <p className="mt-2">
               För att kunna använda SmartKlimat lagrar vi förnamn, e-post och profilbild.
               Säljares lag och roll lagras för att räkna träd och poäng. Kunders förnamn och
-              e-post lagras för att skicka värdebevis.
+              e-post lagras för att skicka värdebevis. När du skickar en gåva med
+              schemalagd leverans lagrar vi även mottagarens e-post — den används enbart
+              för att skicka värdebeviset på den dag du valt och raderas på begäran.
             </p>
+
           </section>
 
           <section>
