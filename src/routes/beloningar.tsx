@@ -289,10 +289,16 @@ function RewardsPage() {
                             {new Date(o.requested_at).toLocaleString("sv-SE")} · {o.cost_points} p
                           </div>
                         </div>
-                        <span className="chip !py-0.5 !text-[10px]"
-                          style={{ background: o.status === "uppfylld" ? "var(--forest)" : "var(--apricot)", color: o.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
-                          {o.status === "uppfylld" ? "Uppfylld ✓" : "Väntar på lärare"}
-                        </span>
+                        {(() => {
+                          const map: Record<string, { label: string; bg: string; fg: string }> = {
+                            pending:   { label: "Väntar på packning",  bg: "var(--apricot)", fg: "var(--forest)" },
+                            packed:    { label: "Packad",              bg: "#DCEDE1",        fg: "var(--forest)" },
+                            shipped:   { label: "På väg till ledaren", bg: "#B4D8FF",        fg: "#0B3D7A" },
+                            delivered: { label: "Utdelat ✓",           bg: "var(--forest)",  fg: "#fff" },
+                          };
+                          const s = map[o.status] ?? { label: o.status, bg: "var(--muted)", fg: "var(--forest)" };
+                          return <span className="chip !py-0.5 !text-[10px]" style={{ background: s.bg, color: s.fg }}>{s.label}</span>;
+                        })()}
                       </div>
                     );
                   })}
