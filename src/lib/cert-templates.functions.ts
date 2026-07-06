@@ -160,7 +160,7 @@ export const adminSaveCertTemplate = createServerFn({ method: "POST" })
 export const adminUploadCertAsset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({
-    kind: z.enum(["bg", "kort"]),
+    kind: z.enum(["bg", "kort", "logo"]),
     filename: z.string().min(1).max(200),
     contentType: z.string().min(1).max(100),
     dataBase64: z.string().min(1),
