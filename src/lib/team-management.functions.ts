@@ -129,10 +129,33 @@ export const getTeamManagement = createServerFn({ method: "GET" })
         projectLocation: team.project_location,
         showTeamNameOnCertificate: team.show_team_name_on_certificate,
         joinCode: team.join_code,
+        certTemplateId: (team.cert_template_id as string | null) ?? null,
+        certTemplate,
       },
       hasSales,
       members: memberRows,
     };
+  });
+
+export const updateTeamCertTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    certTemplateId: z.string().uuid().nullable(),
+    showTeamNameOnCertificate: z.boolean().optional(),
+  }).parse(input))
+  .handler(async ({ context, data }) => {
+    const { team, supabaseAdmin } = await requireLeaderTeam(context);
+    const patch: Record<string, unknown> = {
+      cert_template_id: data.certTemplateId,
+      updated_at: new Date().toISOString(),
+    };
+    if (data.showTeamNameOnCertificate !== undefined) {
+      patch.show_team_name_on_certificate = data.showTeamNameOnCertificate;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabaseAdmin as any).from("teams").update(patch).eq("id", team.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 const UpdateSchema = z.object({
