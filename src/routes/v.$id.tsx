@@ -25,7 +25,10 @@ interface Row {
   longitude: number | string;
   issued_date: string;
   template_snapshot: Record<string, unknown>;
+  greeting: string | null;
+  theme_slug: string | null;
 }
+
 
 const PAPER_BG = "#EAF7EE";
 
