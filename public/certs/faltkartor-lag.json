@@ -194,7 +194,7 @@
   "falt": {
    "namn": {
     "x": 620.0,
-    "y": 935,
+    "y": 1005,
     "size": 70,
     "color": "#2D5A3D",
     "font": "Bricolage Grotesque",
@@ -206,7 +206,7 @@
    },
    "antal": {
     "x": 620.0,
-    "y": 1130,
+    "y": 1200,
     "size": 78,
     "color": "#B0642F",
     "font": "Bricolage Grotesque",
@@ -218,7 +218,7 @@
    },
    "plats": {
     "x": 620.0,
-    "y": 1220,
+    "y": 1290,
     "size": 25,
     "color": "#4A4234",
     "font": "Familjen Grotesk",
@@ -230,7 +230,7 @@
    },
    "koordinater": {
     "x": 620.0,
-    "y": 1258,
+    "y": 1328,
     "size": 17,
     "color": "#8A7A54",
     "font": "JetBrains Mono",
