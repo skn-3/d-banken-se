@@ -19,6 +19,7 @@ import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
 import { Route as IntegritetRouteImport } from './routes/integritet'
 import { Route as HjalpRouteImport } from './routes/hjalp'
+import { Route as CertPreviewRouteImport } from './routes/cert-preview'
 import { Route as BeloningarRouteImport } from './routes/beloningar'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AktiveraRouteImport } from './routes/aktivera'
@@ -80,6 +81,11 @@ const IntegritetRoute = IntegritetRouteImport.update({
 const HjalpRoute = HjalpRouteImport.update({
   id: '/hjalp',
   path: '/hjalp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertPreviewRoute = CertPreviewRouteImport.update({
+  id: '/cert-preview',
+  path: '/cert-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BeloningarRoute = BeloningarRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
+  '/cert-preview': typeof CertPreviewRoute
   '/hjalp': typeof HjalpRoute
   '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
+  '/cert-preview': typeof CertPreviewRoute
   '/hjalp': typeof HjalpRoute
   '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
+  '/cert-preview': typeof CertPreviewRoute
   '/hjalp': typeof HjalpRoute
   '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/aktivera'
     | '/auth'
     | '/beloningar'
+    | '/cert-preview'
     | '/hjalp'
     | '/integritet'
     | '/konto'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/aktivera'
     | '/auth'
     | '/beloningar'
+    | '/cert-preview'
     | '/hjalp'
     | '/integritet'
     | '/konto'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/aktivera'
     | '/auth'
     | '/beloningar'
+    | '/cert-preview'
     | '/hjalp'
     | '/integritet'
     | '/konto'
@@ -300,6 +312,7 @@ export interface RootRouteChildren {
   AktiveraRoute: typeof AktiveraRoute
   AuthRoute: typeof AuthRoute
   BeloningarRoute: typeof BeloningarRoute
+  CertPreviewRoute: typeof CertPreviewRoute
   HjalpRoute: typeof HjalpRoute
   IntegritetRoute: typeof IntegritetRoute
   KontoRoute: typeof KontoRoute
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       path: '/hjalp'
       fullPath: '/hjalp'
       preLoaderRoute: typeof HjalpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cert-preview': {
+      id: '/cert-preview'
+      path: '/cert-preview'
+      fullPath: '/cert-preview'
+      preLoaderRoute: typeof CertPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/beloningar': {
@@ -484,6 +504,7 @@ const rootRouteChildren: RootRouteChildren = {
   AktiveraRoute: AktiveraRoute,
   AuthRoute: AuthRoute,
   BeloningarRoute: BeloningarRoute,
+  CertPreviewRoute: CertPreviewRoute,
   HjalpRoute: HjalpRoute,
   IntegritetRoute: IntegritetRoute,
   KontoRoute: KontoRoute,
@@ -505,3 +526,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
