@@ -295,9 +295,9 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
       <tr><td style="padding:0 0 18px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${themeBg};border-radius:20px;">
           <tr><td align="center" style="padding:36px 28px 32px;">
-            <img src="${stampWhite}" width="68" height="68" alt="" style="display:block;margin:0 auto 18px;width:68px;height:68px;" />
             <div style="font-family:${mono};font-size:11px;letter-spacing:0.32em;color:${themeSoft};text-transform:uppercase;">${escapeHtml(themeEyebrow)}</div>
-            <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:${themeSoftHeading};">${escapeHtml(themeHeading)}</div>
+            <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:${themeHeroText};">${escapeHtml(themeHeading)}</div>
+            ${heroMotif}
           </td></tr>
         </table>
       </td></tr>
