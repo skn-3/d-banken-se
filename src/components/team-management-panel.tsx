@@ -4,9 +4,11 @@ import { AvatarCircle, useSignedAvatars, type AvatarSubject } from "@/components
 import {
   getTeamManagement,
   updateTeamSettings,
+  updateTeamCertTemplate,
   removeTeamMember,
   rotateJoinCode,
 } from "@/lib/team-management.functions";
+import { listCertificateTemplatesPublic } from "@/lib/team-signup.functions";
 
 type Member = {
   userId: string;
