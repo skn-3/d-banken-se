@@ -98,8 +98,19 @@ function VerifyPage() {
     if (!a4) return;
     setDownloading(true);
     try {
-      if ((a4.themeSlug || "").toLowerCase() === "original") {
+      const slug = (a4.themeSlug || "").toLowerCase();
+      if (slug === "original") {
         await downloadOriginalCertPdf({
+          verification_id: a4.verification_id,
+          recipient_name: a4.recipient_name,
+          tree_count: a4.tree_count,
+          location_name: a4.location_name,
+          latitude: a4.latitude,
+          longitude: a4.longitude,
+          issued_date: a4.issued_date,
+        });
+      } else if (FALTKARTA_SLUGS.has(slug)) {
+        await downloadFaltkartaCertPdf(slug, {
           verification_id: a4.verification_id,
           recipient_name: a4.recipient_name,
           tree_count: a4.tree_count,
