@@ -128,13 +128,30 @@ export const adminReplaceGreeting = createServerFn({ method: "POST" })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     if (error) throw new Error(error.message);
-    // Re-send certificate email (best-effort)
+    // Re-send certificate email (best-effort, admin flow)
     try {
       const { data: cert } = await context.supabase
-        .from("certificates").select("purchase_id").eq("id", data.certificateId).maybeSingle();
-      if (cert?.purchase_id) {
-        const { resendCertificateEmail } = await import("@/lib/email/resend.server");
-        await resendCertificateEmail(cert.purchase_id);
+        .from("certificates")
+        .select("id, verification_id, recipient_name, tree_count, location_name, template_snapshot, greeting, purchase_id")
+        .eq("id", data.certificateId).maybeSingle();
+      const { data: purchase } = cert?.purchase_id
+        ? await context.supabase.from("purchases").select("recipient_email, total_amount_ore, created_at").eq("id", cert.purchase_id).maybeSingle()
+        : { data: null };
+      if (cert && purchase?.recipient_email) {
+        const { renderThanksEmail, sendEmail } = await import("@/lib/email/resend.server");
+        const totalKr = `${((purchase.total_amount_ore ?? 0) / 100).toLocaleString("sv-SE")} kr`;
+        const dateText = new Date(purchase.created_at ?? Date.now()).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
+        const { subject, html } = renderThanksEmail({
+          recipientName: cert.recipient_name,
+          recipientEmail: purchase.recipient_email,
+          treeCount: cert.tree_count,
+          totalKr,
+          dateText,
+          verificationId: cert.verification_id,
+          verifyUrl: `https://smartklimat.org/v/${cert.verification_id}`,
+          locationName: cert.location_name,
+        });
+        await sendEmail({ to: purchase.recipient_email, subject, html });
       }
     } catch (err) {
       console.error("[greeting-resend] failed", (err as Error).message);
