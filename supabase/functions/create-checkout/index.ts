@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
   const params: any = {
     mode: isSubscription ? "subscription" : "payment",
     line_items: [{ price_data: priceData, quantity }],
-    success_url: `https://smartklimat.org/plantera?tack=1${themeId ? `&tema=${encodeURIComponent(themeId)}` : ""}`,
+    success_url: `https://smartklimat.org/plantera?tack=1${themeSlug ? `&tema=${encodeURIComponent(themeSlug)}` : ""}`,
     cancel_url: "https://smartklimat.org/plantera",
     metadata,
   };
