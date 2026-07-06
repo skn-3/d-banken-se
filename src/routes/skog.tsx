@@ -190,19 +190,41 @@ function ForestView() {
         </section>
       )}
 
+      {/* Scheduled gifts */}
+      {data.certificates.some((c) => c.status === "scheduled") && (
+        <section>
+          <h2 className="mb-3 font-display text-2xl font-semibold" style={{ color: "var(--forest)" }}>Schemalagda gåvor</h2>
+          <div className="space-y-3">
+            {data.certificates
+              .filter((c) => c.status === "scheduled")
+              .map((c) => (
+                <ScheduledGiftRow key={c.id} cert={c} />
+              ))}
+          </div>
+        </section>
+      )}
+
       {/* Certificate gallery */}
       <section>
-        <h2 className="mb-3 font-display text-2xl font-semibold" style={{ color: "var(--forest)" }}>Dina bevis ({data.certificates.length})</h2>
-        {data.certificates.length === 0 ? (
-          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Inga bevis än — plantera dina första träd nedan.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-            {data.certificates.map((c) => (
-              <CertCard key={c.id} cert={c} />
-            ))}
-          </div>
-        )}
+        {(() => {
+          const delivered = data.certificates.filter((c) => c.status !== "scheduled");
+          return (
+            <>
+              <h2 className="mb-3 font-display text-2xl font-semibold" style={{ color: "var(--forest)" }}>Dina bevis ({delivered.length})</h2>
+              {delivered.length === 0 ? (
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Inga bevis än — plantera dina första träd nedan.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                  {delivered.map((c) => (
+                    <CertCard key={c.id} cert={c} />
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </section>
+
 
       {/* CTA */}
       <section className="surface-card flex flex-wrap items-center justify-between gap-4 p-6">
