@@ -167,8 +167,10 @@ Deno.serve(async (req) => {
       console.log("stripe-webhook invoice.paid ok", { invoice: invoice.id, quantity, vid });
       return new Response(JSON.stringify({ received: true, verification_id: vid }), { status: 200, headers: { "content-type": "application/json" } });
     } catch (e) {
-      console.error("stripe-webhook invoice.paid error", (e as Error).message);
-      return new Response("handler_error: " + (e as Error).message, { status: 500 });
+      const msg = (e as Error).message;
+      console.error("stripe-webhook invoice.paid error", msg);
+      await recordFailure(db, `invoice:${invoice.id}`, "invoice.paid", msg);
+      return new Response("handler_error: " + msg, { status: 500 });
     }
   }
 
