@@ -1134,6 +1134,30 @@ export type Database = {
         }
         Relationships: []
       }
+      site_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          meta: Json
+          path: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          meta?: Json
+          path?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          meta?: Json
+          path?: string | null
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string
@@ -1325,6 +1349,15 @@ export type Database = {
       }
     }
     Views: {
+      insights_daily_trees: {
+        Row: {
+          day: string | null
+          revenue_ore: number | null
+          source: string | null
+          trees: number | null
+        }
+        Relationships: []
+      }
       register_kunder: {
         Row: {
           antal_kop: number | null
@@ -1431,6 +1464,7 @@ export type Database = {
       }
     }
     Functions: {
+      _assert_admin: { Args: never; Returns: undefined }
       _user_team_id: { Args: { _uid: string }; Returns: string }
       activate_seller_boost: {
         Args: { _boost_id: string }
@@ -1453,6 +1487,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_insights_channel_mix_30d: { Args: never; Returns: Json }
+      admin_insights_kpis: { Args: never; Returns: Json }
+      admin_insights_recipients: { Args: never; Returns: Json }
+      admin_insights_risk_queues: { Args: never; Returns: Json }
+      admin_insights_sales_engine: { Args: never; Returns: Json }
+      admin_insights_top_teams_week: { Args: never; Returns: Json }
+      admin_insights_weekly_series: { Args: never; Returns: Json }
       award_achievement: {
         Args: { _key: string; _meta?: Json; _user_id: string }
         Returns: boolean
@@ -1599,6 +1640,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      refresh_insights_daily_trees: { Args: never; Returns: undefined }
       seller_points_balance: { Args: { _user_id: string }; Returns: number }
       update_team_self_service: {
         Args: {
