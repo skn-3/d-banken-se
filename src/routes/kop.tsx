@@ -1,13 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { createPurchase } from "@/lib/purchases.functions";
+import { listActiveTemplates, moderateGreeting } from "@/lib/certificate-templates.functions";
 import { PlantingForm } from "@/components/planting-form";
-
-
 
 export const Route = createFileRoute("/kop")({
   head: () => ({
@@ -27,7 +26,22 @@ interface SnapshotCert {
   latitude: number | string;
   longitude: number | string;
   issued_date: string;
+  greeting?: string | null;
   template_snapshot: Record<string, unknown>;
+}
+
+interface TemplateOption {
+  id: string;
+  name: string;
+  category: string;
+  accent_color: string;
+  background_key: string;
+  heading_text: string;
+  thumbnail_url: string | null;
+  allows_greeting: boolean;
+  is_default: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  config: any;
 }
 
 function rowToData(row: SnapshotCert): CertificateData {
@@ -39,6 +53,7 @@ function rowToData(row: SnapshotCert): CertificateData {
     latitude: row.latitude,
     longitude: row.longitude,
     issued_date: row.issued_date,
+    greeting: row.greeting ?? null,
     template: snapshotToTemplate(row.template_snapshot),
   };
 }
@@ -46,6 +61,8 @@ function rowToData(row: SnapshotCert): CertificateData {
 function KopPage() {
   const navigate = useNavigate();
   const purchaseFn = useServerFn(createPurchase);
+  const listTemplates = useServerFn(listActiveTemplates);
+  const moderateFn = useServerFn(moderateGreeting);
 
   const [count, setCount] = useState(10);
   const [name, setName] = useState("");
@@ -57,17 +74,44 @@ function KopPage() {
   const [error, setError] = useState<string | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
 
+  const [templates, setTemplates] = useState<TemplateOption[]>([]);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [greeting, setGreeting] = useState<string>("");
+  const [greetingIssue, setGreetingIssue] = useState<string | null>(null);
+
+  useEffect(() => {
+    listTemplates().then((r) => {
+      const opts = (r.templates ?? []) as TemplateOption[];
+      setTemplates(opts);
+      if (!templateId) {
+        const def = opts.find((t) => t.is_default) ?? opts[0];
+        if (def) setTemplateId(def.id);
+      }
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const selected = templates.find((t) => t.id === templateId) ?? null;
+  const allowsGreeting = selected?.allows_greeting ?? false;
+
   const pay = async () => {
     setError(null);
     if (!name.trim()) { setError("Ange mottagarens namn."); return; }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
-      setError("Ange en giltig e-postadress.");
-      return;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) { setError("Ange en giltig e-postadress."); return; }
+    if (allowsGreeting && greeting.trim()) {
+      const check = await moderateFn({ data: { text: greeting.trim() } });
+      if (!check.ok) { setGreetingIssue(check.reason || "Ogiltig hälsning"); return; }
     }
     setSubmitting(true);
     try {
       const res = await purchaseFn({
-        data: { treeCount: count, recipientName: name.trim(), recipientEmail: email.trim() },
+        data: {
+          treeCount: count,
+          recipientName: name.trim(),
+          recipientEmail: email.trim(),
+          templateId,
+          greeting: allowsGreeting ? (greeting.trim() || null) : null,
+        },
       });
       const certData = JSON.parse(res.certificateJson) as SnapshotCert;
       setCertificate(rowToData(certData));
@@ -110,21 +154,16 @@ function KopPage() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-3">
-              <button
-                onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)}
-                className="btn-primary"
-              >Ladda ner som PDF</button>
+              <button onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)} className="btn-primary">Ladda ner som PDF</button>
               <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary">Öppna publik sida</Link>
               <button
-                onClick={() => {
-                  setCertificate(null); setName(""); setEmail(""); setCount(10);
-                }}
+                onClick={() => { setCertificate(null); setName(""); setEmail(""); setCount(10); setGreeting(""); }}
                 className="btn-secondary"
               >Plantera fler träd</button>
             </div>
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto space-y-6">
             <PlantingForm
               count={count} setCount={setCount}
               name={name} setName={setName}
@@ -144,9 +183,62 @@ function KopPage() {
                 </>
               }
             />
+
+            {templates.length > 0 && (
+              <section className="surface-card p-6">
+                <h2 className="font-display text-lg font-semibold">Välj ditt bevis</h2>
+                <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                  Standardbeviset ingår. Tillvalen ger beviset personlighet.
+                </p>
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {templates.map((t) => {
+                    const active = t.id === templateId;
+                    return (
+                      <button
+                        key={t.id} type="button" onClick={() => setTemplateId(t.id)}
+                        className="rounded-2xl p-3 text-left transition"
+                        style={{
+                          border: active ? `2px solid ${t.accent_color}` : "1px solid var(--border)",
+                          background: active ? "var(--mint-paper)" : "var(--card)",
+                        }}
+                      >
+                        <div className="aspect-[4/5] rounded-lg mb-2 flex items-center justify-center overflow-hidden" style={{ background: t.accent_color + "22" }}>
+                          {t.thumbnail_url
+                            ? <img src={t.thumbnail_url} alt={t.name} className="w-full h-full object-cover" />
+                            : <span className="font-display text-3xl" style={{ color: t.accent_color }}>🌳</span>}
+                        </div>
+                        <div className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+                          {t.category === "tillval" ? "Tillval" : "Standard"}
+                        </div>
+                        <div className="font-medium text-sm mt-0.5">{t.name}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {allowsGreeting && (
+                  <div className="mt-5">
+                    <label className="mb-1.5 block text-sm font-medium">Personlig hälsning (valfritt)</label>
+                    <textarea
+                      value={greeting}
+                      onChange={(e) => { setGreeting(e.target.value.slice(0, 120)); setGreetingIssue(null); }}
+                      placeholder="T.ex. Grattis på födelsedagen från oss alla!"
+                      maxLength={120}
+                      rows={2}
+                      className="plantform-input w-full resize-none"
+                    />
+                    <div className="mt-1 flex justify-between text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      <span>{greetingIssue ? <span style={{ color: "var(--destructive)" }}>{greetingIssue}</span> : "Renderas synligt på beviset."}</span>
+                      <span>{greeting.length}/120</span>
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         )}
       </main>
     </div>
   );
 }
+

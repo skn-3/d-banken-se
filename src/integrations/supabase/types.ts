@@ -290,58 +290,88 @@ export type Database = {
       certificate_templates: {
         Row: {
           accent_color: string
+          active: boolean
+          allows_greeting: boolean
           background_key: string
           body_text: string
+          category: string
           company_user_id: string | null
+          config: Json
           created_at: string
           heading_text: string
           id: string
           is_default: boolean
           logo_url: string | null
           name: string
+          org_id: string | null
           show_coordinates: boolean
           show_social: boolean
           social_handles: string
+          sort: number
+          thumbnail_url: string | null
           updated_at: string
         }
         Insert: {
           accent_color?: string
+          active?: boolean
+          allows_greeting?: boolean
           background_key?: string
           body_text?: string
+          category?: string
           company_user_id?: string | null
+          config?: Json
           created_at?: string
           heading_text?: string
           id?: string
           is_default?: boolean
           logo_url?: string | null
           name: string
+          org_id?: string | null
           show_coordinates?: boolean
           show_social?: boolean
           social_handles?: string
+          sort?: number
+          thumbnail_url?: string | null
           updated_at?: string
         }
         Update: {
           accent_color?: string
+          active?: boolean
+          allows_greeting?: boolean
           background_key?: string
           body_text?: string
+          category?: string
           company_user_id?: string | null
+          config?: Json
           created_at?: string
           heading_text?: string
           id?: string
           is_default?: boolean
           logo_url?: string | null
           name?: string
+          org_id?: string | null
           show_coordinates?: boolean
           show_social?: boolean
           social_handles?: string
+          sort?: number
+          thumbnail_url?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "certificate_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       certificates: {
         Row: {
           created_at: string
           customer_id: string | null
+          greeting: string | null
           id: string
           issued_date: string
           latitude: number
@@ -349,6 +379,7 @@ export type Database = {
           longitude: number
           purchase_id: string
           recipient_name: string
+          template_id: string | null
           template_snapshot: Json
           tree_count: number
           user_id: string | null
@@ -357,6 +388,7 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_id?: string | null
+          greeting?: string | null
           id?: string
           issued_date?: string
           latitude: number
@@ -364,6 +396,7 @@ export type Database = {
           longitude: number
           purchase_id: string
           recipient_name: string
+          template_id?: string | null
           template_snapshot: Json
           tree_count: number
           user_id?: string | null
@@ -372,6 +405,7 @@ export type Database = {
         Update: {
           created_at?: string
           customer_id?: string | null
+          greeting?: string | null
           id?: string
           issued_date?: string
           latitude?: number
@@ -379,6 +413,7 @@ export type Database = {
           longitude?: number
           purchase_id?: string
           recipient_name?: string
+          template_id?: string | null
           template_snapshot?: Json
           tree_count?: number
           user_id?: string | null
@@ -390,6 +425,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -519,6 +561,24 @@ export type Database = {
           created_at?: string
           email?: string
           reason?: string
+        }
+        Relationships: []
+      }
+      greeting_blocklist: {
+        Row: {
+          created_at: string
+          id: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          word?: string
         }
         Relationships: []
       }
@@ -922,8 +982,10 @@ export type Database = {
       }
       purchases: {
         Row: {
+          certificate_template_id: string | null
           created_at: string
           customer_id: string | null
+          greeting: string | null
           id: string
           paid_at: string | null
           recipient_email: string | null
@@ -941,8 +1003,10 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          certificate_template_id?: string | null
           created_at?: string
           customer_id?: string | null
+          greeting?: string | null
           id?: string
           paid_at?: string | null
           recipient_email?: string | null
@@ -960,8 +1024,10 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          certificate_template_id?: string | null
           created_at?: string
           customer_id?: string | null
+          greeting?: string | null
           id?: string
           paid_at?: string | null
           recipient_email?: string | null
@@ -979,6 +1045,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "purchases_certificate_template_id_fkey"
+            columns: ["certificate_template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "purchases_customer_id_fkey"
             columns: ["customer_id"]
@@ -1504,6 +1577,31 @@ export type Database = {
       }
     }
     Views: {
+      admin_greetings_view: {
+        Row: {
+          certificate_greeting: string | null
+          certificate_id: string | null
+          certificate_template_id: string | null
+          purchase_created_at: string | null
+          purchase_greeting: string | null
+          purchase_id: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          template_name: string | null
+          tree_count: number | null
+          user_id: string | null
+          verification_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_certificate_template_id_fkey"
+            columns: ["certificate_template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insights_daily_trees: {
         Row: {
           day: string | null
@@ -1650,6 +1748,32 @@ export type Database = {
       admin_insights_top_teams_week: { Args: never; Returns: Json }
       admin_insights_treebank: { Args: never; Returns: Json }
       admin_insights_weekly_series: { Args: never; Returns: Json }
+      admin_replace_greeting: {
+        Args: { _certificate_id: string; _new_greeting: string }
+        Returns: {
+          created_at: string
+          customer_id: string | null
+          greeting: string | null
+          id: string
+          issued_date: string
+          latitude: number
+          location_name: string
+          longitude: number
+          purchase_id: string
+          recipient_name: string
+          template_id: string | null
+          template_snapshot: Json
+          tree_count: number
+          user_id: string | null
+          verification_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "certificates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       award_achievement: {
         Args: { _key: string; _meta?: Json; _user_id: string }
         Returns: boolean
@@ -1711,6 +1835,7 @@ export type Database = {
         Returns: {
           created_at: string
           customer_id: string | null
+          greeting: string | null
           id: string
           issued_date: string
           latitude: number
@@ -1718,6 +1843,7 @@ export type Database = {
           longitude: number
           purchase_id: string
           recipient_name: string
+          template_id: string | null
           template_snapshot: Json
           tree_count: number
           user_id: string | null

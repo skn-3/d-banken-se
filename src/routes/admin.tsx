@@ -781,6 +781,7 @@ function TemplateEditor({ template, onClose, onSaved }: {
       show_coordinates: t.show_coordinates,
       show_social: t.show_social,
       social_handles: t.social_handles,
+      config: {},
     },
   };
 
