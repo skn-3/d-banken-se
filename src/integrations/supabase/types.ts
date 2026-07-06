@@ -287,6 +287,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cert_templates: {
+        Row: {
+          aktiv: boolean
+          allows_greeting: boolean
+          bg_url: string
+          canvas: Json
+          created_at: string
+          falt: Json
+          id: string
+          kort_url: string | null
+          namn: string
+          slug: string
+          sort: number
+        }
+        Insert: {
+          aktiv?: boolean
+          allows_greeting?: boolean
+          bg_url: string
+          canvas?: Json
+          created_at?: string
+          falt?: Json
+          id?: string
+          kort_url?: string | null
+          namn: string
+          slug: string
+          sort?: number
+        }
+        Update: {
+          aktiv?: boolean
+          allows_greeting?: boolean
+          bg_url?: string
+          canvas?: Json
+          created_at?: string
+          falt?: Json
+          id?: string
+          kort_url?: string | null
+          namn?: string
+          slug?: string
+          sort?: number
+        }
+        Relationships: []
+      }
       certificate_templates: {
         Row: {
           accent_color: string
