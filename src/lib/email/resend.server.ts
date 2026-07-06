@@ -187,9 +187,11 @@ interface ThanksArgs {
   verifyUrl: string;
   locationName?: string | null;
   giftMessage?: string | null;
+  giftFromName?: string | null;
   heroStampUrl?: string | null;
   heroImageUrl?: string | null;
   theme?: ThanksTheme | null;
+
 }
 
 export function renderThanksEmail(a: ThanksArgs): { subject: string; html: string } {
