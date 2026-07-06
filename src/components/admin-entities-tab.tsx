@@ -33,7 +33,7 @@ const SUBS: [Sub, string][] = [
   ["saljare", "Säljare"],
 ];
 
-const routeApi = getRouteApi("/admin");
+
 
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
