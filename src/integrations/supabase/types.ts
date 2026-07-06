@@ -907,33 +907,54 @@ export type Database = {
       reward_orders: {
         Row: {
           cost_points: number
+          delivered_at: string | null
+          delivered_by: string | null
           fulfilled_at: string | null
           fulfilled_by: string | null
           id: string
+          packed_at: string | null
+          packed_by: string | null
           requested_at: string
           reward_id: string
           seller_user_id: string
+          shipped_at: string | null
+          shipped_by: string | null
           status: string
+          team_id: string | null
         }
         Insert: {
           cost_points: number
+          delivered_at?: string | null
+          delivered_by?: string | null
           fulfilled_at?: string | null
           fulfilled_by?: string | null
           id?: string
+          packed_at?: string | null
+          packed_by?: string | null
           requested_at?: string
           reward_id: string
           seller_user_id: string
+          shipped_at?: string | null
+          shipped_by?: string | null
           status?: string
+          team_id?: string | null
         }
         Update: {
           cost_points?: number
+          delivered_at?: string | null
+          delivered_by?: string | null
           fulfilled_at?: string | null
           fulfilled_by?: string | null
           id?: string
+          packed_at?: string | null
+          packed_by?: string | null
           requested_at?: string
           reward_id?: string
           seller_user_id?: string
+          shipped_at?: string | null
+          shipped_by?: string | null
           status?: string
+          team_id?: string | null
         }
         Relationships: [
           {
@@ -942,6 +963,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "rewards"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_orders_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_orders_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_team_ranking"
+            referencedColumns: ["team_id"]
           },
         ]
       }
@@ -956,8 +991,10 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          is_digital: boolean
           name: string
           sort_order: number
+          stock: number | null
           updated_at: string
         }
         Insert: {
@@ -970,8 +1007,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_digital?: boolean
           name: string
           sort_order?: number
+          stock?: number | null
           updated_at?: string
         }
         Update: {
@@ -984,8 +1023,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_digital?: boolean
           name?: string
           sort_order?: number
+          stock?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -1516,6 +1557,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_team_leader: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
       join_team_by_code: { Args: { _code: string }; Returns: Json }
       leader_reset_member_photo: {
         Args: { _user_id: string }
@@ -1532,13 +1577,20 @@ export type Database = {
         Args: { _reward_id: string }
         Returns: {
           cost_points: number
+          delivered_at: string | null
+          delivered_by: string | null
           fulfilled_at: string | null
           fulfilled_by: string | null
           id: string
+          packed_at: string | null
+          packed_by: string | null
           requested_at: string
           reward_id: string
           seller_user_id: string
+          shipped_at: string | null
+          shipped_by: string | null
           status: string
+          team_id: string | null
         }
         SetofOptions: {
           from: "*"

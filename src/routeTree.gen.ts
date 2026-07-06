@@ -14,6 +14,7 @@ import { Route as SkapaLagRouteImport } from './routes/skapa-lag'
 import { Route as SaljareRouteImport } from './routes/saljare'
 import { Route as SaljHjalpRouteImport } from './routes/salj-hjalp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PriserRouteImport } from './routes/priser'
 import { Route as KopRouteImport } from './routes/kop'
 import { Route as KontoRouteImport } from './routes/konto'
 import { Route as IntegritetRouteImport } from './routes/integritet'
@@ -52,6 +53,11 @@ const SaljHjalpRoute = SaljHjalpRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PriserRoute = PriserRouteImport.update({
+  id: '/priser',
+  path: '/priser',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KopRoute = KopRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/priser': typeof PriserRoute
   '/reset-password': typeof ResetPasswordRoute
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/priser': typeof PriserRoute
   '/reset-password': typeof ResetPasswordRoute
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/integritet': typeof IntegritetRoute
   '/konto': typeof KontoRoute
   '/kop': typeof KopRoute
+  '/priser': typeof PriserRoute
   '/reset-password': typeof ResetPasswordRoute
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/integritet'
     | '/konto'
     | '/kop'
+    | '/priser'
     | '/reset-password'
     | '/salj-hjalp'
     | '/saljare'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/integritet'
     | '/konto'
     | '/kop'
+    | '/priser'
     | '/reset-password'
     | '/salj-hjalp'
     | '/saljare'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/integritet'
     | '/konto'
     | '/kop'
+    | '/priser'
     | '/reset-password'
     | '/salj-hjalp'
     | '/saljare'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   IntegritetRoute: typeof IntegritetRoute
   KontoRoute: typeof KontoRoute
   KopRoute: typeof KopRoute
+  PriserRoute: typeof PriserRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SaljHjalpRoute: typeof SaljHjalpRoute
   SaljareRoute: typeof SaljareRoute
@@ -314,6 +327,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/priser': {
+      id: '/priser'
+      path: '/priser'
+      fullPath: '/priser'
+      preLoaderRoute: typeof PriserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kop': {
@@ -427,6 +447,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegritetRoute: IntegritetRoute,
   KontoRoute: KontoRoute,
   KopRoute: KopRoute,
+  PriserRoute: PriserRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SaljHjalpRoute: SaljHjalpRoute,
   SaljareRoute: SaljareRoute,

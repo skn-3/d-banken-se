@@ -450,6 +450,18 @@ function SellerPage() {
               rewardBalance={rewardBalance}
             />
             {!ctx.isPreview && <div className="mt-6"><LeaderFinancePanel /></div>}
+            {!ctx.isPreview && (
+              <div className="mt-6">
+                <Link to="/priser" className="surface-card flex items-center justify-between gap-3 p-4 hover:opacity-90"
+                  style={{ background: "var(--mint-paper)", borderColor: "var(--border)" }}>
+                  <div>
+                    <div className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>🎁 Priser att dela ut</div>
+                    <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>Kvittera när ett barn får sitt inlösta pris.</div>
+                  </div>
+                  <span className="btn-primary !py-1.5 !px-3 text-xs">Öppna →</span>
+                </Link>
+              </div>
+            )}
             {!ctx.isPreview && <div className="mt-6"><TeamManagementPanel /></div>}
             {!ctx.isPreview && (
               <div className="mt-6">

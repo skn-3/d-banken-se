@@ -28,6 +28,9 @@ type RewardRow = {
   category: string;
   image_url: string | null;
   sort_order: number;
+  stock: number | null;
+  is_digital: boolean;
+  sold_out: boolean;
 };
 
 type OrderRow = {
@@ -286,10 +289,16 @@ function RewardsPage() {
                             {new Date(o.requested_at).toLocaleString("sv-SE")} · {o.cost_points} p
                           </div>
                         </div>
-                        <span className="chip !py-0.5 !text-[10px]"
-                          style={{ background: o.status === "uppfylld" ? "var(--forest)" : "var(--apricot)", color: o.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
-                          {o.status === "uppfylld" ? "Uppfylld ✓" : "Väntar på lärare"}
-                        </span>
+                        {(() => {
+                          const map: Record<string, { label: string; bg: string; fg: string }> = {
+                            pending:   { label: "Väntar på packning",  bg: "var(--apricot)", fg: "var(--forest)" },
+                            packed:    { label: "Packad",              bg: "#DCEDE1",        fg: "var(--forest)" },
+                            shipped:   { label: "På väg till ledaren", bg: "#B4D8FF",        fg: "#0B3D7A" },
+                            delivered: { label: "Utdelat ✓",           bg: "var(--forest)",  fg: "#fff" },
+                          };
+                          const s = map[o.status] ?? { label: o.status, bg: "var(--muted)", fg: "var(--forest)" };
+                          return <span className="chip !py-0.5 !text-[10px]" style={{ background: s.bg, color: s.fg }}>{s.label}</span>;
+                        })()}
                       </div>
                     );
                   })}
@@ -376,12 +385,16 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
         )}
         <button
           onClick={(e) => { stop(e); onBuy(); }}
-          disabled={!canAfford || busy || readOnly}
-          className={canAfford ? "btn-primary !px-3 !py-1.5 text-xs whitespace-nowrap" : "btn-secondary !px-3 !py-1.5 text-xs whitespace-nowrap"}
-          title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
-          style={!canAfford ? { cursor: "not-allowed", opacity: 0.7 } : undefined}
+          disabled={!canAfford || busy || readOnly || reward.sold_out}
+          className={canAfford && !reward.sold_out ? "btn-primary !px-3 !py-1.5 text-xs whitespace-nowrap" : "btn-secondary !px-3 !py-1.5 text-xs whitespace-nowrap"}
+          title={reward.sold_out ? "Slutsåld just nu" : readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
+          style={!canAfford || reward.sold_out ? { cursor: "not-allowed", opacity: 0.7 } : undefined}
         >
-          {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
+          {reward.sold_out
+            ? "Slutsåld just nu"
+            : busy ? "Löser in…"
+            : canAfford ? `Lös in för ${reward.cost_points} p`
+            : `Saknar ${missing} p`}
         </button>
       </div>
 
