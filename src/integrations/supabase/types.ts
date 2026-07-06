@@ -1668,6 +1668,31 @@ export type Database = {
       }
     }
     Views: {
+      admin_greetings_view: {
+        Row: {
+          certificate_greeting: string | null
+          certificate_id: string | null
+          certificate_template_id: string | null
+          purchase_created_at: string | null
+          purchase_greeting: string | null
+          purchase_id: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          template_name: string | null
+          tree_count: number | null
+          user_id: string | null
+          verification_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_certificate_template_id_fkey"
+            columns: ["certificate_template_id"]
+            isOneToOne: false
+            referencedRelation: "cert_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insights_daily_trees: {
         Row: {
           day: string | null
