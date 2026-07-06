@@ -221,73 +221,172 @@ function AdminPage() {
 interface Order {
   id: string; status: string; cost_points: number; requested_at: string; fulfilled_at: string | null;
   reward_name: string; reward_category: string; team_name: string; org_name: string;
-  seller_name: string; seller_email: string; seller_user_id: string;
+  seller_name: string; seller_email: string; seller_user_id: string; team_id: string | null;
+}
+
+interface PackItem { reward_id: string; reward_name: string; image_url: string | null; count: number; sellers: string[]; order_ids: string[] }
+interface PackGroup {
+  team_id: string; team_name: string; org_name: string;
+  status_summary: { pending: number; packed: number };
+  items: PackItem[];
+}
+
+function statusLabel(s: string): { label: string; bg: string; fg: string } {
+  switch (s) {
+    case "pending":   return { label: "Väntar",   bg: "var(--apricot, #fbe3c0)", fg: "var(--forest)" };
+    case "packed":    return { label: "Packad",   bg: "#DCEDE1",                 fg: "var(--forest)" };
+    case "shipped":   return { label: "Skickad",  bg: "#B4D8FF",                 fg: "#0B3D7A" };
+    case "delivered": return { label: "Utdelad ✓", bg: "var(--forest)",          fg: "#fff" };
+    default:          return { label: s,          bg: "var(--muted)",            fg: "var(--forest)" };
+  }
 }
 
 function OrdersTab() {
   const listFn = useServerFn(adminListOrders);
   const fulfillFn = useServerFn(adminFulfillOrder);
+  // Dynamic imports to avoid pulling all pack fns into initial chunk isn't necessary
+  const packListFn = useServerFn(adminListPackQueue);
+  const packTeamFn = useServerFn(adminMarkTeamPacked);
+  const shipTeamFn = useServerFn(adminMarkTeamShipped);
+
   const [orders, setOrders] = useState<Order[]>([]);
+  const [groups, setGroups] = useState<PackGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "begard" | "uppfylld">("begard");
+  const [busyTeam, setBusyTeam] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "pending" | "packed" | "shipped" | "delivered">("all");
 
   const reload = async () => {
-    const r = await listFn({ data: {} });
+    const [r, q] = await Promise.all([listFn({ data: {} }), packListFn({ data: {} })]);
     setOrders(r.orders as Order[]);
+    setGroups(q.groups as PackGroup[]);
   };
   useEffect(() => { (async () => { await reload(); setLoading(false); })(); /* eslint-disable-next-line */ }, []);
 
   const visible = orders.filter(o => filter === "all" ? true : o.status === filter);
-
   if (loading) return <div className="surface-card mt-6 p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>;
 
-  return (
-    <section className="surface-card mt-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-semibold">Beställda belöningar</h2>
-        <div className="flex gap-2">
-          {(["begard", "uppfylld", "all"] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} className="chip"
-              style={{ cursor: "pointer", background: filter === f ? "var(--mint)" : undefined }}>
-              {f === "begard" ? "Väntar" : f === "uppfylld" ? "Uppfyllda" : "Alla"}
-            </button>
-          ))}
-        </div>
-      </div>
+  const runPack = async (teamId: string) => {
+    setBusyTeam(teamId);
+    try { const r = await packTeamFn({ data: { teamId } }); setMsg(`Packad — ${r.count} ordrar markerade.`); await reload(); }
+    catch (e) { setMsg((e as Error).message); }
+    finally { setBusyTeam(null); setTimeout(() => setMsg(null), 3500); }
+  };
+  const runShip = async (teamId: string) => {
+    setBusyTeam(teamId);
+    try {
+      const r = await shipTeamFn({ data: { teamId } });
+      setMsg(r.mailOk ? `Skickad — ${r.count} ordrar, packlista mailad till ledaren.` : `Skickad — ${r.count} ordrar (mail till ledaren misslyckades, se logg).`);
+      await reload();
+    } catch (e) { setMsg((e as Error).message); }
+    finally { setBusyTeam(null); setTimeout(() => setMsg(null), 4500); }
+  };
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-            <tr><th className="py-2">Datum</th><th>Säljare</th><th>Org · Team</th><th>Belöning</th><th>Poäng</th><th>Status</th><th></th></tr>
-          </thead>
-          <tbody>
-            {visible.map(o => (
-              <tr key={o.id} className="border-t" style={{ borderColor: "var(--border)" }}>
-                <td className="py-3 font-mono text-xs">{new Date(o.requested_at).toLocaleString("sv-SE")}</td>
-                <td><div className="font-medium">{o.seller_name}</div><div className="font-mono text-[10px]" style={{ color: "var(--muted-foreground)" }}>{o.seller_email}</div></td>
-                <td className="text-xs">{o.org_name} · {o.team_name}</td>
-                <td><span className="font-medium">{o.reward_name}</span>{o.reward_category && <span className="ml-2 chip !py-0.5 !text-[10px]">{o.reward_category}</span>}</td>
-                <td className="font-mono font-semibold" style={{ color: "var(--forest)" }}>{o.cost_points}</td>
-                <td>
-                  <span className="chip !py-0.5 !text-[10px]"
-                    style={{ background: o.status === "uppfylld" ? "var(--forest)" : "var(--apricot, #fbe3c0)", color: o.status === "uppfylld" ? "#fff" : "var(--forest)" }}>
-                    {o.status === "uppfylld" ? "Uppfylld ✓" : "Väntar"}
-                  </span>
-                </td>
-                <td className="text-right">
-                  {o.status === "begard" && (
-                    <button className="btn-primary !py-1 !px-2 text-xs" onClick={async () => {
-                      await fulfillFn({ data: { id: o.id } }); await reload();
-                    }}>Markera uppfylld</button>
-                  )}
-                </td>
-              </tr>
+  return (
+    <>
+      <section className="surface-card mt-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-xl font-semibold">Belöningar — packa &amp; skicka</h2>
+            <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              Väntande ordrar grupperade per lag. En sändning per lag — ledaren delar ut.
+            </p>
+          </div>
+        </div>
+
+        {msg && <div className="mt-3 rounded-lg px-3 py-2 text-sm" style={{ background: "var(--mint-paper)", color: "var(--forest)" }}>{msg}</div>}
+
+        {groups.length === 0 ? (
+          <div className="mt-6 rounded-xl border p-6 text-center text-sm" style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}>
+            Inga öppna beställningar just nu. 🎉
+          </div>
+        ) : (
+          <div className="mt-4 space-y-4">
+            {groups.map(g => {
+              const total = g.items.reduce((s, i) => s + i.count, 0);
+              return (
+                <div key={g.team_id} className="rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>{g.team_name}</div>
+                      <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{g.org_name} · {total} priser · {g.status_summary.pending} väntar / {g.status_summary.packed} packade</div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button className="btn-secondary !py-1 !px-3 text-xs" disabled={busyTeam === g.team_id || g.status_summary.pending === 0}
+                              onClick={() => runPack(g.team_id)}>
+                        {busyTeam === g.team_id ? "…" : "Markera packad"}
+                      </button>
+                      <button className="btn-primary !py-1 !px-3 text-xs" disabled={busyTeam === g.team_id || total === 0}
+                              onClick={() => runShip(g.team_id)}>
+                        {busyTeam === g.team_id ? "…" : "Markera skickad"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 divide-y" style={{ borderColor: "var(--border)" }}>
+                    {g.items.map(it => (
+                      <div key={it.reward_id} className="flex items-center gap-3 py-2">
+                        <div className="admin-reward-thumb shrink-0">
+                          {it.image_url ? <img src={it.image_url} alt={it.reward_name} /> : <ImageIcon size={20} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium">{it.reward_name} <span className="font-mono text-xs" style={{ color: "var(--forest)" }}>× {it.count}</span></div>
+                          <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>Till: {it.sellers.join(", ")}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="surface-card mt-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold">Alla beställningar</h2>
+          <div className="flex flex-wrap gap-2">
+            {(["all", "pending", "packed", "shipped", "delivered"] as const).map(f => (
+              <button key={f} onClick={() => setFilter(f)} className="chip"
+                style={{ cursor: "pointer", background: filter === f ? "var(--mint)" : undefined }}>
+                {f === "all" ? "Alla" : statusLabel(f).label}
+              </button>
             ))}
-            {visible.length === 0 && <tr><td colSpan={7} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga beställningar i denna vy.</td></tr>}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          </div>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+              <tr><th className="py-2">Datum</th><th>Säljare</th><th>Org · Team</th><th>Belöning</th><th>Poäng</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              {visible.map(o => {
+                const sl = statusLabel(o.status);
+                return (
+                  <tr key={o.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                    <td className="py-3 font-mono text-xs">{new Date(o.requested_at).toLocaleString("sv-SE")}</td>
+                    <td><div className="font-medium">{o.seller_name}</div><div className="font-mono text-[10px]" style={{ color: "var(--muted-foreground)" }}>{o.seller_email}</div></td>
+                    <td className="text-xs">{o.org_name} · {o.team_name}</td>
+                    <td><span className="font-medium">{o.reward_name}</span>{o.reward_category && <span className="ml-2 chip !py-0.5 !text-[10px]">{o.reward_category}</span>}</td>
+                    <td className="font-mono font-semibold" style={{ color: "var(--forest)" }}>{o.cost_points}</td>
+                    <td><span className="chip !py-0.5 !text-[10px]" style={{ background: sl.bg, color: sl.fg }}>{sl.label}</span></td>
+                    <td className="text-right">
+                      {o.status !== "delivered" && (
+                        <button className="btn-secondary !py-1 !px-2 text-xs" onClick={async () => {
+                          if (!confirm("Sätt direkt till Utdelad (nödknapp)?")) return;
+                          await fulfillFn({ data: { id: o.id } }); await reload();
+                        }}>Utdela nu</button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {visible.length === 0 && <tr><td colSpan={7} className="py-8 text-center" style={{ color: "var(--muted-foreground)" }}>Inga beställningar i denna vy.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
   );
 }
 
