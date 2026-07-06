@@ -154,6 +154,7 @@ function AdminPage() {
 
             {tab === "overview" && (
               <>
+                <AdminFailedPurchasesSection />
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <Stat label="Användare" value={profiles.length.toString()} />
                   <Stat label="Träd planterade" value={totalTrees.toLocaleString("sv-SE")} />
