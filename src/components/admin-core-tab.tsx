@@ -126,6 +126,7 @@ export function AdminCoreTab() {
     <div className="mt-6 space-y-6">
       <AdminInsightsSection />
       <AdminClubSection />
+      <AdminCertificateDesigner />
       <section className="surface-card p-6">
         <h2 className="font-display text-xl font-semibold">Utskick</h2>
         <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
