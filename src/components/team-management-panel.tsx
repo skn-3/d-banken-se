@@ -4,9 +4,11 @@ import { AvatarCircle, useSignedAvatars, type AvatarSubject } from "@/components
 import {
   getTeamManagement,
   updateTeamSettings,
+  updateTeamCertTemplate,
   removeTeamMember,
   rotateJoinCode,
 } from "@/lib/team-management.functions";
+import { listCertificateTemplatesPublic } from "@/lib/team-signup.functions";
 
 type Member = {
   userId: string;
@@ -33,6 +35,8 @@ type State = {
     projectLocation: string | null;
     showTeamNameOnCertificate: boolean;
     joinCode: string | null;
+    certTemplateId: string | null;
+    certTemplate: { id: string; slug: string; namn: string; kort_url: string | null } | null;
   };
   hasSales: boolean;
   members: Member[];
@@ -51,9 +55,13 @@ function relative(iso: string | null): string {
   return `${Math.floor(days / 30)} mån sen`;
 }
 
+type Tmpl = { id: string; slug: string; name: string; sort: number; kort_url: string | null; bg_url: string; allows_greeting: boolean; is_default: boolean };
+
 export function TeamManagementPanel() {
   const loadFn = useServerFn(getTeamManagement);
   const updateFn = useServerFn(updateTeamSettings);
+  const updateCertFn = useServerFn(updateTeamCertTemplate);
+  const listTemplatesFn = useServerFn(listCertificateTemplatesPublic);
   const removeFn = useServerFn(removeTeamMember);
   const rotateFn = useServerFn(rotateJoinCode);
 
@@ -64,6 +72,9 @@ export function TeamManagementPanel() {
   const [confirmRemove, setConfirmRemove] = useState<Member | null>(null);
   const [confirmRotate, setConfirmRotate] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [certPickerOpen, setCertPickerOpen] = useState(false);
+  const [templates, setTemplates] = useState<Tmpl[]>([]);
+  const [pickerBusy, setPickerBusy] = useState(false);
 
   const [form, setForm] = useState({ name: "", weeklyGoal: 0, goalTrees: "", goalEndDate: "", showTeamName: true });
 
@@ -285,6 +296,39 @@ export function TeamManagementPanel() {
         )}
       </div>
 
+      {/* LAGETS VÄRDEBEVIS */}
+      <div className="mt-6 rounded-2xl border p-5" style={{ borderColor: "var(--border)" }}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="aspect-[4/5] w-16 rounded-lg overflow-hidden border shrink-0"
+              style={{
+                borderColor: "var(--border)",
+                backgroundImage: team.certTemplate?.kort_url ? `url("${team.certTemplate.kort_url}")` : undefined,
+                backgroundSize: "cover", backgroundPosition: "center",
+                background: team.certTemplate?.kort_url ? undefined : "#F4FAF5",
+              }}
+            />
+            <div className="min-w-0">
+              <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Lagets värdebevis</h3>
+              <div className="text-sm truncate">{team.certTemplate?.namn ?? "Ingen mall vald — klassiskt bevis"}</div>
+              <div className="text-xs mt-0.5" style={{ color: "var(--muted-foreground)" }}>
+                Byte gäller framtida bevis. Redan utfärdade ändras aldrig.
+              </div>
+            </div>
+          </div>
+          <button
+            className="btn-secondary !py-2 !px-4 text-sm"
+            onClick={async () => {
+              setCertPickerOpen(true);
+              if (templates.length === 0) {
+                try { const r = await listTemplatesFn(); setTemplates(r.templates as Tmpl[]); } catch { /* ignore */ }
+              }
+            }}
+          >Byt bevis</button>
+        </div>
+      </div>
+
       {/* LAGKOD */}
       <div className="mt-6 rounded-2xl border p-5" style={{ borderColor: "var(--border)" }}>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -323,6 +367,70 @@ export function TeamManagementPanel() {
           <div className="mt-4 flex justify-end gap-2">
             <button onClick={() => setConfirmRotate(false)} className="btn-secondary !py-2 !px-4 text-sm">Avbryt</button>
             <button onClick={rotate} className="btn-primary !py-2 !px-4 text-sm">Skapa ny kod</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Cert picker modal */}
+      {certPickerOpen && (
+        <Modal onClose={() => setCertPickerOpen(false)}>
+          <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Välj värdebevis</h3>
+          <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Gäller alla nya köp genom laget. Redan utfärdade bevis ändras aldrig.
+          </p>
+          <label className="mt-3 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.showTeamName}
+              onChange={async (e) => {
+                const v = e.target.checked;
+                setForm((f) => ({ ...f, showTeamName: v }));
+                try {
+                  await updateCertFn({ data: { certTemplateId: team.certTemplateId, showTeamNameOnCertificate: v } });
+                  await refresh();
+                } catch (err) { setMsg((err as Error).message); }
+              }}
+            />
+            Visa lagnamn på beviset
+          </label>
+          <div className="mt-4 grid grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto">
+            {templates.map((t) => {
+              const active = team.certTemplateId === t.id;
+              return (
+                <button
+                  key={t.id}
+                  disabled={pickerBusy}
+                  onClick={async () => {
+                    setPickerBusy(true);
+                    try {
+                      await updateCertFn({ data: { certTemplateId: t.id } });
+                      await refresh();
+                      setCertPickerOpen(false);
+                      setMsg(`Bevis bytt till ${t.name}. Gäller framtida köp.`);
+                    } catch (err) { setMsg((err as Error).message); }
+                    finally { setPickerBusy(false); }
+                  }}
+                  className="text-left"
+                >
+                  <div
+                    className="aspect-[4/5] rounded-lg overflow-hidden border"
+                    style={{
+                      borderColor: active ? "var(--forest)" : "var(--border)",
+                      boxShadow: active ? "0 0 0 3px rgba(30,158,106,0.25)" : undefined,
+                      backgroundImage: t.kort_url ? `url("${t.kort_url}")` : `url("${t.bg_url}")`,
+                      backgroundSize: "cover", backgroundPosition: "center",
+                    }}
+                  />
+                  <div className="mt-1 text-xs font-semibold truncate">{t.name}</div>
+                </button>
+              );
+            })}
+            {templates.length === 0 && (
+              <div className="col-span-3 text-sm text-center py-6" style={{ color: "var(--muted-foreground)" }}>Laddar…</div>
+            )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => setCertPickerOpen(false)} className="btn-secondary !py-2 !px-4 text-sm">Stäng</button>
           </div>
         </Modal>
       )}

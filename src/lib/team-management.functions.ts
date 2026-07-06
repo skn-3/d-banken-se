@@ -27,12 +27,25 @@ export const getTeamManagement = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: team } = await supabaseAdmin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: team } = await (supabaseAdmin as any)
       .from("teams")
-      .select("id, name, weekly_goal_trees, goal_trees, goal_end_date, project_location, show_team_name_on_certificate, join_code")
+      .select("id, name, weekly_goal_trees, goal_trees, goal_end_date, project_location, show_team_name_on_certificate, join_code, cert_template_id")
       .eq("created_by_user_id", context.userId)
       .maybeSingle();
     if (!team) return { isLeader: false as const };
+
+    // Slå upp aktuell mall om vald.
+    let certTemplate: { id: string; slug: string; namn: string; kort_url: string | null } | null = null;
+    if (team.cert_template_id) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: ct } = await (supabaseAdmin as any)
+        .from("cert_templates")
+        .select("id, slug, namn, kort_url")
+        .eq("id", team.cert_template_id)
+        .maybeSingle();
+      if (ct) certTemplate = ct;
+    }
 
     const { data: members } = await supabaseAdmin
       .from("team_members")
@@ -116,10 +129,33 @@ export const getTeamManagement = createServerFn({ method: "GET" })
         projectLocation: team.project_location,
         showTeamNameOnCertificate: team.show_team_name_on_certificate,
         joinCode: team.join_code,
+        certTemplateId: (team.cert_template_id as string | null) ?? null,
+        certTemplate,
       },
       hasSales,
       members: memberRows,
     };
+  });
+
+export const updateTeamCertTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    certTemplateId: z.string().uuid().nullable(),
+    showTeamNameOnCertificate: z.boolean().optional(),
+  }).parse(input))
+  .handler(async ({ context, data }) => {
+    const { team, supabaseAdmin } = await requireLeaderTeam(context);
+    const patch: Record<string, unknown> = {
+      cert_template_id: data.certTemplateId,
+      updated_at: new Date().toISOString(),
+    };
+    if (data.showTeamNameOnCertificate !== undefined) {
+      patch.show_team_name_on_certificate = data.showTeamNameOnCertificate;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabaseAdmin as any).from("teams").update(patch).eq("id", team.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 const UpdateSchema = z.object({

@@ -1554,6 +1554,7 @@ export type Database = {
       }
       teams: {
         Row: {
+          cert_template_id: string | null
           certificate_template_id: string | null
           city: string | null
           created_at: string
@@ -1571,6 +1572,7 @@ export type Database = {
           weekly_goal_trees: number
         }
         Insert: {
+          cert_template_id?: string | null
           certificate_template_id?: string | null
           city?: string | null
           created_at?: string
@@ -1588,6 +1590,7 @@ export type Database = {
           weekly_goal_trees?: number
         }
         Update: {
+          cert_template_id?: string | null
           certificate_template_id?: string | null
           city?: string | null
           created_at?: string
@@ -1605,6 +1608,13 @@ export type Database = {
           weekly_goal_trees?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "teams_cert_template_id_fkey"
+            columns: ["cert_template_id"]
+            isOneToOne: false
+            referencedRelation: "cert_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teams_certificate_template_id_fkey"
             columns: ["certificate_template_id"]

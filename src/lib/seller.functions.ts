@@ -248,7 +248,7 @@ export const sellerCreatePurchase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: member } = await supabaseAdmin
       .from("team_members")
-      .select("id")
+      .select("id, team_id")
       .eq("user_id", context.userId)
       .maybeSingle();
     if (!member) throw new Error("Du är inte registrerad som säljare.");
@@ -286,7 +286,27 @@ export const sellerCreatePurchase = createServerFn({ method: "POST" })
       if (hit) throw new Error("Hälsningen innehåller olämpligt ord.");
     }
 
-    const theme = await getGreetingThemeById(data.themeId ?? null);
+    // REGEL: köp genom lag använder ALLTID lagets mall — säljare/köpare
+    // väljer inte tema i lagflödet. Fall tillbaka till ev. inskickat themeId
+    // bara om laget inte har en mall vald.
+    let resolvedThemeId: string | null = data.themeId ?? null;
+    if (member.team_id) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: t } = await (supabaseAdmin as any)
+        .from("teams").select("cert_template_id").eq("id", member.team_id).maybeSingle();
+      const ctid = t?.cert_template_id as string | null | undefined;
+      if (ctid) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: ct } = await (supabaseAdmin as any)
+          .from("cert_templates").select("slug").eq("id", ctid).maybeSingle();
+        if (ct?.slug) {
+          const { data: gt } = await supabaseAdmin
+            .from("greeting_themes").select("id").eq("slug", ct.slug).maybeSingle();
+          resolvedThemeId = gt?.id ?? null;
+        }
+      }
+    }
+    const theme = await getGreetingThemeById(resolvedThemeId);
 
     const total = data.treeCount * PRICE_PER_TREE_ORE;
     const { data: purchase, error: pErr } = await supabaseAdmin

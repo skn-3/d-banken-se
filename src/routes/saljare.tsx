@@ -12,7 +12,7 @@ import { getRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 import { EventBanner } from "@/components/event-banner";
 import { Onboarding, hasSeenOnboarding, markOnboardingSeen } from "@/components/onboarding";
 import { PlantingForm } from "@/components/planting-form";
-import { GreetingThemePicker } from "@/components/greeting-theme-picker";
+// GreetingThemePicker används inte i lagflödet — lagets valda mall styr temat.
 import skottAsset from "@/assets/stages/skott.png.asset.json";
 import plantaAsset from "@/assets/stages/planta.png.asset.json";
 import ungtAsset from "@/assets/stages/ungt-trad.png.asset.json";
@@ -978,7 +978,21 @@ function RegisterView({
           </p>
         }
       />
-      <GreetingThemePicker value={themeValue} onChange={setThemeValue} compact title="Välj hälsning (valfritt)" />
+      <section className="rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
+        <label className="mb-1.5 block text-sm font-medium">Personlig hälsning (valfritt)</label>
+        <textarea
+          value={themeValue.greeting}
+          onChange={(e) => setThemeValue({ themeId: null, greeting: e.target.value.slice(0, 120) })}
+          placeholder="T.ex. Grattis på födelsedagen från oss alla!"
+          maxLength={120} rows={2}
+          className="w-full rounded-xl border px-3 py-2 text-sm resize-none"
+          style={{ borderColor: "var(--border)", background: "var(--input)" }}
+        />
+        <div className="mt-1 flex justify-between text-xs" style={{ color: "var(--muted-foreground)" }}>
+          <span>Bevisets utseende bestäms av lagets valda mall.</span>
+          <span>{themeValue.greeting.length}/120</span>
+        </div>
+      </section>
     </div>
   );
 }

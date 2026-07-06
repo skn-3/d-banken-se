@@ -24,16 +24,30 @@ export const searchOrganizations = createServerFn({ method: "POST" })
     return { organizations: rows ?? [] };
   });
 
+// Returnerar aktiva cert-mallar ur mallgalleriet (de tio konstnärstemana +
+// framtida egendesignade), sorterade på sort. Wizardens steg 2 använder
+// kort_url som thumbnail.
 export const listCertificateTemplatesPublic = createServerFn({ method: "GET" })
   .handler(async () => {
     const s = publicClient();
-    const { data, error } = await s
-      .from("certificate_templates")
-      .select("id, name, logo_url, accent_color, heading_text, body_text, background_key, is_default")
-      .order("is_default", { ascending: false })
-      .order("name");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (s as any)
+      .from("cert_templates")
+      .select("id, slug, namn, sort, kort_url, bg_url, allows_greeting")
+      .eq("aktiv", true)
+      .order("sort", { ascending: true });
     if (error) throw new Error(error.message);
-    return { templates: data ?? [] };
+    // Normalisera till samma form wizarden vill visa.
+    const templates = (data ?? []).map((t: {
+      id: string; slug: string; namn: string; sort: number;
+      kort_url: string | null; bg_url: string; allows_greeting: boolean;
+    }) => ({
+      id: t.id, slug: t.slug, name: t.namn, sort: t.sort,
+      kort_url: t.kort_url, bg_url: t.bg_url,
+      allows_greeting: t.allows_greeting,
+      is_default: t.slug === "original",
+    }));
+    return { templates };
   });
 
 export const createTeamSelfService = createServerFn({ method: "POST" })
@@ -61,7 +75,9 @@ export const createTeamSelfService = createServerFn({ method: "POST" })
       _new_organization_type: data.newOrganizationType,
       _city: data.city,
       _project_location: data.projectLocation,
-      _certificate_template_id: data.certificateTemplateId,
+      // Klassisk certificate_templates-koppling används inte längre — lagets
+      // konstnärliga cert-mall skrivs separat till teams.cert_template_id.
+      _certificate_template_id: null,
       _show_team_name: data.showTeamName,
       _goal_trees: data.goalTrees,
       _goal_end_date: data.goalEndDate,
@@ -71,6 +87,16 @@ export const createTeamSelfService = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const out = res as { team_id: string; organization_id: string; join_code: string };
+
+    // Skriv den valda konstnärliga mallen till nya kolumnen.
+    if (data.certificateTemplateId) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabaseAdmin as any).from("teams")
+        .update({ cert_template_id: data.certificateTemplateId })
+        .eq("id", out.team_id);
+    }
+
     try {
       const { sendLeaderWelcomeIfNew } = await import("@/lib/email/welcome.server");
       await sendLeaderWelcomeIfNew({ userId: context.userId, teamId: out.team_id });
