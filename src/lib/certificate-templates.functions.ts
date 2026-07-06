@@ -12,28 +12,41 @@ function publicClient() {
   );
 }
 
-// Public: list active templates for kassa (standard + tillval)
+// Public: list active templates for kassa — läser den sammanslagna cert_templates.
 export const listActiveTemplates = createServerFn({ method: "GET" })
   .handler(async () => {
     const s = publicClient();
-    const { data, error } = await s
-      .from("certificate_templates")
-      .select("id, name, category, accent_color, heading_text, background_key, thumbnail_url, allows_greeting, sort, config, is_default")
-      .eq("active", true)
-      .in("category", ["standard", "tillval"])
-      .order("category")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (s as any)
+      .from("cert_templates")
+      .select("id, name, namn, category, accent_color, heading_text, background_key, thumbnail_url, kort_url, allows_greeting, sort, config, is_default")
+      .eq("aktiv", true)
       .order("sort")
-      .order("name");
+      .order("category");
     if (error) throw new Error(error.message);
-    return { templates: data ?? [] };
+    const templates = (data ?? []).map((t: Record<string, unknown>) => ({
+      id: t.id as string,
+      name: (t.name as string | null) ?? (t.namn as string),
+      category: (t.category as string) ?? "standard",
+      accent_color: (t.accent_color as string) ?? "#1E9E6A",
+      heading_text: (t.heading_text as string) ?? "VÄRDEBEVIS",
+      background_key: (t.background_key as string) ?? "mint",
+      thumbnail_url: (t.thumbnail_url as string | null) ?? (t.kort_url as string | null) ?? null,
+      allows_greeting: Boolean(t.allows_greeting),
+      is_default: Boolean(t.is_default),
+      sort: (t.sort as number) ?? 0,
+      config: (t.config as Record<string, unknown>) ?? {},
+    }));
+    return { templates };
   });
 
-// Admin: full list including inactive + org-locked
+// Admin: full list including inactive
 export const adminListTemplates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("certificate_templates")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (context.supabase as any)
+      .from("cert_templates")
       .select("*")
       .order("category")
       .order("sort");
@@ -65,26 +78,33 @@ export const adminUpsertTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => TemplatePayload.parse(input))
   .handler(async ({ data, context }) => {
-    const { id, config, ...rest } = data;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row: any = { ...rest, config: config as any };
+    const { id, active, name, ...rest } = data;
+    // Sammanslagen tabell använder `namn` + `aktiv`; behåll `name` för legacy-läsning.
+    const row: Record<string, unknown> = {
+      ...rest, name, namn: name, aktiv: active,
+      // cert_templates har NOT NULL slug — härled om saknas
+      slug: `admin-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    };
     if (id) {
-      const { error } = await context.supabase
-        .from("certificate_templates").update(row).eq("id", id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (context.supabase as any)
+        .from("cert_templates").update(row).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     }
-    const { data: ins, error } = await context.supabase
-      .from("certificate_templates").insert(row).select("id").single();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: ins, error } = await (context.supabase as any)
+      .from("cert_templates").insert(row).select("id").single();
     if (error) throw new Error(error.message);
-    return { id: ins.id };
+    return { id: ins.id as string };
   });
 
 export const adminDeleteTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("certificate_templates").delete().eq("id", data.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (context.supabase as any).from("cert_templates").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
