@@ -133,7 +133,7 @@ function KopPage() {
         const t = (list.themes as any[]).find((x) => x.id === themeValue.themeId) ?? null;
         setThemeResolved(t);
       } catch { /* ignore */ }
-      setReveal(true);
+      
     } catch (err) {
       setError((err as Error).message || "Något gick fel.");
     } finally {
@@ -149,7 +149,7 @@ function KopPage() {
 
       <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-20 pt-8">
         {certificate ? (
-          <CertificateReveal theme={themeResolved} onDone={() => setReveal(false)}>
+          <CertificateReveal theme={themeResolved} >
             <div className="space-y-6">
               <div className="surface-card p-8 text-center">
                 <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--gradient-mint)" }}>
