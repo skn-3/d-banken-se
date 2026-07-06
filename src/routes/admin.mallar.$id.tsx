@@ -287,18 +287,108 @@ function EditorPage() {
     finally { setBusy(null); }
   };
 
+
+  // ---- AI-genererad SVG-bakgrund ----
+  const pushAi = (ver: AiVer) => {
+    setAiHistory((prev) => {
+      const next = [ver, ...prev].slice(0, 5);
+      return next;
+    });
+  };
+  const generateBg = async () => {
+    if (!aiBrief.trim()) { setMsg("Skriv en brief först."); return; }
+    setBusy("ai"); setMsg(null);
+    try {
+      const r = await genSvgFn({ data: { brief: aiBrief, slug: slug || "ai" } });
+      setBgUrl(r.url);
+      setAiCurrentSvg(r.svg);
+      pushAi({ url: r.url, svg: r.svg, label: aiBrief.slice(0, 60) });
+    } catch (e: any) { setMsg(`AI-fel: ${e?.message ?? e}`); }
+    finally { setBusy(null); }
+  };
+  const adjustBg = async () => {
+    if (!aiCurrentSvg) { setMsg("Generera först en bakgrund."); return; }
+    if (!aiJust.trim()) { setMsg("Beskriv justeringen."); return; }
+    setBusy("ai"); setMsg(null);
+    try {
+      const r = await genSvgFn({ data: {
+        brief: aiBrief || "justering", nuvarande_svg: aiCurrentSvg, justering: aiJust, slug: slug || "ai",
+      } });
+      setBgUrl(r.url);
+      setAiCurrentSvg(r.svg);
+      pushAi({ url: r.url, svg: r.svg, label: `↻ ${aiJust.slice(0, 60)}` });
+      setAiJust("");
+    } catch (e: any) { setMsg(`AI-fel: ${e?.message ?? e}`); }
+    finally { setBusy(null); }
+  };
+  const restoreAi = (v: AiVer) => { setBgUrl(v.url); setAiCurrentSvg(v.svg); };
+
+  // ---- Auto-generera kort (1080×1350) om saknas ----
+  const generateKortFromBg = async (): Promise<string | null> => {
+    if (!bgUrl) return null;
+    try {
+      const img = await new Promise<HTMLImageElement>((res, rej) => {
+        const i = new Image();
+        i.crossOrigin = "anonymous";
+        i.onload = () => res(i);
+        i.onerror = () => rej(new Error("bg load"));
+        i.src = bgUrl;
+      });
+      const KW = 1080, KH = 1350;
+      const cv = document.createElement("canvas");
+      cv.width = KW; cv.height = KH;
+      const ctx = cv.getContext("2d")!;
+      ctx.imageSmoothingQuality = "high";
+      // Beskär övre 4:5 av canvasens virtuella yta
+      const cropW = canvas.w;
+      const cropH = Math.round(canvas.w * (KH / KW)); // 1240 * 1.25 = 1550
+      // Rita bakgrund (SVG rasteriseras crisp vid drawImage-skalning)
+      ctx.drawImage(img, 0, 0, canvas.w, cropH, 0, 0, KW, KH);
+      // Rita statiska texter som ligger i övre kropp-området
+      const sX = KW / cropW;
+      const sY = KH / cropH;
+      for (const f of Object.values(falt)) {
+        if (f.type !== "static" || !f.text) continue;
+        if (f.y > cropH) continue;
+        ctx.save();
+        const style = f.italic ? "italic " : "";
+        const w = /^\d+$/.test(f.weight ?? "400") ? (f.weight ?? "400") : (f.weight === "bold" ? "700" : "400");
+        ctx.font = `${style}${w} ${(f.size ?? 32) * sX}px "${f.font ?? "Bricolage Grotesque"}"`;
+        ctx.fillStyle = f.color ?? "#123326";
+        ctx.textBaseline = "alphabetic";
+        ctx.textAlign = (f.anchor ?? "start") === "middle" ? "center" : (f.anchor === "end" ? "right" : "left");
+        ctx.fillText(f.text, f.x * sX, f.y * sY);
+        ctx.restore();
+      }
+      const b64 = cv.toDataURL("image/jpeg", 0.9).split(",")[1];
+      const r = await uploadFn({ data: { kind: "kort", filename: `${slug || "ai"}-auto.jpg`, contentType: "image/jpeg", dataBase64: b64 } });
+      return r.url;
+    } catch (e) {
+      console.warn("Auto-kort misslyckades", e);
+      return null;
+    }
+  };
+
   const save = async () => {
     setBusy("save"); setMsg(null);
     try {
+      let kort = kortUrl;
+      if (!kort && bgUrl) {
+        kort = await generateKortFromBg();
+        if (kort) setKortUrl(kort);
+      }
       await saveFn({ data: {
         id, namn, slug, allows_greeting: allowsGreeting,
-        bg_url: bgUrl, kort_url: kortUrl, canvas, falt: falt as any,
+        bg_url: bgUrl, kort_url: kort, canvas, falt: falt as any,
       } });
-      setInitial(currentJson);
+      setInitial(JSON.stringify({
+        namn, slug, allowsGreeting, bgUrl, kortUrl: kort, canvas, falt,
+      }));
       setMsg("Sparat.");
     } catch (e: any) { setMsg(`Fel: ${e?.message ?? e}`); }
     finally { setBusy(null); }
   };
+
 
   const testPdf = async () => {
     setBusy("pdf"); setMsg(null);
