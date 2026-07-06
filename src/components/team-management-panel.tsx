@@ -35,6 +35,8 @@ type State = {
     projectLocation: string | null;
     showTeamNameOnCertificate: boolean;
     joinCode: string | null;
+    certTemplateId: string | null;
+    certTemplate: { id: string; slug: string; namn: string; kort_url: string | null } | null;
   };
   hasSales: boolean;
   members: Member[];
