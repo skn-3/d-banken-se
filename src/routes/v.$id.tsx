@@ -158,9 +158,28 @@ function VerifyPage() {
                 {copied ? "Kopierad ✓" : "Kopiera länk"}
               </button>
             </div>
+
+            {/* Ladda ner värdebevis (A4-PDF) */}
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="mt-5 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity"
+              style={{ background: "#0B3D2E", opacity: downloading ? 0.6 : 1 }}
+            >
+              {downloading ? "Förbereder PDF…" : "Ladda ner värdebevis (PDF)"}
+            </button>
+
+            {/* Off-screen A4 render för PDF-export */}
+            {a4 && (
+              <div style={{ position: "fixed", left: -99999, top: 0, pointerEvents: "none" }} aria-hidden>
+                <CertificateA4 ref={a4Ref} data={a4} />
+              </div>
+            )}
           </div>
         )}
       </main>
     </div>
   );
 }
+
