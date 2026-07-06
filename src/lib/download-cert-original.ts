@@ -107,7 +107,7 @@ export async function downloadOriginalCertPdf(data: OriginalCertData): Promise<v
 
     const canvas = await html2canvas(body, {
       backgroundColor: "#ffffff",
-      scale: 2,
+      scale: 3,
       useCORS: true,
       logging: false,
       width: A4_W_PX,
@@ -115,9 +115,9 @@ export async function downloadOriginalCertPdf(data: OriginalCertData): Promise<v
       windowWidth: A4_W_PX,
       windowHeight: A4_H_PX,
     });
-    const img = canvas.toDataURL("image/jpeg", 0.95);
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    pdf.addImage(img, "JPEG", 0, 0, 210, 297, undefined, "FAST");
+    const img = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+    pdf.addImage(img, "PNG", 0, 0, 210, 297, undefined, "FAST");
     pdf.save(`vardebevis-${data.verification_id}.pdf`);
   } finally {
     iframe.remove();
