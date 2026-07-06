@@ -33,7 +33,7 @@ async function firstName(userId: string): Promise<{ firstName: string; recipient
 
 async function logAdmin(userId: string, action: string, detail: Record<string, unknown>) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin.from("admin_activity").insert({ user_id: userId, action, detail });
+  await supabaseAdmin.from("admin_activity").insert({ user_id: userId, action, detail: detail as never });
 }
 
 async function ensureRewardCatalog() {
