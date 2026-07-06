@@ -229,8 +229,9 @@ function StatCard({ label, value }: { label: string; value: string }) {
 }
 
 function CertCard({ cert }: { cert: { id: string; verification_id: string; theme_slug: string | null; tree_count: number; issued_date: string } }) {
-  const slug = cert.theme_slug ?? "standard";
-  const thumb = `/kort/kort-${slug}.jpg`;
+  const slug = cert.theme_slug;
+  const thumb = slug ? `/kort/kort-${slug}.jpg` : "/kort/kort-collage.jpg";
+
   const shareUrl = `/v/${cert.verification_id}`;
   const [copied, setCopied] = useState(false);
 
