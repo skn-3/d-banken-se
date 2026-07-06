@@ -238,8 +238,13 @@ function AdminPage() {
             )}
 
             {tab === "settings" && settings && (
-              <SettingsTab settings={settings} reload={load} />
+              <>
+                <SettingsTab settings={settings} reload={load} />
+                <AdminEconomySettings />
+              </>
             )}
+
+            {tab === "activity" && <AdminActivityTab />}
           </>
         )}
       </main>
