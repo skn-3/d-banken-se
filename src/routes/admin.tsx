@@ -743,8 +743,10 @@ function TemplatesTab({ templates, editing, setEditing, reload }: {
                 <button
                   className="btn-secondary !py-1.5 !px-3 text-sm"
                   onClick={async () => {
-                    await supabase.from("certificate_templates").update({ is_default: false }).eq("is_default", true);
-                    await supabase.from("certificate_templates").update({ is_default: true }).eq("id", t.id);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const sb = supabase as any;
+                    await sb.from("cert_templates").update({ is_default: false }).eq("is_default", true);
+                    await sb.from("cert_templates").update({ is_default: true }).eq("id", t.id);
                     await reload();
                   }}
                 >Sätt som standard</button>
