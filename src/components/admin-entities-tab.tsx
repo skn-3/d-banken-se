@@ -71,8 +71,8 @@ export function AdminEntitiesTab() {
     (async () => {
       const [c, p, ct, t, prof, tmpl, o] = await Promise.all([
         supabase.from("customers").select("id, name, email, created_at").order("created_at", { ascending: false }).limit(500),
-        supabase.from("purchases").select("id, created_at, recipient_name, recipient_email, tree_count, total_amount_ore, status, customer_id, team_id, certificate_template_id").order("created_at", { ascending: false }).limit(500),
-        supabase.from("certificates").select("id, verification_id, recipient_name, tree_count, location_name, issued_date, purchase_id, customer_id, template_id").order("issued_date", { ascending: false }).limit(500),
+        supabase.from("purchases").select("id, created_at, recipient_name, recipient_email, tree_count, total_amount_ore, status, customer_id, team_id, certificate_template_id, admin_note").order("created_at", { ascending: false }).limit(500),
+        supabase.from("certificates").select("id, verification_id, recipient_name, tree_count, location_name, issued_date, purchase_id, customer_id, template_id, greeting, superseded_by").order("issued_date", { ascending: false }).limit(500),
         supabase.from("teams").select("id, name, city, join_code, organization_id, created_at, cert_template_id").order("created_at", { ascending: false }),
         supabase.from("team_members").select("user_id, team_id, teams:team_id(name), profiles:user_id(name, email)"),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
