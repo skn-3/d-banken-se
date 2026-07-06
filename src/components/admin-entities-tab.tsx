@@ -2,6 +2,7 @@ import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { X } from "lucide-react";
+import { PurchaseCorrectButton, CertReissueButton, PointsAdjustButton } from "@/components/admin-corrections";
 
 // Types
 interface Customer { id: string; name: string; email: string; created_at: string }
@@ -9,11 +10,13 @@ interface Purchase {
   id: string; created_at: string; recipient_name: string | null; recipient_email: string | null;
   tree_count: number; total_amount_ore: number; status: string;
   customer_id: string | null; team_id: string | null; certificate_template_id: string | null;
+  admin_note: string | null;
 }
 interface Certificate {
   id: string; verification_id: string; recipient_name: string; tree_count: number;
   location_name: string; issued_date: string; purchase_id: string;
   customer_id: string | null; template_id: string | null;
+  greeting: string | null; superseded_by: string | null;
 }
 interface Team {
   id: string; name: string; city: string | null; join_code: string | null;
@@ -64,12 +67,15 @@ export function AdminEntitiesTab() {
   const [templates, setTemplates] = useState<CertTemplate[]>([]);
   const [orgs, setOrgs] = useState<Organization[]>([]);
 
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey(k => k + 1);
+
   useEffect(() => {
     (async () => {
       const [c, p, ct, t, prof, tmpl, o] = await Promise.all([
         supabase.from("customers").select("id, name, email, created_at").order("created_at", { ascending: false }).limit(500),
-        supabase.from("purchases").select("id, created_at, recipient_name, recipient_email, tree_count, total_amount_ore, status, customer_id, team_id, certificate_template_id").order("created_at", { ascending: false }).limit(500),
-        supabase.from("certificates").select("id, verification_id, recipient_name, tree_count, location_name, issued_date, purchase_id, customer_id, template_id").order("issued_date", { ascending: false }).limit(500),
+        supabase.from("purchases").select("id, created_at, recipient_name, recipient_email, tree_count, total_amount_ore, status, customer_id, team_id, certificate_template_id, admin_note").order("created_at", { ascending: false }).limit(500),
+        supabase.from("certificates").select("id, verification_id, recipient_name, tree_count, location_name, issued_date, purchase_id, customer_id, template_id, greeting, superseded_by").order("issued_date", { ascending: false }).limit(500),
         supabase.from("teams").select("id, name, city, join_code, organization_id, created_at, cert_template_id").order("created_at", { ascending: false }),
         supabase.from("team_members").select("user_id, team_id, teams:team_id(name), profiles:user_id(name, email)"),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,7 +96,7 @@ export function AdminEntitiesTab() {
       setTemplates((tmpl.data ?? []) as CertTemplate[]);
       setOrgs((o.data ?? []) as Organization[]);
     })();
-  }, []);
+  }, [reloadKey]);
 
   const templateBySlug = useMemo(() => new Map(templates.map(t => [t.slug, t])), [templates]);
   const templateById = useMemo(() => new Map(templates.map(t => [t.id, t])), [templates]);
@@ -123,6 +129,7 @@ export function AdminEntitiesTab() {
   });
 
   const filteredCerts = certs.filter(c => {
+    if (c.superseded_by) return false; // hide historic rows from default view
     if (!inDate(c.issued_date)) return false;
     if (temaSlug) {
       const t = templateById.get(c.template_id ?? "");
@@ -229,10 +236,10 @@ export function AdminEntitiesTab() {
       {/* Views */}
       <div className="mt-6">
         {sub === "kunder" && <CustomersView rows={filteredCustomers} purchases={purchases} highlight={search.highlight} onOpenPurchases={(cid) => setParams({ sub: "kop", q: undefined, highlight: undefined, team: undefined, status: undefined })} setParams={setParams} />}
-        {sub === "kop" && <PurchasesView rows={filteredPurchases} certs={certs} templateById={templateById} highlight={search.highlight} setParams={setParams} />}
-        {sub === "certifikat" && <CertsView rows={filteredCerts} templateById={templateById} highlight={search.highlight} />}
+        {sub === "kop" && <PurchasesView rows={filteredPurchases} certs={certs} templateById={templateById} highlight={search.highlight} setParams={setParams} onReload={reload} />}
+        {sub === "certifikat" && <CertsView rows={filteredCerts} templateById={templateById} highlight={search.highlight} onReload={reload} />}
         {sub === "lag" && <TeamsView rows={filteredTeams} sellers={sellers} templateById={templateById} highlight={search.highlight} setParams={setParams} />}
-        {sub === "saljare" && <SellersView rows={filteredSellers} purchases={purchases} highlight={search.highlight} setParams={setParams} />}
+        {sub === "saljare" && <SellersView rows={filteredSellers} purchases={purchases} highlight={search.highlight} setParams={setParams} onReload={reload} />}
       </div>
 
       {/* Empty state */}
@@ -304,13 +311,13 @@ function CustomersView({ rows, purchases, highlight, setParams }: { rows: Custom
   );
 }
 
-function PurchasesView({ rows, certs, templateById, highlight, setParams }: { rows: Purchase[]; certs: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; setParams: (p: Record<string,string | undefined>) => void }) {
+function PurchasesView({ rows, certs, templateById, highlight, setParams, onReload }: { rows: Purchase[]; certs: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; setParams: (p: Record<string,string | undefined>) => void; onReload: () => void }) {
   const certByPurchase = useMemo(() => new Map(certs.map(c => [c.purchase_id, c])), [certs]);
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-          <tr><th className="py-2">Datum</th><th>Mottagare</th><th>Träd</th><th>Belopp</th><th>Status</th><th>Tema</th><th>Certifikat</th></tr>
+          <tr><th className="py-2">Datum</th><th>Mottagare</th><th>Träd</th><th>Belopp</th><th>Status</th><th>Tema</th><th>Certifikat</th><th>Åtgärder</th></tr>
         </thead>
         <tbody>
           {rows.map(p => {
@@ -322,6 +329,7 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams }: { ro
                 <td>
                   <div>{p.recipient_name || "—"}</div>
                   <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{p.recipient_email ?? ""}</div>
+                  {p.admin_note && <div className="mt-1 text-xs italic" style={{ color: "var(--muted-foreground)" }}>📝 {p.admin_note}</div>}
                 </td>
                 <td className="font-mono">{p.tree_count}</td>
                 <td className="font-mono">{formatKr(p.total_amount_ore)}</td>
@@ -334,6 +342,9 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams }: { ro
                     </button>
                   ) : <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>—</span>}
                 </td>
+                <td>
+                  <PurchaseCorrectButton purchaseId={p.id} currentStatus={p.status} currentNote={p.admin_note} onDone={onReload} />
+                </td>
               </tr>
             );
           })}
@@ -343,12 +354,12 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams }: { ro
   );
 }
 
-function CertsView({ rows, templateById, highlight }: { rows: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string }) {
+function CertsView({ rows, templateById, highlight, onReload }: { rows: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; onReload: () => void }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-          <tr><th className="py-2">Verifikat-ID</th><th>Mottagare</th><th>Träd</th><th>Plats</th><th>Utfärdat</th><th>Tema</th><th></th></tr>
+          <tr><th className="py-2">Verifikat-ID</th><th>Mottagare</th><th>Träd</th><th>Plats</th><th>Utfärdat</th><th>Tema</th><th></th><th>Åtgärder</th></tr>
         </thead>
         <tbody>
           {rows.map(c => {
@@ -365,6 +376,9 @@ function CertsView({ rows, templateById, highlight }: { rows: Certificate[]; tem
                   <Link to="/v/$id" params={{ id: c.verification_id }} className="underline text-xs" target="_blank">
                     Öppna /v/{c.verification_id}
                   </Link>
+                </td>
+                <td>
+                  <CertReissueButton certificateId={c.id} currentName={c.recipient_name} currentGreeting={c.greeting} verificationId={c.verification_id} onDone={onReload} />
                 </td>
               </tr>
             );
@@ -420,14 +434,14 @@ function TeamsView({ rows, sellers, templateById, highlight, setParams }: { rows
   );
 }
 
-function SellersView({ rows, purchases, highlight, setParams }: { rows: Seller[]; purchases: Purchase[]; highlight?: string; setParams: (p: Record<string,string | undefined>) => void }) {
+function SellersView({ rows, purchases, highlight, setParams, onReload }: { rows: Seller[]; purchases: Purchase[]; highlight?: string; setParams: (p: Record<string,string | undefined>) => void; onReload: () => void }) {
   const [openId, setOpenId] = useState<string | null>(highlight ?? null);
   useEffect(() => { if (highlight) setOpenId(highlight); }, [highlight]);
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-          <tr><th className="py-2">Namn</th><th>E-post</th><th>Lag</th><th>Försäljningar</th></tr>
+          <tr><th className="py-2">Namn</th><th>E-post</th><th>Lag</th><th>Försäljningar</th><th>Åtgärder</th></tr>
         </thead>
         <tbody>
           {rows.map(s => {
@@ -436,15 +450,18 @@ function SellersView({ rows, purchases, highlight, setParams }: { rows: Seller[]
             const isOpen = openId === s.user_id;
             return (
               <Fragment key={s.user_id}>
-                <tr key={s.user_id} className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === s.user_id) }} onClick={() => setOpenId(isOpen ? null : s.user_id)}>
+                <tr className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === s.user_id) }} onClick={() => setOpenId(isOpen ? null : s.user_id)}>
                   <td className="py-3 font-medium">{s.name}</td>
                   <td className="font-mono text-xs">{s.email}</td>
                   <td className="text-xs">{s.team_name ?? "—"}</td>
                   <td className="font-mono text-xs">{sPurchases.length}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <PointsAdjustButton sellerUserId={s.user_id} sellerName={s.name} onDone={onReload} />
+                  </td>
                 </tr>
                 {isOpen && sPurchases.length > 0 && (
                   <tr key={`${s.user_id}-sub`} style={{ background: "var(--muted)" }}>
-                    <td colSpan={4} className="p-3">
+                    <td colSpan={5} className="p-3">
                       <div className="space-y-1 text-xs">
                         {sPurchases.slice(0, 20).map(p => (
                           <button key={p.id} className="block text-left underline" onClick={() => setParams({ sub: "kop", highlight: p.id, q: undefined })}>
