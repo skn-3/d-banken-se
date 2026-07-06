@@ -65,15 +65,17 @@ export const adminUpsertTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => TemplatePayload.parse(input))
   .handler(async ({ data, context }) => {
-    const { id, ...rest } = data;
+    const { id, config, ...rest } = data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const row: any = { ...rest, config: config as any };
     if (id) {
       const { error } = await context.supabase
-        .from("certificate_templates").update(rest).eq("id", id);
+        .from("certificate_templates").update(row).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     }
     const { data: ins, error } = await context.supabase
-      .from("certificate_templates").insert(rest).select("id").single();
+      .from("certificate_templates").insert(row).select("id").single();
     if (error) throw new Error(error.message);
     return { id: ins.id };
   });
