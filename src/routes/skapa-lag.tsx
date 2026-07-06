@@ -401,7 +401,10 @@ function StepCertificate({ templates, templateId, setTemplateId, showTeamName, s
   return (
     <div className="space-y-5">
       <h2 className="font-display text-2xl font-semibold" style={{ color: "var(--forest, #0B3D2E)" }}>Välj värdebevis</h2>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+        Alla köp som säljs genom laget renderas med den här mallen. Byte gäller framtida bevis — redan utfärdade ändras aldrig.
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
         {templates.map((t) => {
           const active = templateId === t.id;
           return (
@@ -409,21 +412,22 @@ function StepCertificate({ templates, templateId, setTemplateId, showTeamName, s
               key={t.id}
               type="button"
               onClick={() => setTemplateId(t.id)}
-              className="rounded-2xl border p-4 text-left transition"
-              style={{
-                borderColor: active ? "var(--forest, #0B3D2E)" : "var(--border, #D9EBE0)",
-                boxShadow: active ? "0 0 0 3px rgba(30,158,106,0.25)" : undefined,
-                background: "#F4FAF5",
-              }}
+              className="text-left transition group"
+              aria-pressed={active}
             >
-              <div className="mb-3 flex items-center justify-between">
-                <p className="font-display text-base font-semibold" style={{ color: "var(--forest, #0B3D2E)" }}>{t.name}</p>
-                {t.is_default && <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest" style={{ background: "var(--forest, #0B3D2E)", color: "#fff" }}>Standard</span>}
-              </div>
-              <div className="rounded-xl border p-3" style={{ borderColor: "var(--border, #D9EBE0)", background: "#fff" }}>
-                <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.accent_color ?? "#1E9E6A" }}>Värdebevis</p>
-                <p className="mt-1 text-sm font-semibold" style={{ color: "var(--forest, #0B3D2E)" }}>{t.heading_text ?? "Ett träd i ditt namn"}</p>
-                <p className="mt-2 line-clamp-2 text-xs" style={{ color: "var(--muted-foreground)" }}>{t.body_text ?? "Tack för din insats."}</p>
+              <div
+                className="aspect-[4/5] rounded-xl overflow-hidden border"
+                style={{
+                  borderColor: active ? "var(--forest, #0B3D2E)" : "var(--border, #D9EBE0)",
+                  boxShadow: active ? "0 0 0 3px rgba(30,158,106,0.25)" : undefined,
+                  backgroundImage: t.kort_url ? `url("${t.kort_url}")` : `url("${t.bg_url}")`,
+                  backgroundSize: "cover", backgroundPosition: "center",
+                  background: t.kort_url || t.bg_url ? undefined : "#F4FAF5",
+                }}
+              />
+              <div className="mt-1.5 flex items-baseline gap-1.5">
+                <p className="text-sm font-semibold truncate" style={{ color: "var(--forest, #0B3D2E)" }}>{t.name}</p>
+                {t.is_default && <span className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest" style={{ background: "var(--forest, #0B3D2E)", color: "#fff" }}>Standard</span>}
               </div>
             </button>
           );
