@@ -118,7 +118,7 @@ async function runReport(): Promise<Response> {
   const { data: rewardRows } = await supabaseAdmin
     .from("reward_orders")
     .select("seller_user_id")
-    .eq("status", "begard")
+    .in("status", ["pending", "packed", "shipped"])
     .in("seller_user_id", allIds);
   const rewardCountByUser = new Map<string, number>();
   for (const r of rewardRows ?? []) rewardCountByUser.set(r.seller_user_id, (rewardCountByUser.get(r.seller_user_id) ?? 0) + 1);
