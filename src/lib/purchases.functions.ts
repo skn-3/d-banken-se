@@ -57,6 +57,7 @@ export const createPurchase = createServerFn({ method: "POST" })
         total_amount_ore: total,
         status: "paid",
         paid_at: new Date().toISOString(),
+        source: "web",
       })
       .select("id, created_at")
       .single();

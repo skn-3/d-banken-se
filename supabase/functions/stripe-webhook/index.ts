@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
         recipient_name: recipientName, recipient_email: custEmail,
         tree_count: quantity, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
         status: "paid", paid_at: new Date().toISOString(),
-        source: "stripe-manad", source_order_ref: orderRef,
+        source: "monthly", source_order_ref: orderRef,
       }).select("id, created_at").single();
 
       if (pur.error) {
@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
       recipient_name: recipientName, recipient_email: custEmail,
       tree_count: quantity, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
       status: "paid", paid_at: new Date().toISOString(),
-      source: `stripe:${type}`, source_order_ref: orderRef,
+      source: (type === "gava" ? "gift" : type === "manad" ? "monthly" : "web"), source_order_ref: orderRef,
     }).select("id, created_at").single();
 
     if (pur.error) {

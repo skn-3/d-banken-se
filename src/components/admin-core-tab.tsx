@@ -13,6 +13,7 @@ import {
 import { getRewardEconomy, getRewardBudget, setRewardBudget } from "@/lib/reward-economy.functions";
 import { AdminPhotoReports } from "@/components/admin-photo-reports";
 import { AdminSupportSection } from "@/components/admin-support-section";
+import { AdminInsightsSection } from "@/components/admin-insights";
 
 type AudienceKind = "all" | "manad" | "source" | "project";
 
@@ -121,6 +122,7 @@ export function AdminCoreTab() {
 
   return (
     <div className="mt-6 space-y-6">
+      <AdminInsightsSection />
       <section className="surface-card p-6">
         <h2 className="font-display text-xl font-semibold">Utskick</h2>
         <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
