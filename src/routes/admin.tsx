@@ -421,6 +421,17 @@ function RewardsCatalogTab() {
             </label>
             <input className="input-field sm:col-span-2" placeholder="Bild-URL (valfri)"
               value={draft.image_url ?? ""} onChange={e => setDraft({ ...draft, image_url: e.target.value || null })} />
+            <label className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+              Lager (tomt = obegränsat)
+              <input className="input-field font-mono mt-1" type="number" min={0}
+                value={draft.stock ?? ""}
+                onChange={e => setDraft({ ...draft, stock: e.target.value === "" ? null : Math.max(0, Number(e.target.value) || 0) })} />
+            </label>
+            <label className="flex items-center gap-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+              <input type="checkbox" checked={draft.is_digital}
+                onChange={e => setDraft({ ...draft, is_digital: e.target.checked })} />
+              Digital belöning (levereras direkt)
+            </label>
             <textarea className="input-field sm:col-span-2" rows={2} placeholder="Beskrivning (valfri)"
               value={draft.description ?? ""} onChange={e => setDraft({ ...draft, description: e.target.value })} />
           </div>
