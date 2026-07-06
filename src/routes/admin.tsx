@@ -113,7 +113,10 @@ function AdminPage() {
       <Blobs />
       <SiteHeader />
       <main className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-20 pt-4">
-        <h1 className="font-display text-3xl font-semibold">Admin</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-display text-3xl font-semibold">Admin</h1>
+          {state === "ok" && <AdminGlobalSearch />}
+        </div>
 
         {state === "checking" && <div className="surface-card mt-6 p-8 text-center" style={{ color: "var(--muted-foreground)" }}>Kontrollerar behörighet…</div>}
         {state === "denied" && (
@@ -127,6 +130,7 @@ function AdminPage() {
             <div className="mt-4 flex flex-wrap gap-2">
               {([
                 ["overview", "Översikt"],
+                ["entities", "Sök & filter"],
                 ["core", "Core"],
                 ["organizations", "Organisationer"],
                 ["rewards", "Belöningskatalog"],
@@ -141,6 +145,9 @@ function AdminPage() {
                 </button>
               ))}
             </div>
+
+            {tab === "entities" && <AdminEntitiesTab />}
+
 
             {tab === "overview" && (
               <>
