@@ -296,6 +296,39 @@ export function TeamManagementPanel() {
         )}
       </div>
 
+      {/* LAGETS VÄRDEBEVIS */}
+      <div className="mt-6 rounded-2xl border p-5" style={{ borderColor: "var(--border)" }}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="aspect-[4/5] w-16 rounded-lg overflow-hidden border shrink-0"
+              style={{
+                borderColor: "var(--border)",
+                backgroundImage: team.certTemplate?.kort_url ? `url("${team.certTemplate.kort_url}")` : undefined,
+                backgroundSize: "cover", backgroundPosition: "center",
+                background: team.certTemplate?.kort_url ? undefined : "#F4FAF5",
+              }}
+            />
+            <div className="min-w-0">
+              <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Lagets värdebevis</h3>
+              <div className="text-sm truncate">{team.certTemplate?.namn ?? "Ingen mall vald — klassiskt bevis"}</div>
+              <div className="text-xs mt-0.5" style={{ color: "var(--muted-foreground)" }}>
+                Byte gäller framtida bevis. Redan utfärdade ändras aldrig.
+              </div>
+            </div>
+          </div>
+          <button
+            className="btn-secondary !py-2 !px-4 text-sm"
+            onClick={async () => {
+              setCertPickerOpen(true);
+              if (templates.length === 0) {
+                try { const r = await listTemplatesFn(); setTemplates(r.templates as Tmpl[]); } catch { /* ignore */ }
+              }
+            }}
+          >Byt bevis</button>
+        </div>
+      </div>
+
       {/* LAGKOD */}
       <div className="mt-6 rounded-2xl border p-5" style={{ borderColor: "var(--border)" }}>
         <div className="flex flex-wrap items-center justify-between gap-3">
