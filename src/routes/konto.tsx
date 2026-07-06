@@ -124,6 +124,7 @@ function KontoPage() {
               trees={balance}
               recipientName={customer?.name ?? null}
               latestLocation={certs[0]?.location_name ?? null}
+              levelName={levelFromTrees(balance).name}
             />
             {!customer && (
               <div className="mt-4 surface-card p-6 text-center">
@@ -133,6 +134,8 @@ function KontoPage() {
                 <button onClick={() => navigate({ to: "/kop" })} className="mt-3 btn-primary">Plantera ett träd</button>
               </div>
             )}
+
+            <ClubSection trees={balance} />
 
             <div className="mt-8 surface-card p-8">
               <div className="flex items-baseline justify-between">
