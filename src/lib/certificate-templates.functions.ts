@@ -1,0 +1,141 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+function publicClient() {
+  return createClient<Database>(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+  );
+}
+
+// Public: list active templates for kassa (standard + tillval)
+export const listActiveTemplates = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const s = publicClient();
+    const { data, error } = await s
+      .from("certificate_templates")
+      .select("id, name, category, accent_color, heading_text, background_key, thumbnail_url, allows_greeting, sort, config, is_default")
+      .eq("active", true)
+      .in("category", ["standard", "tillval"])
+      .order("category")
+      .order("sort")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return { templates: data ?? [] };
+  });
+
+// Admin: full list including inactive + org-locked
+export const adminListTemplates = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("certificate_templates")
+      .select("*")
+      .order("category")
+      .order("sort");
+    if (error) throw new Error(error.message);
+    return { templates: data ?? [] };
+  });
+
+const TemplatePayload = z.object({
+  id: z.string().uuid().nullable(),
+  name: z.string().trim().min(1).max(120),
+  category: z.enum(["standard", "tillval", "org"]),
+  accent_color: z.string().trim().min(3).max(20),
+  heading_text: z.string().trim().min(1).max(60),
+  body_text: z.string().trim().max(500),
+  background_key: z.string().trim().min(1).max(40),
+  logo_url: z.string().trim().max(500).nullable(),
+  thumbnail_url: z.string().trim().max(500).nullable(),
+  active: z.boolean(),
+  sort: z.number().int().min(0).max(9999),
+  org_id: z.string().uuid().nullable(),
+  allows_greeting: z.boolean(),
+  show_coordinates: z.boolean(),
+  show_social: z.boolean(),
+  social_handles: z.string().trim().max(120),
+  config: z.record(z.string(), z.unknown()),
+});
+
+export const adminUpsertTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => TemplatePayload.parse(input))
+  .handler(async ({ data, context }) => {
+    const { id, ...rest } = data;
+    if (id) {
+      const { error } = await context.supabase
+        .from("certificate_templates").update(rest).eq("id", id);
+      if (error) throw new Error(error.message);
+      return { id };
+    }
+    const { data: ins, error } = await context.supabase
+      .from("certificate_templates").insert(rest).select("id").single();
+    if (error) throw new Error(error.message);
+    return { id: ins.id };
+  });
+
+export const adminDeleteTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("certificate_templates").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// Greeting moderation
+export const moderateGreeting = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown) => z.object({ text: z.string().trim().max(120) }).parse(i))
+  .handler(async ({ data }) => {
+    const s = publicClient();
+    const { data: rows, error } = await s.from("greeting_blocklist").select("word");
+    if (error) return { ok: true }; // fail-open on read
+    const lower = data.text.toLowerCase();
+    const hit = (rows ?? []).find((r) => r.word && lower.includes(r.word.toLowerCase()));
+    if (hit) return { ok: false as const, reason: `Innehåller olämpligt ord.` };
+    return { ok: true as const };
+  });
+
+// Admin: greetings feed
+export const adminListGreetings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("admin_greetings_view")
+      .select("*")
+      .order("purchase_created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return { rows: data ?? [] };
+  });
+
+export const adminReplaceGreeting = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    certificateId: z.string().uuid(),
+    newGreeting: z.string().trim().max(120),
+  }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("admin_replace_greeting", {
+      _certificate_id: data.certificateId,
+      _new_greeting: data.newGreeting,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    if (error) throw new Error(error.message);
+    // Re-send certificate email (best-effort)
+    try {
+      const { data: cert } = await context.supabase
+        .from("certificates").select("purchase_id").eq("id", data.certificateId).maybeSingle();
+      if (cert?.purchase_id) {
+        const { resendCertificateEmail } = await import("@/lib/email/resend.server");
+        await resendCertificateEmail(cert.purchase_id);
+      }
+    } catch (err) {
+      console.error("[greeting-resend] failed", (err as Error).message);
+    }
+    return { ok: true };
+  });
