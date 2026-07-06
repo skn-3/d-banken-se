@@ -271,7 +271,7 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
 
   useEffect(() => { reload(); /* eslint-disable-next-line */ }, [team.id]);
 
-  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/aktivera` : "https://example.com/aktivera";
+  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/aktivera` : "https://app.smartklimat.org/aktivera";
 
   const add = async () => {
     setMsg(null); setInviteLink(null);
