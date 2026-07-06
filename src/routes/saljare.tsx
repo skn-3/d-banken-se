@@ -585,6 +585,16 @@ function HomeView({
         </div>
       </section>
 
+      {/* Plantera träd — primär pill-knapp */}
+      {!readOnly && (
+        <section aria-label="Plantera träd">
+          <PlantButton
+            onClick={onRegister}
+            fireMode={streak >= 1 && week === 0}
+          />
+        </section>
+      )}
+
       {/* Statistik */}
       <section className="grid grid-cols-2 gap-4">
         <div className="surface-card p-6 text-center">
