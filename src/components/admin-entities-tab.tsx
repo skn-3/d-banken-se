@@ -325,17 +325,30 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams, onRelo
           {rows.map(p => {
             const cert = certByPurchase.get(p.id);
             const tmpl = p.certificate_template_id ? templateById.get(p.certificate_template_id) : null;
+            const scheduled = cert?.status === "scheduled" && cert.deliver_at;
+            const scheduledDate = scheduled ? new Date(cert!.deliver_at!).toLocaleDateString("sv-SE") : null;
             return (
               <tr key={p.id} className="border-t" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === p.id) }}>
                 <td className="py-3 font-mono text-xs">{formatDate(p.created_at)}</td>
                 <td>
                   <div>{p.recipient_name || "—"}</div>
                   <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{p.recipient_email ?? ""}</div>
+                  {scheduled && cert?.recipient_delivery_email && (
+                    <div className="text-xs" style={{ color: "var(--forest)" }}>→ {cert.recipient_delivery_email}</div>
+                  )}
                   {p.admin_note && <div className="mt-1 text-xs italic" style={{ color: "var(--muted-foreground)" }}>📝 {p.admin_note}</div>}
                 </td>
                 <td className="font-mono">{p.tree_count}</td>
                 <td className="font-mono">{formatKr(p.total_amount_ore)}</td>
-                <td className="font-mono text-xs">{p.status}</td>
+                <td className="font-mono text-xs">
+                  {scheduled ? (
+                    <span style={{ color: "var(--forest)" }}>Schemalagd {scheduledDate}</span>
+                  ) : cert?.status === "delivered" ? (
+                    <span>levererad</span>
+                  ) : (
+                    p.status
+                  )}
+                </td>
                 <td className="text-xs">{tmpl?.namn ?? "—"}</td>
                 <td>
                   {cert ? (
@@ -344,8 +357,9 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams, onRelo
                     </button>
                   ) : <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>—</span>}
                 </td>
-                <td>
+                <td className="flex flex-wrap gap-2">
                   <PurchaseCorrectButton purchaseId={p.id} currentStatus={p.status} currentNote={p.admin_note} onDone={onReload} />
+                  {scheduled && cert && <DeliverNowButton certificateId={cert.id} onDone={onReload} />}
                 </td>
               </tr>
             );
@@ -355,6 +369,31 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams, onRelo
     </div>
   );
 }
+
+function DeliverNowButton({ certificateId, onDone }: { certificateId: string; onDone: () => void }) {
+  const [loading, setLoading] = useState(false);
+  return (
+    <button
+      className="rounded border px-2 py-1 text-xs"
+      style={{ borderColor: "var(--border)", color: "var(--forest)" }}
+      disabled={loading}
+      onClick={async () => {
+        if (!confirm("Skicka gåvobeviset till mottagaren nu?")) return;
+        setLoading(true);
+        try {
+          const { adminDeliverGiftNow } = await import("@/lib/admin-extra.functions");
+          await adminDeliverGiftNow({ data: { certificateId } });
+          onDone();
+        } catch (e) {
+          alert("Fel: " + (e as Error).message);
+        } finally { setLoading(false); }
+      }}
+    >
+      {loading ? "Skickar…" : "Skicka nu"}
+    </button>
+  );
+}
+
 
 function CertsView({ rows, templateById, highlight, onReload }: { rows: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; onReload: () => void }) {
   return (
