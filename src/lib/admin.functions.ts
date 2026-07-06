@@ -51,7 +51,8 @@ export const adminSendPasswordReset = createServerFn({ method: "POST" })
 
 async function logAdminActivity(userId: string, action: string, detail: Record<string, unknown>) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin.from("admin_activity").insert({ user_id: userId, action, detail });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabaseAdmin as any).from("admin_activity").insert({ user_id: userId, action, detail });
 }
 
 export const adminUpdatePurchaseCorrection = createServerFn({ method: "POST" })
