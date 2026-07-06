@@ -53,6 +53,8 @@ export function GreetingThemePicker({ value, onChange, compact, title }: Props) 
   };
 
   if (themes.length === 0) return null;
+  const selected = themes.find((t) => t.id === value.themeId) ?? null;
+  const hideGreeting = selected?.slug === "original" || selected?.config?.allows_greeting === false;
 
   return (
     <section className={compact ? "rounded-2xl border p-4" : "surface-card p-6"} style={{ borderColor: "var(--border)" }}>
