@@ -357,6 +357,20 @@ export function TeamManagementPanel() {
         </Modal>
       )}
 
+      {/* Confirm rotate modal */}
+      {confirmRotate && (
+        <Modal onClose={() => setConfirmRotate(false)}>
+          <h3 className="font-display text-lg font-semibold" style={{ color: "var(--forest)" }}>Skapa ny lagkod?</h3>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+            Den gamla koden slutar gälla direkt. Säljare som redan är med i laget påverkas inte, men nya måste få den nya koden.
+          </p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button onClick={() => setConfirmRotate(false)} className="btn-secondary !py-2 !px-4 text-sm">Avbryt</button>
+            <button onClick={rotate} className="btn-primary !py-2 !px-4 text-sm">Skapa ny kod</button>
+          </div>
+        </Modal>
+      )}
+
       {/* Cert picker modal */}
       {certPickerOpen && (
         <Modal onClose={() => setCertPickerOpen(false)}>
@@ -417,17 +431,6 @@ export function TeamManagementPanel() {
           </div>
           <div className="mt-4 flex justify-end">
             <button onClick={() => setCertPickerOpen(false)} className="btn-secondary !py-2 !px-4 text-sm">Stäng</button>
-          </div>
-        </Modal>
-      )}
-    </section>
-  );
-}
-            Den gamla koden slutar gälla direkt. Säljare som redan är med i laget påverkas inte, men nya måste få den nya koden.
-          </p>
-          <div className="mt-4 flex justify-end gap-2">
-            <button onClick={() => setConfirmRotate(false)} className="btn-secondary !py-2 !px-4 text-sm">Avbryt</button>
-            <button onClick={rotate} className="btn-primary !py-2 !px-4 text-sm">Skapa ny kod</button>
           </div>
         </Modal>
       )}
