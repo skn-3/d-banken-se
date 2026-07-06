@@ -394,6 +394,54 @@ export type Database = {
           },
         ]
       }
+      club_wallets: {
+        Row: {
+          lov: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          lov?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          lov?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      competitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          end_date: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          end_date?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          end_date?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           account_user_id: string | null
@@ -421,6 +469,41 @@ export type Database = {
         }
         Relationships: []
       }
+      deal_claims: {
+        Row: {
+          code_issued: string
+          created_at: string
+          deal_id: string
+          id: string
+          lov_cost: number
+          user_id: string
+        }
+        Insert: {
+          code_issued: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          lov_cost: number
+          user_id: string
+        }
+        Update: {
+          code_issued?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          lov_cost?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_claims_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "partner_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_suppression: {
         Row: {
           created_at: string
@@ -436,6 +519,33 @@ export type Database = {
           created_at?: string
           email?: string
           reason?: string
+        }
+        Relationships: []
+      }
+      lov_transactions: {
+        Row: {
+          created_at: string
+          delta: number
+          id: string
+          reason: string
+          ref_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta: number
+          id?: string
+          reason: string
+          ref_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string
+          ref_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -501,6 +611,51 @@ export type Database = {
           id?: string
           name?: string
           type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_deals: {
+        Row: {
+          active: boolean
+          code_data: Json
+          code_type: string
+          created_at: string
+          description: string
+          id: string
+          lov_cost: number
+          partner_name: string
+          sort: number
+          stock: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code_data?: Json
+          code_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          lov_cost: number
+          partner_name: string
+          sort?: number
+          stock?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code_data?: Json
+          code_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          lov_cost?: number
+          partner_name?: string
+          sort?: number
+          stock?: number | null
+          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -1493,9 +1648,19 @@ export type Database = {
       admin_insights_risk_queues: { Args: never; Returns: Json }
       admin_insights_sales_engine: { Args: never; Returns: Json }
       admin_insights_top_teams_week: { Args: never; Returns: Json }
+      admin_insights_treebank: { Args: never; Returns: Json }
       admin_insights_weekly_series: { Args: never; Returns: Json }
       award_achievement: {
         Args: { _key: string; _meta?: Json; _user_id: string }
+        Returns: boolean
+      }
+      award_lov: {
+        Args: {
+          _delta: number
+          _reason: string
+          _ref_id: string
+          _user_id: string
+        }
         Returns: boolean
       }
       award_seller_boost: {
@@ -1507,6 +1672,23 @@ export type Database = {
           _uses: number
         }
         Returns: string
+      }
+      claim_deal: {
+        Args: { _deal_id: string }
+        Returns: {
+          code_issued: string
+          created_at: string
+          deal_id: string
+          id: string
+          lov_cost: number
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "deal_claims"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       create_team_self_service: {
         Args: {
@@ -1549,6 +1731,7 @@ export type Database = {
         }
       }
       get_internal_secret: { Args: { _name: string }; Returns: string }
+      get_my_club: { Args: never; Returns: Json }
       get_national_activity_feed: {
         Args: { _limit?: number }
         Returns: {

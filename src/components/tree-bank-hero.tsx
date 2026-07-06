@@ -7,9 +7,10 @@ interface Props {
   trees: number;
   recipientName?: string | null;
   latestLocation?: string | null;
+  levelName?: string | null;
 }
 
-export function TreeBankHero({ trees, recipientName, latestLocation }: Props) {
+export function TreeBankHero({ trees, recipientName, latestLocation, levelName }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [display, setDisplay] = useState(prefersReducedMotion() ? trees : 0);
   const [visible, setVisible] = useState(false);
@@ -76,6 +77,11 @@ export function TreeBankHero({ trees, recipientName, latestLocation }: Props) {
       <div className="mt-3 text-base" style={{ color: "#9FD9B6" }}>
         träd planterade i {nameLabel}
       </div>
+      {levelName && (
+        <div className="mt-2 font-mono text-xs" style={{ color: "#DCBE6E", letterSpacing: "0.24em" }}>
+          NIVÅ · {levelName.toUpperCase()}
+        </div>
+      )}
 
       {trees > 0 && (
         <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5" aria-hidden="true">

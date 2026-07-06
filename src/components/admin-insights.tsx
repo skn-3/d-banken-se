@@ -217,6 +217,31 @@ export function AdminInsightsSection() {
             </ol>
           )}
       </div>
+
+      <TreebankInsightsRow />
     </section>
+  );
+}
+
+function TreebankInsightsRow() {
+  const [d, setD] = useState<{ members: number; lov_out: number; claims_30d: number } | null>(null);
+  useEffect(() => {
+    import("@/lib/club.functions").then(async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any).rpc("admin_insights_treebank");
+      if (data) setD(data);
+    });
+  }, []);
+  return (
+    <div className="rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
+      <h3 className="font-display text-base font-semibold">Trädbanken (kund-klubben)</h3>
+      <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Separat från säljarpoängen.</p>
+      <dl className="mt-3 grid grid-cols-3 gap-3 text-sm">
+        <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Medlemmar</dt><dd className="font-semibold">{d?.members ?? "—"}</dd></div>
+        <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Löv ute</dt><dd className="font-semibold">{d?.lov_out?.toLocaleString("sv-SE") ?? "—"}</dd></div>
+        <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Claims 30 d</dt><dd className="font-semibold">{d?.claims_30d ?? "—"}</dd></div>
+      </dl>
+    </div>
   );
 }
