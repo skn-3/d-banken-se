@@ -390,7 +390,7 @@ function TeamsView({ rows, sellers, templateById, highlight, setParams }: { rows
             const isOpen = openId === t.id;
             const tmpl = t.cert_template_id ? templateById.get(t.cert_template_id) : null;
             return (
-              <Fragment key={c.id}>
+              <Fragment key={t.id}>
                 <tr key={t.id} className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === t.id) }} onClick={() => setOpenId(isOpen ? null : t.id)}>
                   <td className="py-3 font-medium">{t.name}</td>
                   <td className="text-xs">{t.city ?? "—"}</td>
