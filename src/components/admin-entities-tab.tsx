@@ -435,7 +435,7 @@ function SellersView({ rows, purchases, highlight, setParams }: { rows: Seller[]
             const sPurchases = purchases.filter(p => p.team_id === s.team_id);
             const isOpen = openId === s.user_id;
             return (
-              <Fragment key={c.id}>
+              <Fragment key={s.user_id}>
                 <tr key={s.user_id} className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === s.user_id) }} onClick={() => setOpenId(isOpen ? null : s.user_id)}>
                   <td className="py-3 font-medium">{s.name}</td>
                   <td className="font-mono text-xs">{s.email}</td>
