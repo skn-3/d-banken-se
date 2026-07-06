@@ -385,12 +385,16 @@ function RewardCard({ reward, balance, busy, readOnly, onBuy, isGoal, onToggleGo
         )}
         <button
           onClick={(e) => { stop(e); onBuy(); }}
-          disabled={!canAfford || busy || readOnly}
-          className={canAfford ? "btn-primary !px-3 !py-1.5 text-xs whitespace-nowrap" : "btn-secondary !px-3 !py-1.5 text-xs whitespace-nowrap"}
-          title={readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
-          style={!canAfford ? { cursor: "not-allowed", opacity: 0.7 } : undefined}
+          disabled={!canAfford || busy || readOnly || reward.sold_out}
+          className={canAfford && !reward.sold_out ? "btn-primary !px-3 !py-1.5 text-xs whitespace-nowrap" : "btn-secondary !px-3 !py-1.5 text-xs whitespace-nowrap"}
+          title={reward.sold_out ? "Slutsåld just nu" : readOnly ? "Förhandsvisning — inlösen avstängd" : !canAfford ? `Saknar ${missing} poäng` : undefined}
+          style={!canAfford || reward.sold_out ? { cursor: "not-allowed", opacity: 0.7 } : undefined}
         >
-          {busy ? "Löser in…" : canAfford ? `Lös in för ${reward.cost_points} p` : `Saknar ${missing} p`}
+          {reward.sold_out
+            ? "Slutsåld just nu"
+            : busy ? "Löser in…"
+            : canAfford ? `Lös in för ${reward.cost_points} p`
+            : `Saknar ${missing} p`}
         </button>
       </div>
 
