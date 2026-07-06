@@ -582,6 +582,45 @@ export type Database = {
         }
         Relationships: []
       }
+      greeting_themes: {
+        Row: {
+          active: boolean
+          category: string
+          config: Json
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          slug: string
+          sort: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          slug: string
+          sort?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          slug?: string
+          sort?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lov_transactions: {
         Row: {
           created_at: string
@@ -997,6 +1036,7 @@ export type Database = {
           status: string
           team_id: string | null
           team_share_ore: number
+          theme_id: string | null
           total_amount_ore: number
           tree_count: number
           unit_price_ore: number
@@ -1018,6 +1058,7 @@ export type Database = {
           status?: string
           team_id?: string | null
           team_share_ore?: number
+          theme_id?: string | null
           total_amount_ore: number
           tree_count: number
           unit_price_ore: number
@@ -1039,6 +1080,7 @@ export type Database = {
           status?: string
           team_id?: string | null
           team_share_ore?: number
+          theme_id?: string | null
           total_amount_ore?: number
           tree_count?: number
           unit_price_ore?: number
@@ -1072,6 +1114,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_public_team_ranking"
             referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "purchases_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "greeting_themes"
+            referencedColumns: ["id"]
           },
         ]
       }

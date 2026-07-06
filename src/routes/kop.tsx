@@ -6,6 +6,9 @@ import { Certificate, snapshotToTemplate, type CertificateData } from "@/compone
 import { downloadCertificateAsPdf } from "@/lib/download-certificate";
 import { createPurchase } from "@/lib/purchases.functions";
 import { listActiveTemplates, moderateGreeting } from "@/lib/certificate-templates.functions";
+import { listGreetingThemes } from "@/lib/greeting-themes.functions";
+import { GreetingThemePicker, type GreetingThemeValue } from "@/components/greeting-theme-picker";
+import { CertificateReveal } from "@/components/certificate-reveal";
 import { PlantingForm } from "@/components/planting-form";
 
 export const Route = createFileRoute("/kop")({
@@ -78,6 +81,10 @@ function KopPage() {
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [greeting, setGreeting] = useState<string>("");
   const [greetingIssue, setGreetingIssue] = useState<string | null>(null);
+  const [themeValue, setThemeValue] = useState<GreetingThemeValue>({ themeId: null, greeting: "" });
+  const [themeResolved, setThemeResolved] = useState<Record<string, unknown> | null>(null);
+  const [, setReveal] = useState(false);
+  const loadThemes = useServerFn(listGreetingThemes);
 
   useEffect(() => {
     listTemplates().then((r) => {
@@ -98,8 +105,9 @@ function KopPage() {
     setError(null);
     if (!name.trim()) { setError("Ange mottagarens namn."); return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) { setError("Ange en giltig e-postadress."); return; }
-    if (allowsGreeting && greeting.trim()) {
-      const check = await moderateFn({ data: { text: greeting.trim() } });
+    const effectiveGreeting = (themeValue.greeting.trim() || (allowsGreeting ? greeting.trim() : "")) || "";
+    if (effectiveGreeting) {
+      const check = await moderateFn({ data: { text: effectiveGreeting } });
       if (!check.ok) { setGreetingIssue(check.reason || "Ogiltig hälsning"); return; }
     }
     setSubmitting(true);
@@ -110,19 +118,29 @@ function KopPage() {
           recipientName: name.trim(),
           recipientEmail: email.trim(),
           templateId,
-          greeting: allowsGreeting ? (greeting.trim() || null) : null,
+          themeId: themeValue.themeId,
+          greeting: effectiveGreeting || null,
         },
       });
-      const certData = JSON.parse(res.certificateJson) as SnapshotCert;
+      const certData = JSON.parse(res.certificateJson) as SnapshotCert & { theme?: unknown };
       setCertificate(rowToData(certData));
       setResultEmail(res.recipientEmail);
       setEmailSent(res.emailSent);
+      // Resolve theme for reveal animation
+      try {
+        const list = await loadThemes();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const t = (list.themes as any[]).find((x) => x.id === themeValue.themeId) ?? null;
+        setThemeResolved(t);
+      } catch { /* ignore */ }
+      setReveal(true);
     } catch (err) {
       setError((err as Error).message || "Något gick fel.");
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
@@ -131,37 +149,39 @@ function KopPage() {
 
       <main className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-20 pt-8">
         {certificate ? (
-          <div className="space-y-6">
-            <div className="surface-card p-8 text-center">
-              <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--gradient-mint)" }}>
-                <span className="font-display text-2xl" style={{ color: "var(--forest)" }}>✓</span>
+          <CertificateReveal theme={themeResolved} onDone={() => setReveal(false)}>
+            <div className="space-y-6">
+              <div className="surface-card p-8 text-center">
+                <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--gradient-mint)" }}>
+                  <span className="font-display text-2xl" style={{ color: "var(--forest)" }}>✓</span>
+                </div>
+                <h1 className="font-display text-3xl font-semibold">
+                  Tack! {certificate.tree_count} {certificate.tree_count === 1 ? "träd planterat" : "träd planterade"}
+                </h1>
+                <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                  {emailSent
+                    ? <>Värdebeviset har skickats till <span className="font-mono">{resultEmail}</span>.</>
+                    : <>Planteringen är registrerad. Mejlet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
+                </p>
+                <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                  Verifierings-ID: <span className="font-mono">{certificate.verification_id}</span>
+                </p>
               </div>
-              <h1 className="font-display text-3xl font-semibold">
-                Tack! {certificate.tree_count} {certificate.tree_count === 1 ? "träd planterat" : "träd planterade"}
-              </h1>
-              <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                {emailSent
-                  ? <>Värdebeviset har skickats till <span className="font-mono">{resultEmail}</span>.</>
-                  : <>Planteringen är registrerad. Mejlet kunde inte skickas just nu — du kan ladda ner värdebeviset nedan.</>}
-              </p>
-              <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
-                Verifierings-ID: <span className="font-mono">{certificate.verification_id}</span>
-              </p>
-            </div>
 
-            <div className="overflow-x-auto flex justify-center">
-              <Certificate ref={certRef} data={certificate} />
-            </div>
+              <div className="overflow-x-auto flex justify-center">
+                <Certificate ref={certRef} data={certificate} />
+              </div>
 
-            <div className="flex flex-wrap justify-center gap-3">
-              <button onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)} className="btn-primary">Ladda ner som PDF</button>
-              <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary">Öppna publik sida</Link>
-              <button
-                onClick={() => { setCertificate(null); setName(""); setEmail(""); setCount(10); setGreeting(""); }}
-                className="btn-secondary"
-              >Plantera fler träd</button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button onClick={() => certRef.current && downloadCertificateAsPdf(certRef.current, certificate.verification_id)} className="btn-primary">Ladda ner som PDF</button>
+                <Link to="/v/$id" params={{ id: certificate.verification_id }} className="btn-secondary">Öppna publik sida</Link>
+                <button
+                  onClick={() => { setCertificate(null); setName(""); setEmail(""); setCount(10); setGreeting(""); setThemeValue({ themeId: themeValue.themeId, greeting: "" }); }}
+                  className="btn-secondary"
+                >Plantera fler träd</button>
+              </div>
             </div>
-          </div>
+          </CertificateReveal>
         ) : (
           <div className="max-w-2xl mx-auto space-y-6">
             <PlantingForm
@@ -183,6 +203,9 @@ function KopPage() {
                 </>
               }
             />
+
+            <GreetingThemePicker value={themeValue} onChange={setThemeValue} />
+
 
             {templates.length > 0 && (
               <section className="surface-card p-6">
