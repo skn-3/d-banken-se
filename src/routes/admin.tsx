@@ -139,6 +139,7 @@ function AdminPage() {
                 ["boosters", "Boosters"],
                 ["templates", "Värdebevis-mallar"],
                 ["settings", "Planteringsplats"],
+                ["activity", "Aktivitetslogg"],
               ] as [Tab, string][]).map(([k, label]) => (
                 <button key={k} onClick={() => setTab(k)} className="chip"
                   style={{ cursor: "pointer", background: tab === k ? "var(--mint)" : undefined }}>
