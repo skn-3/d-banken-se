@@ -381,7 +381,9 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
       </td></tr>
 
       <tr><td align="center" style="padding:18px 0 6px;font-family:${body};font-size:12px;color:#6E9483;">Tänk smart, vi har ett gemensamt klimat.</td></tr>
+      <tr><td align="center" style="padding:0 0 6px;font-family:${body};font-size:12.5px;color:#15784F;">Se hela din skog → <a href="https://app.smartklimat.org/skog" style="color:#15784F;text-decoration:underline;">app.smartklimat.org/skog</a></td></tr>
       <tr><td align="center" style="padding:0 0 24px;font-family:${mono};font-size:11px;color:#6E9483;letter-spacing:0.08em;">SmartKlimat · Stockholm</td></tr>
+
 
     </table>
   </td></tr>
