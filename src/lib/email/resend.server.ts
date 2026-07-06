@@ -394,6 +394,28 @@ function whyRow(label: string, text: string, bricolage: string, body: string, mo
   </tr></table>`;
 }
 
+function dot(color: string, size = 8) {
+  return `<span style="display:inline-block;width:${size}px;height:${size}px;border-radius:50%;background:${color};margin:0 4px;"></span>`;
+}
+
+function renderHeroMotif(motif?: string | null): string {
+  if (!motif) return "";
+  const m = motif.toLowerCase();
+  if (m === "confetti" || m === "confetti_balloons") {
+    const cols = ["#1E9E6A","#DCBE6E","#FFFFFF","#1E9E6A","#DCBE6E","#FFFFFF","#1E9E6A","#DCBE6E"];
+    return `<div style="margin-top:16px;line-height:0;">${cols.map((c) => dot(c, 8)).join("")}</div>`;
+  }
+  if (m === "stars") {
+    const dots = Array.from({ length: 12 }, () => dot("#FFFFFF", 4)).join("");
+    return `<div style="margin-top:16px;line-height:0;opacity:0.85;">${dots}</div>`;
+  }
+  if (m === "snow" || m === "snowflakes") {
+    const dots = Array.from({ length: 10 }, () => dot("#FFFFFF", 5)).join("");
+    return `<div style="margin-top:16px;line-height:0;opacity:0.9;">${dots}</div>`;
+  }
+  return "";
+}
+
 
 interface InviteArgs {
   recipientName?: string | null;
