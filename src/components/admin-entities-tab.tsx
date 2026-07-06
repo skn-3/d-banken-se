@@ -17,7 +17,9 @@ interface Certificate {
   location_name: string; issued_date: string; purchase_id: string;
   customer_id: string | null; template_id: string | null;
   greeting: string | null; superseded_by: string | null;
+  status: string | null; deliver_at: string | null; recipient_delivery_email: string | null;
 }
+
 interface Team {
   id: string; name: string; city: string | null; join_code: string | null;
   organization_id: string; created_at: string; cert_template_id: string | null;
