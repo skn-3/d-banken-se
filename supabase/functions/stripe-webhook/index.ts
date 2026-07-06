@@ -24,6 +24,57 @@ async function sendEmail(to: string, subject: string, html: string) {
   return true;
 }
 
+// LARM-flöde: logga in failed_purchases, larma hej@smartklimat.org (max 1 mail / 5 min).
+async function recordFailure(db: any, sessionId: string, eventType: string, errorMessage: string) {
+  try {
+    // Upsert (unikt session_id) — öka attempts och uppdatera error/updated_at.
+    const { data: existing } = await db.from("failed_purchases").select("id, attempts, alert_sent_at").eq("session_id", sessionId).maybeSingle();
+    if (existing) {
+      await db.from("failed_purchases").update({
+        error: errorMessage,
+        event_type: eventType,
+        attempts: (existing.attempts ?? 1) + 1,
+        updated_at: new Date().toISOString(),
+      }).eq("id", existing.id);
+    } else {
+      await db.from("failed_purchases").insert({
+        session_id: sessionId, error: errorMessage, event_type: eventType,
+      });
+    }
+
+    // Throttla larmmailet: max ett mail per 5 minuter (globalt).
+    const fiveMinAgo = new Date(Date.now() - 5 * 60_000).toISOString();
+    const { data: recent } = await db.from("failed_purchases")
+      .select("id").gte("alert_sent_at", fiveMinAgo).limit(1);
+    if (recent && recent.length > 0) {
+      console.warn("failed_purchases alert throttled", { sessionId });
+      return;
+    }
+
+    const subject = "LARM: betalning utan bevis";
+    const html = `<!doctype html><html><body style="font-family:Helvetica,Arial,sans-serif;color:#111;">
+      <h2 style="color:#b91c1c;">🚨 Betalning utan bevis</h2>
+      <p>Stripe-webhooken misslyckades med att skapa ett bevis efter en betalning.</p>
+      <table cellpadding="4" style="border-collapse:collapse;font-size:14px;">
+        <tr><td><b>Session/Invoice-ID:</b></td><td><code>${sessionId}</code></td></tr>
+        <tr><td><b>Event:</b></td><td>${eventType}</td></tr>
+        <tr><td><b>Fel:</b></td><td><code>${errorMessage.replace(/</g, "&lt;")}</code></td></tr>
+        <tr><td><b>Tid:</b></td><td>${new Date().toISOString()}</td></tr>
+      </table>
+      <p>Öppna adminpanelen → "Betalningar utan bevis" och kör "Försök igen".</p>
+    </body></html>`;
+    const ok = await sendEmail("hej@smartklimat.org", subject, html);
+    if (ok) {
+      // Markera senaste failed_purchase-raden för denna session som "alert skickat".
+      await db.from("failed_purchases").update({ alert_sent_at: new Date().toISOString() })
+        .eq("session_id", sessionId);
+    }
+  } catch (e) {
+    console.error("recordFailure error", (e as Error).message);
+  }
+}
+
+
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("method_not_allowed", { status: 405 });
