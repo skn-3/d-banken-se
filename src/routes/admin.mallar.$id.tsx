@@ -48,10 +48,24 @@ const PALETTE: Array<{ label: string; hex: string }> = [
   { label: "Svart", hex: "#000000" },
 ];
 
-const DEFAULT_FALT = (): FaltkartaFalt => ({
-  x: 620, y: 800, size: 32, color: "#123326", font: "Bricolage Grotesque",
+const DEFAULT_FIELD = (): FaltkartaFalt => ({
+  type: "field", x: 620, y: 800, size: 32, color: "#123326", font: "Bricolage Grotesque",
   anchor: "middle", weight: "bold", letterSpacing: 0, italic: false, template: "{v}",
 });
+const DEFAULT_STATIC = (): FaltkartaFalt => ({
+  type: "static", x: 620, y: 400, size: 28, color: "#123326", font: "Bricolage Grotesque",
+  anchor: "middle", weight: "500", letterSpacing: 0, italic: false, text: "Din text här",
+});
+const DEFAULT_LOGO = (url: string): FaltkartaFalt => ({
+  type: "logo", x: 90, y: 90, url, width: 240,
+});
+
+const isFieldKey = (k: string): k is FieldKey => (FIELD_KEYS as readonly string[]).includes(k);
+const elType = (f: FaltkartaFalt | undefined, key: string): "field" | "static" | "logo" => {
+  if (!f) return "field";
+  if (f.type === "static" || f.type === "logo") return f.type;
+  return "field";
+};
 
 function slugify(s: string): string {
   return s.toLowerCase()
@@ -59,6 +73,10 @@ function slugify(s: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-+/g, "-");
+}
+
+function shortId(): string {
+  return Math.random().toString(36).slice(2, 10);
 }
 
 async function fileToBase64(f: File): Promise<{ b64: string; type: string; w: number; h: number }> {
@@ -96,7 +114,7 @@ function EditorPage() {
   const [canvas, setCanvas] = useState<{ w: number; h: number }>({ w: 1240, h: 1754 });
   const [falt, setFalt] = useState<Record<string, FaltkartaFalt>>({});
   const [initial, setInitial] = useState<string>("");
-  const [selected, setSelected] = useState<FieldKey | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [snapX, setSnapX] = useState<number | null>(null);
@@ -106,7 +124,6 @@ function EditorPage() {
   }), [namn, slug, allowsGreeting, bgUrl, kortUrl, canvas, falt]);
   const dirty = initial !== "" && initial !== currentJson;
 
-  // ladda mall
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate({ to: "/auth" }); return; }
@@ -136,31 +153,28 @@ function EditorPage() {
     return () => { cancelled = true; };
   }, [id, user, authLoading, navigate, getFn]);
 
-  // varna vid navigation med osparat
   useEffect(() => {
     const h = (e: BeforeUnloadEvent) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } };
     window.addEventListener("beforeunload", h);
     return () => window.removeEventListener("beforeunload", h);
   }, [dirty]);
 
-  // slug auto ur namn tills användaren rör
   const onNamnChange = (v: string) => {
     setNamn(v);
     if (!slugTouched) setSlug(slugify(v));
   };
 
-  // ---------- canvas render (max 700px bred, A4-ratio bibehålls via bilden) ----------
   const displayW = 700;
   const displayH = Math.round(displayW * (canvas.h / canvas.w));
   const s = displayW / canvas.w;
   const stageRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ key: FieldKey; dx: number; dy: number } | null>(null);
+  const dragRef = useRef<{ key: string; dx: number; dy: number; kind: "text" | "logo" } | null>(null);
 
-  const onChipDown = (key: FieldKey, e: React.PointerEvent) => {
+  const onChipDown = (key: string, kind: "text" | "logo", e: React.PointerEvent) => {
     e.preventDefault();
     setSelected(key);
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    dragRef.current = { key, dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+    dragRef.current = { key, dx: e.clientX - rect.left, dy: e.clientY - rect.top, kind };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onChipMove = (e: React.PointerEvent) => {
@@ -169,29 +183,38 @@ function EditorPage() {
     const chipEl = e.currentTarget as HTMLElement;
     const chipW = chipEl.offsetWidth;
     const chipH = chipEl.offsetHeight;
-    let px = e.clientX - box.left - d.dx;
-    let py = e.clientY - box.top - d.dy;
-    // vi placerar chip så att dess vänsterkant ligger på f-koord vs anchor
-    // för enkelhet: sätt f.x baserat på anchor mot chippens vänsterkant + halva/hela bredd
+    const px = e.clientX - box.left - d.dx;
+    const py = e.clientY - box.top - d.dy;
     const key = d.key;
-    const f = falt[key] ?? DEFAULT_FALT();
-    // beräkna anchor-punkt inom chippet
-    const anchorOffset = f.anchor === "middle" ? chipW / 2 : f.anchor === "end" ? chipW : 0;
-    let anchorPxX = px + anchorOffset;
-    const anchorPxY = py + chipH * 0.75; // baseline ≈ 75% ned
-    // konvertera till 1240-space
-    let nx = anchorPxX / s;
-    let ny = anchorPxY / s;
-    // snap
-    const snaps = [620, 90, 1150];
+    const f = falt[key];
+    if (!f) return;
+
+    let nx: number, ny: number;
+    if (d.kind === "logo") {
+      // Logo x/y = top-left in canvas
+      nx = px / s;
+      ny = py / s;
+    } else {
+      const anchor = f.anchor ?? "start";
+      const anchorOffset = anchor === "middle" ? chipW / 2 : anchor === "end" ? chipW : 0;
+      const anchorPxX = px + anchorOffset;
+      const anchorPxY = py + chipH * 0.75;
+      nx = anchorPxX / s;
+      ny = anchorPxY / s;
+    }
+
+    // snap x only for text
     let hit: number | null = null;
-    for (const sv of snaps) {
-      if (Math.abs(nx - sv) * s < 8) { nx = sv; hit = sv; break; }
+    if (d.kind === "text") {
+      const snaps = [620, 90, 1150];
+      for (const sv of snaps) {
+        if (Math.abs(nx - sv) * s < 8) { nx = sv; hit = sv; break; }
+      }
     }
     setSnapX(hit);
     nx = Math.max(0, Math.min(canvas.w, Math.round(nx)));
     ny = Math.max(0, Math.min(canvas.h, Math.round(ny)));
-    setFalt((prev) => ({ ...prev, [key]: { ...(prev[key] ?? DEFAULT_FALT()), x: nx, y: ny } }));
+    setFalt((prev) => ({ ...prev, [key]: { ...prev[key], x: nx, y: ny } }));
   };
   const onChipUp = (e: React.PointerEvent) => {
     dragRef.current = null; setSnapX(null);
@@ -202,16 +225,35 @@ function EditorPage() {
     setFalt((prev) => {
       const next = { ...prev };
       if (next[key]) { delete next[key]; }
-      else { next[key] = DEFAULT_FALT(); }
+      else { next[key] = DEFAULT_FIELD(); }
       return next;
     });
     setSelected(key);
   };
-  const updateField = (key: FieldKey, patch: Partial<FaltkartaFalt>) => {
-    setFalt((prev) => ({ ...prev, [key]: { ...(prev[key] ?? DEFAULT_FALT()), ...patch } }));
+  const addStatic = () => {
+    const key = `static:${shortId()}`;
+    setFalt((prev) => ({ ...prev, [key]: DEFAULT_STATIC() }));
+    setSelected(key);
+  };
+  const addLogo = async (file: File) => {
+    setBusy("logo"); setMsg(null);
+    try {
+      const { b64, type } = await fileToBase64(file);
+      const r = await uploadFn({ data: { kind: "logo", filename: file.name, contentType: type, dataBase64: b64 } });
+      const key = `logo:${shortId()}`;
+      setFalt((prev) => ({ ...prev, [key]: DEFAULT_LOGO(r.url) }));
+      setSelected(key);
+    } catch (e: any) { setMsg(`Loggafel: ${e?.message ?? e}`); }
+    finally { setBusy(null); }
+  };
+  const removeEl = (key: string) => {
+    setFalt((prev) => { const n = { ...prev }; delete n[key]; return n; });
+    setSelected(null);
+  };
+  const updateEl = (key: string, patch: Partial<FaltkartaFalt>) => {
+    setFalt((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
   };
 
-  // ---------- uppladdningar ----------
   const uploadBg = async (file: File) => {
     setBusy("bg"); setMsg(null);
     try {
@@ -236,7 +278,6 @@ function EditorPage() {
     finally { setBusy(null); }
   };
 
-  // ---------- save & test-pdf ----------
   const save = async () => {
     setBusy("save"); setMsg(null);
     try {
@@ -276,6 +317,7 @@ function EditorPage() {
   if (state === "notfound") return <Shell><div className="surface-card p-8 text-center">Hittades inte.</div></Shell>;
 
   const selF = selected ? falt[selected] : null;
+  const selType = selected ? elType(selF ?? undefined, selected) : null;
 
   return (
     <Shell>
@@ -315,14 +357,12 @@ function EditorPage() {
               borderRadius: 6, overflow: "hidden",
             }}
           >
-            {/* snap-linjer */}
             {snapX !== null && (
               <div style={{
                 position: "absolute", top: 0, bottom: 0, left: snapX * s,
                 width: 1, background: "rgba(255,60,60,0.7)", pointerEvents: "none",
               }} />
             )}
-            {/* marginaler & mitt (svaga) */}
             {[90, 620, 1150].map((v) => (
               <div key={v} style={{
                 position: "absolute", top: 0, bottom: 0, left: v * s, width: 1,
@@ -330,17 +370,48 @@ function EditorPage() {
               }} />
             ))}
             {/* chips */}
-            {FIELD_KEYS.map((k) => {
-              const f = falt[k]; if (!f) return null;
-              const sample = SAMPLE[k];
-              const text = f.template ? f.template.replace("{v}", sample) : sample;
-              const fontSizePx = f.size * s;
-              const anchorOffset = f.anchor === "middle" ? "-50%" : f.anchor === "end" ? "-100%" : "0";
+            {Object.entries(falt).map(([k, f]) => {
+              const t = elType(f, k);
               const isSel = selected === k;
+              if (t === "logo") {
+                const w = (f.width ?? 200) * s;
+                return (
+                  <div
+                    key={k}
+                    onPointerDown={(e) => onChipDown(k, "logo", e)}
+                    onPointerMove={onChipMove}
+                    onPointerUp={onChipUp}
+                    onPointerCancel={onChipUp}
+                    style={{
+                      position: "absolute",
+                      left: f.x * s, top: f.y * s, width: w,
+                      cursor: "grab", touchAction: "none",
+                      outline: isSel ? "1.5px dashed rgba(0,120,255,0.9)" : "1px dashed rgba(0,0,0,0.35)",
+                      background: "rgba(255,255,255,0.02)",
+                    }}
+                    title={`${k}  (${f.x}, ${f.y})  w=${f.width ?? 200}`}
+                  >
+                    {f.url ? (
+                      // eslint-disable-next-line jsx-a11y/alt-text
+                      <img src={f.url} draggable={false}
+                        style={{ display: "block", width: "100%", height: "auto", pointerEvents: "none" }} />
+                    ) : null}
+                  </div>
+                );
+              }
+              // text (field or static)
+              const raw = t === "static" ? (f.text ?? "") : (isFieldKey(k) ? SAMPLE[k] : "");
+              const text = t === "field"
+                ? (f.template ? f.template.replace("{v}", raw) : raw)
+                : raw;
+              const fontSizePx = (f.size ?? 32) * s;
+              const anchor = f.anchor ?? "start";
+              const anchorOffset = anchor === "middle" ? "-50%" : anchor === "end" ? "-100%" : "0";
+              const weight = f.weight ?? "400";
               return (
                 <div
                   key={k}
-                  onPointerDown={(e) => onChipDown(k, e)}
+                  onPointerDown={(e) => onChipDown(k, "text", e)}
                   onPointerMove={onChipMove}
                   onPointerUp={onChipUp}
                   onPointerCancel={onChipUp}
@@ -348,28 +419,30 @@ function EditorPage() {
                     position: "absolute",
                     left: f.x * s, top: f.y * s,
                     transform: `translate(${anchorOffset}, -75%)`,
-                    fontFamily: `"${f.font}", sans-serif`,
+                    fontFamily: `"${f.font ?? "Bricolage Grotesque"}", sans-serif`,
                     fontSize: fontSizePx,
-                    fontWeight: f.weight === "bold" ? 700 : (/^\d+$/.test(f.weight) ? Number(f.weight) : 400),
+                    fontWeight: weight === "bold" ? 700 : (/^\d+$/.test(weight) ? Number(weight) : 400),
                     fontStyle: f.italic ? "italic" : "normal",
-                    color: f.color,
+                    color: f.color ?? "#123326",
                     letterSpacing: (f.letterSpacing || 0) * s,
                     whiteSpace: "nowrap",
                     cursor: "grab", touchAction: "none",
                     padding: "1px 3px",
-                    outline: isSel ? "1.5px dashed rgba(0,120,255,0.9)" : "1px dashed rgba(0,0,0,0.25)",
+                    outline: isSel
+                      ? "1.5px dashed rgba(0,120,255,0.9)"
+                      : (t === "static" ? "1px dashed rgba(180,80,0,0.4)" : "1px dashed rgba(0,0,0,0.25)"),
                     background: isSel ? "rgba(0,120,255,0.06)" : "rgba(255,255,255,0.02)",
                     borderRadius: 3,
                   }}
                   title={`${k}  (${f.x}, ${f.y})`}
                 >
-                  {text}
+                  {text || <span style={{ opacity: 0.5 }}>(tom)</span>}
                 </div>
               );
             })}
           </div>
 
-          {/* fältväxlare + assets */}
+          {/* fältväxlare + lägg till + assets */}
           <div className="mt-3 flex flex-wrap gap-2">
             {FIELD_KEYS.map((k) => (
               <button key={k} onClick={() => toggleField(k)}
@@ -381,6 +454,17 @@ function EditorPage() {
                 {falt[k] ? "✓ " : "+ "}{k}
               </button>
             ))}
+            <button onClick={addStatic}
+              className="text-xs px-2 py-1 rounded border"
+              style={{ borderColor: "var(--border)", background: "rgba(180,80,0,0.08)" }}>
+              + statisk text
+            </button>
+            <label className="text-xs px-2 py-1 rounded border cursor-pointer"
+              style={{ borderColor: "var(--border)", background: "rgba(0,120,255,0.08)" }}>
+              {busy === "logo" ? "Laddar…" : "+ logga"}
+              <input type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) void addLogo(f); }} />
+            </label>
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
@@ -423,33 +507,63 @@ function EditorPage() {
           </div>
 
           <div className="surface-card p-4">
-            <h3 className="font-semibold mb-2">Fält</h3>
+            <h3 className="font-semibold mb-2">Element</h3>
             {!selF && <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-              Klicka på ett chip på canvasen för att redigera. Använd knapparna nedanför canvasen för att lägga till/ta bort fält.
+              Klicka på ett element på canvasen för att redigera. Använd knapparna nedanför canvasen för att lägga till fält, statisk text eller en logga.
             </div>}
-            {selected && selF && (
+            {selected && selF && selType === "logo" && (
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between">
-                  <div className="font-mono">{selected}</div>
+                  <div className="font-mono">logga</div>
                   <div className="font-mono" style={{ color: "var(--muted-foreground)" }}>
                     x={selF.x} · y={selF.y}
                   </div>
                 </div>
                 <label className="block">
-                  <div className="mb-1">Storlek: {selF.size}px</div>
-                  <input type="range" min={10} max={120} value={selF.size} className="w-full"
-                    onChange={(e) => updateField(selected, { size: Number(e.target.value) })} />
+                  <div className="mb-1">Bredd: {selF.width ?? 200}px (canvas-px)</div>
+                  <input type="range" min={40} max={800} value={selF.width ?? 200} className="w-full"
+                    onChange={(e) => updateEl(selected, { width: Number(e.target.value) })} />
+                </label>
+                <div className="truncate" style={{ color: "var(--muted-foreground)" }}>
+                  {selF.url}
+                </div>
+                <button onClick={() => removeEl(selected)}
+                  className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)", color: "#c33" }}>
+                  Ta bort logga
+                </button>
+              </div>
+            )}
+            {selected && selF && (selType === "field" || selType === "static") && (
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="font-mono">{selType === "static" ? "statisk text" : selected}</div>
+                  <div className="font-mono" style={{ color: "var(--muted-foreground)" }}>
+                    x={selF.x} · y={selF.y}
+                  </div>
+                </div>
+                {selType === "static" && (
+                  <label className="block">
+                    <div className="mb-1">Text</div>
+                    <textarea value={selF.text ?? ""} rows={2}
+                      onChange={(e) => updateEl(selected, { text: e.target.value })}
+                      className="w-full border rounded px-2 py-1" style={{ borderColor: "var(--border)" }} />
+                  </label>
+                )}
+                <label className="block">
+                  <div className="mb-1">Storlek: {selF.size ?? 32}px</div>
+                  <input type="range" min={10} max={160} value={selF.size ?? 32} className="w-full"
+                    onChange={(e) => updateEl(selected, { size: Number(e.target.value) })} />
                 </label>
                 <label className="block">
                   <div className="mb-1">Färg</div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <input type="color" value={selF.color}
-                      onChange={(e) => updateField(selected, { color: e.target.value })} />
-                    <input value={selF.color}
-                      onChange={(e) => updateField(selected, { color: e.target.value })}
+                    <input type="color" value={selF.color ?? "#123326"}
+                      onChange={(e) => updateEl(selected, { color: e.target.value })} />
+                    <input value={selF.color ?? "#123326"}
+                      onChange={(e) => updateEl(selected, { color: e.target.value })}
                       className="border rounded px-1 py-0.5 font-mono w-24" style={{ borderColor: "var(--border)" }} />
                     {PALETTE.map((p) => (
-                      <button key={p.label} onClick={() => updateField(selected, { color: p.hex })}
+                      <button key={p.label} onClick={() => updateEl(selected, { color: p.hex })}
                         className="px-2 py-0.5 rounded border" style={{ borderColor: "var(--border)", background: p.hex, color: p.hex === "#FFFFFF" ? "#000" : "#fff" }}>
                         {p.label}
                       </button>
@@ -458,7 +572,7 @@ function EditorPage() {
                 </label>
                 <label className="block">
                   <div className="mb-1">Font</div>
-                  <select value={selF.font} onChange={(e) => updateField(selected, { font: e.target.value })}
+                  <select value={selF.font ?? "Bricolage Grotesque"} onChange={(e) => updateEl(selected, { font: e.target.value })}
                     className="w-full border rounded px-2 py-1" style={{ borderColor: "var(--border)" }}>
                     {FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
                   </select>
@@ -466,7 +580,7 @@ function EditorPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <label className="block">
                     <div className="mb-1">Anchor</div>
-                    <select value={selF.anchor} onChange={(e) => updateField(selected, { anchor: e.target.value as any })}
+                    <select value={selF.anchor ?? "start"} onChange={(e) => updateEl(selected, { anchor: e.target.value as any })}
                       className="w-full border rounded px-2 py-1" style={{ borderColor: "var(--border)" }}>
                       <option value="start">Vänster</option>
                       <option value="middle">Mitt</option>
@@ -475,31 +589,34 @@ function EditorPage() {
                   </label>
                   <label className="block">
                     <div className="mb-1">Weight</div>
-                    <select value={selF.weight} onChange={(e) => updateField(selected, { weight: e.target.value })}
+                    <select value={selF.weight ?? "400"} onChange={(e) => updateEl(selected, { weight: e.target.value })}
                       className="w-full border rounded px-2 py-1" style={{ borderColor: "var(--border)" }}>
                       {["300", "400", "500", "600", "bold", "800", "900"].map((w) => <option key={w} value={w}>{w}</option>)}
                     </select>
                   </label>
                 </div>
                 <label className="block">
-                  <div className="mb-1">Letter-spacing: {selF.letterSpacing}</div>
-                  <input type="range" min={-2} max={20} step={0.5} value={selF.letterSpacing} className="w-full"
-                    onChange={(e) => updateField(selected, { letterSpacing: Number(e.target.value) })} />
+                  <div className="mb-1">Letter-spacing: {selF.letterSpacing ?? 0}</div>
+                  <input type="range" min={-2} max={20} step={0.5} value={selF.letterSpacing ?? 0} className="w-full"
+                    onChange={(e) => updateEl(selected, { letterSpacing: Number(e.target.value) })} />
                 </label>
                 <label className="flex items-center gap-2">
-                  <input type="checkbox" checked={selF.italic}
-                    onChange={(e) => updateField(selected, { italic: e.target.checked })} />
+                  <input type="checkbox" checked={!!selF.italic}
+                    onChange={(e) => updateEl(selected, { italic: e.target.checked })} />
                   Italic
                 </label>
-                <label className="block">
-                  <div className="mb-1">Mall (använd <span className="font-mono">{"{v}"}</span> för värdet)</div>
-                  <input value={selF.template}
-                    onChange={(e) => updateField(selected, { template: e.target.value })}
-                    className="w-full border rounded px-2 py-1 font-mono" style={{ borderColor: "var(--border)" }} />
-                </label>
-                <button onClick={() => toggleField(selected)}
+                {selType === "field" && (
+                  <label className="block">
+                    <div className="mb-1">Mall (använd <span className="font-mono">{"{v}"}</span> för värdet)</div>
+                    <input value={selF.template ?? "{v}"}
+                      onChange={(e) => updateEl(selected, { template: e.target.value })}
+                      className="w-full border rounded px-2 py-1 font-mono" style={{ borderColor: "var(--border)" }} />
+                  </label>
+                )}
+                <button
+                  onClick={() => selType === "field" && isFieldKey(selected) ? toggleField(selected) : removeEl(selected)}
                   className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)", color: "#c33" }}>
-                  Ta bort fält
+                  Ta bort element
                 </button>
               </div>
             )}

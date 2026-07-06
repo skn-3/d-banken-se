@@ -6,10 +6,17 @@ import jsPDF from "jspdf";
 const KARTOR_URL = "/certs/faltkartor-teman.json";
 
 interface Falt {
-  x: number; y: number; size: number; color: string; font: string;
-  anchor: "start" | "middle" | "end";
-  weight: string; letterSpacing: number; italic: boolean;
-  template: string;
+  x: number; y: number;
+  // FIELD (default) / STATIC
+  size?: number; color?: string; font?: string;
+  anchor?: "start" | "middle" | "end";
+  weight?: string; letterSpacing?: number; italic?: boolean;
+  template?: string;
+  // Discriminator: undefined/"field" = dynamic field, "static" = fast text, "logo" = bild
+  type?: "field" | "static" | "logo";
+  text?: string;   // static
+  url?: string;    // logo
+  width?: number;  // logo (canvas-px)
 }
 interface Karta {
   bg: string;
@@ -125,14 +132,20 @@ function valueFor(key: string, d: FaltkartaData): string | null {
 
 function buildFontString(f: Falt, s = 1): string {
   const style = f.italic ? "italic " : "";
-  const w = /^\d+$/.test(f.weight) ? f.weight : (f.weight === "bold" ? "700" : "400");
-  return `${style}${w} ${f.size * s}px "${f.font}"`;
+  const wRaw = f.weight ?? "400";
+  const w = /^\d+$/.test(wRaw) ? wRaw : (wRaw === "bold" ? "700" : "400");
+  const size = (f.size ?? 32) * s;
+  const font = f.font ?? "Bricolage Grotesque";
+  return `${style}${w} ${size}px "${font}"`;
 }
 
 async function preloadFonts(kartor: Karta, s = 1): Promise<void> {
   if (typeof document === "undefined" || !document.fonts) return;
   const specs = new Set<string>();
-  Object.values(kartor.falt).forEach((f) => specs.add(buildFontString(f, s)));
+  Object.values(kartor.falt).forEach((f) => {
+    if (f.type === "logo") return;
+    specs.add(buildFontString(f, s));
+  });
   await Promise.all(Array.from(specs).map((spec) =>
     document.fonts.load(spec, "ÅÄÖabcåäö0123456789· ").catch(() => null)
   ));
@@ -143,7 +156,7 @@ async function preloadFonts(kartor: Karta, s = 1): Promise<void> {
 function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: number) {
   ctx.save();
   ctx.font = buildFontString(f, s);
-  ctx.fillStyle = f.color;
+  ctx.fillStyle = f.color ?? "#123326";
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
 
@@ -165,11 +178,19 @@ function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: 
   ctx.restore();
 }
 
+async function drawLogo(ctx: CanvasRenderingContext2D, f: Falt, s: number) {
+  if (!f.url) return;
+  try {
+    const img = await loadImage(f.url);
+    const w = (f.width ?? 200) * s;
+    const h = img.naturalHeight > 0 ? (w * img.naturalHeight) / img.naturalWidth : w;
+    ctx.drawImage(img, f.x * s, f.y * s, w, h);
+  } catch { /* noop */ }
+}
+
 export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, filename: string): Promise<void> {
   ensureFonts();
 
-  // 1) Ladda bg först — skalfaktorn härleds ur bg-bildens verkliga bredd
-  //    jämfört med kartans referens-canvas (nya 2480×3508-bakgrunder ger s=2).
   const bg = await loadImage(karta.bg);
   const s = bg.naturalWidth > 0 ? bg.naturalWidth / karta.canvas.w : 1;
 
@@ -182,18 +203,25 @@ export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, 
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bg, 0, 0, outW, outH);
 
-  // 2) Ladda fonter i skalad storlek
   await preloadFonts(karta, s);
 
-  // 3) Rita fälten
   for (const [key, f] of Object.entries(karta.falt)) {
+    if (f.type === "logo") {
+      await drawLogo(ctx, f, s);
+      continue;
+    }
+    if (f.type === "static") {
+      const text = f.text ?? "";
+      if (!text) continue;
+      drawFieldText(ctx, text, f, s);
+      continue;
+    }
     const raw = valueFor(key, data);
     if (raw == null || raw === "") continue;
     const text = f.template ? f.template.replace("{v}", raw) : raw;
     drawFieldText(ctx, text, f, s);
   }
 
-  // 4) A4-PDF (JPEG 0.95 håller filstorleken nere utan synlig kvalitetsförlust)
   const img = canvas.toDataURL("image/jpeg", 0.95);
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
   pdf.addImage(img, "JPEG", 0, 0, 210, 297, undefined, "FAST");
