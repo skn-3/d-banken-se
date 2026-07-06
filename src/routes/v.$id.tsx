@@ -37,7 +37,10 @@ function VerifyPage() {
   const { id } = Route.useParams();
   const [state, setState] = useState<"loading" | "missing" | "ok">("loading");
   const [data, setData] = useState<CertificateData | null>(null);
+  const [a4, setA4] = useState<CertA4Data | null>(null);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const a4Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +59,19 @@ function VerifyPage() {
         latitude: r.latitude,
         longitude: r.longitude,
         issued_date: r.issued_date,
+        greeting: r.greeting,
         template: snapshotToTemplate(r.template_snapshot),
+      });
+      setA4({
+        verification_id: r.verification_id,
+        recipient_name: r.recipient_name,
+        tree_count: r.tree_count,
+        location_name: r.location_name,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        issued_date: r.issued_date,
+        greeting: r.greeting,
+        themeSlug: r.theme_slug,
       });
       setState("ok");
     })();
@@ -70,6 +85,19 @@ function VerifyPage() {
       setTimeout(() => setCopied(false), 2000);
     } catch { /* ignore */ }
   }
+
+  async function handleDownload() {
+    if (!a4Ref.current) return;
+    setDownloading(true);
+    try {
+      // Ge bilderna (bakgrund + QR + stämpel) en tick att renderas.
+      await new Promise((r) => setTimeout(r, 300));
+      await downloadA4CertificateAsPdf(a4Ref.current, id);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
 
   return (
     <div className="min-h-screen w-full" style={{ background: PAPER_BG }}>
