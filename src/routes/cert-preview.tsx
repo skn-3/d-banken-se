@@ -85,12 +85,33 @@ function CertPreview() {
       <div style={{ color: "#fff", fontFamily: "system-ui", marginBottom: 16, fontSize: 14 }}>
         Cert QA. Original renderas via HTML-mall — klicka för att ladda ner PDF.
       </div>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
         <button
           disabled={dl}
           onClick={async () => { setDl(true); try { await downloadOriginalCertPdf(original); } finally { setDl(false); } }}
           style={{ padding: "10px 16px", background: "#1E9E6A", color: "#fff", border: 0, borderRadius: 8, cursor: "pointer" }}
-        >{dl ? "Genererar…" : "Ladda ner Original test-PDF"}</button>
+        >{dl ? "Genererar…" : "Original test-PDF"}</button>
+        {(["fodelsedag","morsdag","farsdag","pask","jul","sommar","semester","resa","hjartans","environment"] as const).map((slug) => (
+          <button
+            key={slug}
+            disabled={dl}
+            onClick={async () => {
+              setDl(true);
+              try {
+                await downloadFaltkartaCertPdf(slug, {
+                  verification_id: `SK-2026-${slug.slice(0,4).toUpperCase()}1`,
+                  recipient_name: "Anna Testsson",
+                  tree_count: 7,
+                  location_name: "Luanshya, Copperbelt, Zambia",
+                  latitude: -13.131725,
+                  longitude: 28.418843,
+                  issued_date: new Date().toISOString(),
+                });
+              } finally { setDl(false); }
+            }}
+            style={{ padding: "10px 14px", background: "#0B3D2E", color: "#fff", border: 0, borderRadius: 8, cursor: "pointer", fontSize: 12 }}
+          >{slug}</button>
+        ))}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 620px)", gap: 24 }}>
         {SAMPLES.map((s) => (
