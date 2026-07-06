@@ -177,8 +177,9 @@ function Wizard({ onFinished: _ }: { onFinished: () => void }) {
 
   useEffect(() => {
     listTemplates().then((r) => {
-      setTemplates(r.templates as Tmpl[]);
-      const def = r.templates.find((t) => t.is_default) ?? r.templates[0];
+      const list = r.templates as Tmpl[];
+      setTemplates(list);
+      const def = list.find((t) => t.is_default) ?? list[0];
       if (def) setTemplateId(def.id);
     }).catch(() => { /* ignore */ });
   }, [listTemplates]);
