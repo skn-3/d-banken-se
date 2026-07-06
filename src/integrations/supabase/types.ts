@@ -2072,6 +2072,14 @@ export type Database = {
         }
       }
       refresh_insights_daily_trees: { Args: never; Returns: undefined }
+      search_organizations: {
+        Args: { q: string }
+        Returns: {
+          id: string
+          name: string
+          type: string
+        }[]
+      }
       seller_points_balance: { Args: { _user_id: string }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
