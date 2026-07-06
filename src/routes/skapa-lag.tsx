@@ -47,7 +47,7 @@ const PROJECTS: Project[] = [
 
 type Step = 0 | 1 | 2 | 3;
 type Org = { id: string; name: string; type: string };
-type Tmpl = { id: string; name: string; logo_url: string | null; accent_color: string | null; heading_text: string | null; body_text: string | null; background_key: string | null; is_default: boolean | null };
+type Tmpl = { id: string; slug: string; name: string; sort: number; kort_url: string | null; bg_url: string; allows_greeting: boolean; is_default: boolean };
 
 function SkapaLagPage() {
   const navigate = useNavigate();
