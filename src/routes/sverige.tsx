@@ -14,6 +14,10 @@ export const Route = createFileRoute("/sverige")({
     meta: [
       { title: "Sverige-topplistan — SmartKlimat" },
       { name: "description", content: "Se hur säljare och lag i hela Sverige ligger till just nu." },
+      { property: "og:title", content: "Sverige-topplistan — SmartKlimat" },
+      { property: "og:description", content: "Se hur säljare och lag i hela Sverige ligger till just nu." },
+      { property: "og:image", content: "https://app.smartklimat.org/kort/kort-guldlaget.jpg" },
+      { name: "twitter:image", content: "https://app.smartklimat.org/kort/kort-guldlaget.jpg" },
     ],
   }),
   component: SverigePage,

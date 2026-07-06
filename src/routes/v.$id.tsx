@@ -19,6 +19,7 @@ export const Route = createFileRoute("/v/$id")({
     meta: [
       { title: `Värdebevis ${params.id} — SmartKlimat` },
       { name: "description", content: "Verifiera ett SmartKlimat-värdebevis." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: VerifyPage,

@@ -16,6 +16,10 @@ export const Route = createFileRoute("/kop")({
     meta: [
       { title: "Plantera träd — SmartKlimat" },
       { name: "description", content: "Plantera träd åt en kund. Inget konto behövs." },
+      { property: "og:title", content: "Plantera träd — SmartKlimat" },
+      { property: "og:description", content: "Plantera träd åt en kund. Inget konto behövs." },
+      { property: "og:image", content: "https://app.smartklimat.org/kort/kort-collage.jpg" },
+      { name: "twitter:image", content: "https://app.smartklimat.org/kort/kort-collage.jpg" },
     ],
   }),
   component: KopPage,
