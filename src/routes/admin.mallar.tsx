@@ -9,6 +9,7 @@ import {
   adminSetCertTemplateActive,
   adminMoveCertTemplate,
   adminDuplicateCertTemplate,
+  adminDeleteCertTemplate,
   type CertTemplateRow,
 } from "@/lib/cert-templates.functions";
 
@@ -28,6 +29,7 @@ function AdminMallarPage() {
   const toggleFn = useServerFn(adminSetCertTemplateActive);
   const moveFn = useServerFn(adminMoveCertTemplate);
   const dupFn = useServerFn(adminDuplicateCertTemplate);
+  const delFn = useServerFn(adminDeleteCertTemplate);
 
   const load = useCallback(async () => {
     const r = await listFn();
@@ -63,6 +65,12 @@ function AdminMallarPage() {
   const duplicate = async (row: CertTemplateRow) => {
     setBusy(row.id);
     try { await dupFn({ data: { id: row.id } }); await load(); }
+    finally { setBusy(null); }
+  };
+  const remove = async (row: CertTemplateRow) => {
+    if (!confirm(`Radera "${row.namn}"? Kan inte ångras.`)) return;
+    setBusy(row.id);
+    try { await delFn({ data: { id: row.id } }); await load(); }
     finally { setBusy(null); }
   };
 
@@ -125,6 +133,8 @@ function AdminMallarPage() {
                     className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>Duplicera</button>
                   <a href={`/admin/mallar/${r.id}`}
                     className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>Redigera</a>
+                  <button disabled={busy === r.id} onClick={() => remove(r)}
+                    className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)", color: "#c33" }}>Radera</button>
 
                 </div>
               </div>

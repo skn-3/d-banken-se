@@ -165,15 +165,8 @@ function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: 
   ctx.restore();
 }
 
-export async function downloadFaltkartaCertPdf(kartaSlug: string, data: FaltkartaData): Promise<void> {
+export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, filename: string): Promise<void> {
   ensureFonts();
-  let karta = await loadKartaFromDb(kartaSlug);
-  if (!karta) {
-    const kartor = await loadKartorFallback();
-    karta = kartor[kartaSlug] ?? null;
-  }
-  if (!karta) throw new Error(`Fältkarta saknas för slug: ${kartaSlug}`);
-
 
   // 1) Ladda bg först — skalfaktorn härleds ur bg-bildens verkliga bredd
   //    jämfört med kartans referens-canvas (nya 2480×3508-bakgrunder ger s=2).
@@ -204,5 +197,17 @@ export async function downloadFaltkartaCertPdf(kartaSlug: string, data: Faltkart
   const img = canvas.toDataURL("image/jpeg", 0.95);
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
   pdf.addImage(img, "JPEG", 0, 0, 210, 297, undefined, "FAST");
-  pdf.save(`vardebevis-${data.verification_id}.pdf`);
+  pdf.save(filename);
 }
+
+export async function downloadFaltkartaCertPdf(kartaSlug: string, data: FaltkartaData): Promise<void> {
+  let karta = await loadKartaFromDb(kartaSlug);
+  if (!karta) {
+    const kartor = await loadKartorFallback();
+    karta = kartor[kartaSlug] ?? null;
+  }
+  if (!karta) throw new Error(`Fältkarta saknas för slug: ${kartaSlug}`);
+  await renderFaltkartaCertPdf(karta, data, `vardebevis-${data.verification_id}.pdf`);
+}
+
+export type { Karta as FaltkartaKarta, Falt as FaltkartaFalt };

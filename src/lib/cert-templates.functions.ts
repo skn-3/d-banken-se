@@ -103,3 +103,80 @@ export const adminDuplicateCertTemplate = createServerFn({ method: "POST" })
     if (e2) throw new Error(e2.message);
     return { id: ins.id, slug: newSlug };
   });
+
+export const adminDeleteCertTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from("cert_templates").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminGetCertTemplate = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await (supabaseAdmin as any)
+      .from("cert_templates").select("*").eq("id", data.id).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Not found");
+    return { template: row as CertTemplateRow };
+  });
+
+const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const adminSaveCertTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    id: z.string().uuid(),
+    namn: z.string().min(1).max(120),
+    slug: z.string().min(1).max(80).regex(slugRe, "Ogiltig slug"),
+    allows_greeting: z.boolean(),
+    bg_url: z.string().min(1),
+    kort_url: z.string().min(1).nullable(),
+    canvas: z.object({ w: z.number().int().positive(), h: z.number().int().positive() }),
+    falt: z.record(z.string(), z.any()),
+  }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
+    const { data: hit } = await db.from("cert_templates")
+      .select("id").eq("slug", data.slug).neq("id", data.id).maybeSingle();
+    if (hit) throw new Error("Slug används redan");
+    const { error } = await db.from("cert_templates").update({
+      namn: data.namn, slug: data.slug, allows_greeting: data.allows_greeting,
+      bg_url: data.bg_url, kort_url: data.kort_url, canvas: data.canvas, falt: data.falt,
+    }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminUploadCertAsset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    kind: z.enum(["bg", "kort"]),
+    filename: z.string().min(1).max(200),
+    contentType: z.string().min(1).max(100),
+    dataBase64: z.string().min(1),
+  }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const safe = data.filename.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/-+/g, "-");
+    const path = `${data.kind}/${Date.now()}-${safe}`;
+    const bin = Uint8Array.from(atob(data.dataBase64), (c) => c.charCodeAt(0));
+    const { error } = await (supabaseAdmin as any).storage
+      .from("cert-assets").upload(path, bin, { contentType: data.contentType, upsert: false });
+    if (error) throw new Error(error.message);
+    // Bucket är privat i denna workspace — signera 10 år för stabil URL.
+    const { data: signed, error: se } = await (supabaseAdmin as any).storage
+      .from("cert-assets").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    if (se || !signed?.signedUrl) throw new Error(se?.message ?? "Signering misslyckades");
+    return { url: signed.signedUrl as string, path };
+  });
