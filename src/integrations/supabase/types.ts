@@ -1926,12 +1926,14 @@ export type Database = {
       get_public_certificate: {
         Args: { _verification_id: string }
         Returns: {
+          greeting: string
           issued_date: string
           latitude: number
           location_name: string
           longitude: number
           recipient_name: string
           template_snapshot: Json
+          theme_slug: string
           tree_count: number
           verification_id: string
         }[]
