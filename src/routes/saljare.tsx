@@ -947,31 +947,37 @@ function HomeView({
 
 function RegisterView({
   count, setCount, name, setName, email, setEmail, total: _total, error, submitting, onBack, onSubmit,
+  themeValue, setThemeValue,
 }: {
   count: number; setCount: (n: number) => void;
   name: string; setName: (s: string) => void;
   email: string; setEmail: (s: string) => void;
   total: number; error: string | null; submitting: boolean;
   onBack: () => void; onSubmit: () => void;
+  themeValue: { themeId: string | null; greeting: string };
+  setThemeValue: (v: { themeId: string | null; greeting: string }) => void;
 }) {
   return (
-    <PlantingForm
-      count={count} setCount={setCount}
-      name={name} setName={setName}
-      email={email} setEmail={setEmail}
-      error={error} submitting={submitting}
-      onSubmit={onSubmit}
-      title="Plantera träd"
-      intro="Välj hur många träd du vill plantera och vem de planteras för. Personen får ett värdebevis på mejlen — inget konto behövs."
-      topRight={
-        <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm whitespace-nowrap">← Tillbaka</button>
-      }
-      footer={
-        <p className="mt-3 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
-          Värdebeviset skickas direkt till mottagaren.
-        </p>
-      }
-    />
+    <div className="space-y-4">
+      <PlantingForm
+        count={count} setCount={setCount}
+        name={name} setName={setName}
+        email={email} setEmail={setEmail}
+        error={error} submitting={submitting}
+        onSubmit={onSubmit}
+        title="Plantera träd"
+        intro="Välj hur många träd du vill plantera och vem de planteras för. Personen får ett värdebevis på mejlen — inget konto behövs."
+        topRight={
+          <button onClick={onBack} className="btn-secondary !px-4 !py-2 text-sm whitespace-nowrap">← Tillbaka</button>
+        }
+        footer={
+          <p className="mt-3 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Värdebeviset skickas direkt till mottagaren.
+          </p>
+        }
+      />
+      <GreetingThemePicker value={themeValue} onChange={setThemeValue} compact title="Välj hälsning (valfritt)" />
+    </div>
   );
 }
 
