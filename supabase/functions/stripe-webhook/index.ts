@@ -308,7 +308,9 @@ Deno.serve(async (req) => {
     console.log("stripe-webhook ok", { session: session.id, type, quantity, vid, greeting: greeting ? "yes" : "no" });
     return new Response(JSON.stringify({ received: true, verification_id: vid }), { status: 200, headers: { "content-type": "application/json" } });
   } catch (e) {
-    console.error("stripe-webhook handler error", (e as Error).message);
-    return new Response("handler_error: " + (e as Error).message, { status: 500 });
+    const msg = (e as Error).message;
+    console.error("stripe-webhook handler error", msg);
+    await recordFailure(db, session.id, event.type, msg);
+    return new Response("handler_error: " + msg, { status: 500 });
   }
 });
