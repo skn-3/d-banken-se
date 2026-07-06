@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { CertificateA4, type CertA4Data } from "@/components/certificate-a4";
 import { downloadA4CertificateAsPdf } from "@/lib/download-cert-a4";
+import { downloadOriginalCertPdf } from "@/lib/download-cert-original";
 
 
 export const Route = createFileRoute("/v/$id")({
