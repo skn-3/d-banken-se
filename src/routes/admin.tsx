@@ -144,6 +144,7 @@ function AdminPage() {
                 <button key={k} onClick={() => setTab(k)} className="chip"
                   style={{ cursor: "pointer", background: tab === k ? "var(--mint)" : undefined }}>
                   {label}
+                  {k === "overview" && <AdminFailedPurchasesBadge />}
                 </button>
               ))}
             </div>
