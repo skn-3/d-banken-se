@@ -5,6 +5,13 @@ import { Certificate, snapshotToTemplate, type CertificateData } from "@/compone
 import { CertificateA4, type CertA4Data } from "@/components/certificate-a4";
 import { downloadA4CertificateAsPdf } from "@/lib/download-cert-a4";
 import { downloadOriginalCertPdf } from "@/lib/download-cert-original";
+import { downloadFaltkartaCertPdf } from "@/lib/download-cert-faltkarta";
+
+// Slugs som renderas via generisk fältkarta (bg + fält från /certs/faltkartor-teman.json).
+const FALTKARTA_SLUGS = new Set([
+  "fodelsedag","morsdag","farsdag","pask","jul",
+  "sommar","semester","resa","hjartans","environment",
+]);
 
 
 export const Route = createFileRoute("/v/$id")({
