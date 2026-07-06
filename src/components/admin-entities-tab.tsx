@@ -434,14 +434,14 @@ function TeamsView({ rows, sellers, templateById, highlight, setParams }: { rows
   );
 }
 
-function SellersView({ rows, purchases, highlight, setParams }: { rows: Seller[]; purchases: Purchase[]; highlight?: string; setParams: (p: Record<string,string | undefined>) => void }) {
+function SellersView({ rows, purchases, highlight, setParams, onReload }: { rows: Seller[]; purchases: Purchase[]; highlight?: string; setParams: (p: Record<string,string | undefined>) => void; onReload: () => void }) {
   const [openId, setOpenId] = useState<string | null>(highlight ?? null);
   useEffect(() => { if (highlight) setOpenId(highlight); }, [highlight]);
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-          <tr><th className="py-2">Namn</th><th>E-post</th><th>Lag</th><th>Försäljningar</th></tr>
+          <tr><th className="py-2">Namn</th><th>E-post</th><th>Lag</th><th>Försäljningar</th><th>Åtgärder</th></tr>
         </thead>
         <tbody>
           {rows.map(s => {
@@ -450,15 +450,18 @@ function SellersView({ rows, purchases, highlight, setParams }: { rows: Seller[]
             const isOpen = openId === s.user_id;
             return (
               <Fragment key={s.user_id}>
-                <tr key={s.user_id} className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === s.user_id) }} onClick={() => setOpenId(isOpen ? null : s.user_id)}>
+                <tr className="border-t cursor-pointer" style={{ borderColor: "var(--border)", ...highlightStyle(highlight === s.user_id) }} onClick={() => setOpenId(isOpen ? null : s.user_id)}>
                   <td className="py-3 font-medium">{s.name}</td>
                   <td className="font-mono text-xs">{s.email}</td>
                   <td className="text-xs">{s.team_name ?? "—"}</td>
                   <td className="font-mono text-xs">{sPurchases.length}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <PointsAdjustButton sellerUserId={s.user_id} sellerName={s.name} onDone={onReload} />
+                  </td>
                 </tr>
                 {isOpen && sPurchases.length > 0 && (
                   <tr key={`${s.user_id}-sub`} style={{ background: "var(--muted)" }}>
-                    <td colSpan={4} className="p-3">
+                    <td colSpan={5} className="p-3">
                       <div className="space-y-1 text-xs">
                         {sPurchases.slice(0, 20).map(p => (
                           <button key={p.id} className="block text-left underline" onClick={() => setParams({ sub: "kop", highlight: p.id, q: undefined })}>
