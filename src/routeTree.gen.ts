@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SverigeRouteImport } from './routes/sverige'
+import { Route as SkogRouteImport } from './routes/skog'
 import { Route as SkapaLagRouteImport } from './routes/skapa-lag'
 import { Route as SaljareRouteImport } from './routes/saljare'
 import { Route as SaljHjalpRouteImport } from './routes/salj-hjalp'
@@ -38,6 +39,11 @@ import { Route as ApiPublicHooksTeamWeeklyReportRouteImport } from './routes/api
 const SverigeRoute = SverigeRouteImport.update({
   id: '/sverige',
   path: '/sverige',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkogRoute = SkogRouteImport.update({
+  id: '/skog',
+  path: '/skog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SkapaLagRoute = SkapaLagRouteImport.update({
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
+  '/skog': typeof SkogRoute
   '/sverige': typeof SverigeRoute
   '/admin/mallar': typeof AdminMallarRouteWithChildren
   '/v/$id': typeof VIdRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
+  '/skog': typeof SkogRoute
   '/sverige': typeof SverigeRoute
   '/admin/mallar': typeof AdminMallarRouteWithChildren
   '/v/$id': typeof VIdRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/salj-hjalp': typeof SaljHjalpRoute
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
+  '/skog': typeof SkogRoute
   '/sverige': typeof SverigeRoute
   '/admin/mallar': typeof AdminMallarRouteWithChildren
   '/v/$id': typeof VIdRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/salj-hjalp'
     | '/saljare'
     | '/skapa-lag'
+    | '/skog'
     | '/sverige'
     | '/admin/mallar'
     | '/v/$id'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/salj-hjalp'
     | '/saljare'
     | '/skapa-lag'
+    | '/skog'
     | '/sverige'
     | '/admin/mallar'
     | '/v/$id'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/salj-hjalp'
     | '/saljare'
     | '/skapa-lag'
+    | '/skog'
     | '/sverige'
     | '/admin/mallar'
     | '/v/$id'
@@ -346,6 +358,7 @@ export interface RootRouteChildren {
   SaljHjalpRoute: typeof SaljHjalpRoute
   SaljareRoute: typeof SaljareRoute
   SkapaLagRoute: typeof SkapaLagRoute
+  SkogRoute: typeof SkogRoute
   SverigeRoute: typeof SverigeRoute
   VIdRoute: typeof VIdRoute
   ApiPublicPushNotifyRoute: typeof ApiPublicPushNotifyRoute
@@ -363,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/sverige'
       fullPath: '/sverige'
       preLoaderRoute: typeof SverigeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skog': {
+      id: '/skog'
+      path: '/skog'
+      fullPath: '/skog'
+      preLoaderRoute: typeof SkogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/skapa-lag': {
@@ -574,6 +594,7 @@ const rootRouteChildren: RootRouteChildren = {
   SaljHjalpRoute: SaljHjalpRoute,
   SaljareRoute: SaljareRoute,
   SkapaLagRoute: SkapaLagRoute,
+  SkogRoute: SkogRoute,
   SverigeRoute: SverigeRoute,
   VIdRoute: VIdRoute,
   ApiPublicPushNotifyRoute: ApiPublicPushNotifyRoute,
