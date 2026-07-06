@@ -167,9 +167,10 @@ function renderAuthShell(a: {
 }
 
 export interface ThanksTheme {
-  palette?: { bg?: string; accent?: string; soft?: string; ink?: string; muted?: string };
+  palette?: { bg?: string; accent?: string; soft?: string; ink?: string; muted?: string; hero_text?: string; count_color?: string };
   heading_template?: string;
   eyebrow?: string;
+  motif?: string;
   name?: string;
 }
 
