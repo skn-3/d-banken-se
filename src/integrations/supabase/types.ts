@@ -397,6 +397,7 @@ export type Database = {
           longitude: number
           purchase_id: string
           recipient_name: string
+          superseded_by: string | null
           template_id: string | null
           template_snapshot: Json
           tree_count: number
@@ -414,6 +415,7 @@ export type Database = {
           longitude: number
           purchase_id: string
           recipient_name: string
+          superseded_by?: string | null
           template_id?: string | null
           template_snapshot: Json
           tree_count: number
@@ -431,6 +433,7 @@ export type Database = {
           longitude?: number
           purchase_id?: string
           recipient_name?: string
+          superseded_by?: string | null
           template_id?: string | null
           template_snapshot?: Json
           tree_count?: number
@@ -443,6 +446,20 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "admin_greetings_view"
+            referencedColumns: ["certificate_id"]
+          },
+          {
+            foreignKeyName: "certificates_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "certificates"
             referencedColumns: ["id"]
           },
           {
@@ -1039,6 +1056,7 @@ export type Database = {
       }
       purchases: {
         Row: {
+          admin_note: string | null
           certificate_template_id: string | null
           created_at: string
           customer_id: string | null
@@ -1061,6 +1079,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          admin_note?: string | null
           certificate_template_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -1083,6 +1102,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          admin_note?: string | null
           certificate_template_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -1853,6 +1873,7 @@ export type Database = {
           longitude: number
           purchase_id: string
           recipient_name: string
+          superseded_by: string | null
           template_id: string | null
           template_snapshot: Json
           tree_count: number
