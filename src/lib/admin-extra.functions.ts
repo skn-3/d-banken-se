@@ -537,7 +537,6 @@ export const adminRetryFailedPurchase = createServerFn({ method: "POST" })
       const msg = (e as Error).message;
       await sb.from("failed_purchases").update({
         error: `retry: ${msg}`,
-        attempts: sb.rpc ? undefined : undefined,
         updated_at: new Date().toISOString(),
       }).eq("id", data.id);
       await logActivity(context.userId, "failed_purchase_retry_failed", { id: data.id, session_id: sessionId, error: msg });
