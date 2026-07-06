@@ -250,7 +250,7 @@ function CertCard({ cert }: { cert: { id: string; verification_id: string; theme
           src={thumb}
           alt={`Bevis ${cert.verification_id}`}
           className="aspect-[3/4] w-full object-cover"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/kort/kort-standard.jpg"; }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/kort/kort-collage.jpg"; }}
         />
       </Link>
       <div className="p-3">
