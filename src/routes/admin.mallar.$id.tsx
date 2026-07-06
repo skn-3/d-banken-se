@@ -121,6 +121,13 @@ function EditorPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [snapX, setSnapX] = useState<number | null>(null);
 
+  // Studio AI
+  const [aiBrief, setAiBrief] = useState("");
+  const [aiJust, setAiJust] = useState("");
+  type AiVer = { url: string; svg: string; label: string };
+  const [aiHistory, setAiHistory] = useState<AiVer[]>([]);
+  const [aiCurrentSvg, setAiCurrentSvg] = useState<string | null>(null);
+
   const currentJson = useMemo(() => JSON.stringify({
     namn, slug, allowsGreeting, bgUrl, kortUrl, canvas, falt,
   }), [namn, slug, allowsGreeting, bgUrl, kortUrl, canvas, falt]);
