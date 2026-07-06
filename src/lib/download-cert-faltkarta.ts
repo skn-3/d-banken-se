@@ -6,10 +6,17 @@ import jsPDF from "jspdf";
 const KARTOR_URL = "/certs/faltkartor-teman.json";
 
 interface Falt {
-  x: number; y: number; size: number; color: string; font: string;
-  anchor: "start" | "middle" | "end";
-  weight: string; letterSpacing: number; italic: boolean;
-  template: string;
+  x: number; y: number;
+  // FIELD (default) / STATIC
+  size?: number; color?: string; font?: string;
+  anchor?: "start" | "middle" | "end";
+  weight?: string; letterSpacing?: number; italic?: boolean;
+  template?: string;
+  // Discriminator: undefined/"field" = dynamic field, "static" = fast text, "logo" = bild
+  type?: "field" | "static" | "logo";
+  text?: string;   // static
+  url?: string;    // logo
+  width?: number;  // logo (canvas-px)
 }
 interface Karta {
   bg: string;
