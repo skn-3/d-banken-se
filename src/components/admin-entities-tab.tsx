@@ -311,13 +311,13 @@ function CustomersView({ rows, purchases, highlight, setParams }: { rows: Custom
   );
 }
 
-function PurchasesView({ rows, certs, templateById, highlight, setParams }: { rows: Purchase[]; certs: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; setParams: (p: Record<string,string | undefined>) => void }) {
+function PurchasesView({ rows, certs, templateById, highlight, setParams, onReload }: { rows: Purchase[]; certs: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; setParams: (p: Record<string,string | undefined>) => void; onReload: () => void }) {
   const certByPurchase = useMemo(() => new Map(certs.map(c => [c.purchase_id, c])), [certs]);
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-          <tr><th className="py-2">Datum</th><th>Mottagare</th><th>Träd</th><th>Belopp</th><th>Status</th><th>Tema</th><th>Certifikat</th></tr>
+          <tr><th className="py-2">Datum</th><th>Mottagare</th><th>Träd</th><th>Belopp</th><th>Status</th><th>Tema</th><th>Certifikat</th><th>Åtgärder</th></tr>
         </thead>
         <tbody>
           {rows.map(p => {
@@ -329,6 +329,7 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams }: { ro
                 <td>
                   <div>{p.recipient_name || "—"}</div>
                   <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{p.recipient_email ?? ""}</div>
+                  {p.admin_note && <div className="mt-1 text-xs italic" style={{ color: "var(--muted-foreground)" }}>📝 {p.admin_note}</div>}
                 </td>
                 <td className="font-mono">{p.tree_count}</td>
                 <td className="font-mono">{formatKr(p.total_amount_ore)}</td>
@@ -341,6 +342,9 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams }: { ro
                     </button>
                   ) : <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>—</span>}
                 </td>
+                <td>
+                  <PurchaseCorrectButton purchaseId={p.id} currentStatus={p.status} currentNote={p.admin_note} onDone={onReload} />
+                </td>
               </tr>
             );
           })}
@@ -350,12 +354,12 @@ function PurchasesView({ rows, certs, templateById, highlight, setParams }: { ro
   );
 }
 
-function CertsView({ rows, templateById, highlight }: { rows: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string }) {
+function CertsView({ rows, templateById, highlight, onReload }: { rows: Certificate[]; templateById: Map<string, CertTemplate>; highlight?: string; onReload: () => void }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-          <tr><th className="py-2">Verifikat-ID</th><th>Mottagare</th><th>Träd</th><th>Plats</th><th>Utfärdat</th><th>Tema</th><th></th></tr>
+          <tr><th className="py-2">Verifikat-ID</th><th>Mottagare</th><th>Träd</th><th>Plats</th><th>Utfärdat</th><th>Tema</th><th></th><th>Åtgärder</th></tr>
         </thead>
         <tbody>
           {rows.map(c => {
@@ -372,6 +376,9 @@ function CertsView({ rows, templateById, highlight }: { rows: Certificate[]; tem
                   <Link to="/v/$id" params={{ id: c.verification_id }} className="underline text-xs" target="_blank">
                     Öppna /v/{c.verification_id}
                   </Link>
+                </td>
+                <td>
+                  <CertReissueButton certificateId={c.id} currentName={c.recipient_name} currentGreeting={c.greeting} verificationId={c.verification_id} onDone={onReload} />
                 </td>
               </tr>
             );
