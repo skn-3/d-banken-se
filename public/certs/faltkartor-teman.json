@@ -1,0 +1,932 @@
+{
+ "fodelsedag": {
+  "bg": "/certs/bg-fodelsedag.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 570,
+    "size": 72,
+    "color": "#0B3D2E",
+    "font": "Bricolage Grotesque",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 780,
+    "size": 72,
+    "color": "#FF4D8D",
+    "font": "Bricolage Grotesque",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v} TRÄD"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 880,
+    "size": 26,
+    "color": "#0B3D2E",
+    "font": "Familjen Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 920,
+    "size": 18,
+    "color": "#075E52",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1578,
+    "size": 19,
+    "color": "#FFF6E8",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1548,
+    "size": 13,
+    "color": "#9FE0D6",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1578,
+    "size": 14,
+    "color": "#FFF6E8",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "morsdag": {
+  "bg": "/certs/bg-morsdag.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 650,
+    "size": 76,
+    "color": "#B8547E",
+    "font": "Bricolage Grotesque",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": true,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 880,
+    "size": 84,
+    "color": "#8A5A6E",
+    "font": "Jost",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 3,
+    "italic": false,
+    "template": "{v} träd"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 975,
+    "size": 26,
+    "color": "#8A5A6E",
+    "font": "Jost",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 1015,
+    "size": 17,
+    "color": "#C77C9B",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1568,
+    "size": 19,
+    "color": "#8A5A6E",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1538,
+    "size": 13,
+    "color": "#C99EAD",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1568,
+    "size": 14,
+    "color": "#8A5A6E",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "farsdag": {
+  "bg": "/certs/bg-farsdag.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 680,
+    "size": 84,
+    "color": "#F2E8D5",
+    "font": "Anton",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 940,
+    "size": 90,
+    "color": "#D9822B",
+    "font": "Anton",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 4,
+    "italic": false,
+    "template": "{v} TRÄD"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 1250,
+    "size": 20,
+    "color": "#D9822B",
+    "font": "Space Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 1285,
+    "size": 17,
+    "color": "#8A7A54",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1578,
+    "size": 19,
+    "color": "#F2E8D5",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1548,
+    "size": 13,
+    "color": "#8A7A54",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1578,
+    "size": 14,
+    "color": "#F2E8D5",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "pask": {
+  "bg": "/certs/bg-pask.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 580,
+    "size": 72,
+    "color": "#3A3A3A",
+    "font": "Familjen Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 810,
+    "size": 80,
+    "color": "#7CB86A",
+    "font": "Familjen Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v} träd"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 900,
+    "size": 26,
+    "color": "#3A3A3A",
+    "font": "Familjen Grotesk",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 940,
+    "size": 17,
+    "color": "#B9A0E8",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1578,
+    "size": 19,
+    "color": "#3A3A3A",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1548,
+    "size": 13,
+    "color": "#9C8F6B",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1578,
+    "size": 14,
+    "color": "#3A3A3A",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "jul": {
+  "bg": "/certs/bg-jul.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 760,
+    "size": 70,
+    "color": "#5E1620",
+    "font": "Bricolage Grotesque",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 975,
+    "size": 76,
+    "color": "#123326",
+    "font": "Bricolage Grotesque",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v} TRÄD"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 1060,
+    "size": 24,
+    "color": "#5E1620",
+    "font": "Familjen Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 1098,
+    "size": 16,
+    "color": "#B04638",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1613,
+    "size": 19,
+    "color": "#F6E7C1",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1583,
+    "size": 13,
+    "color": "#D9A0A0",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1613,
+    "size": 14,
+    "color": "#F6E7C1",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "sommar": {
+  "bg": "/certs/bg-sommar.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 640,
+    "size": 74,
+    "color": "#173F52",
+    "font": "Anton",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 760,
+    "size": 34,
+    "color": "#173F52",
+    "font": "Space Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "HAR LÅTIT PLANTERA {v} TRÄD"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 1070,
+    "size": 26,
+    "color": "#F7E7C6",
+    "font": "Space Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 1110,
+    "size": 18,
+    "color": "#F6D35E",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1578,
+    "size": 19,
+    "color": "#F7E7C6",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1548,
+    "size": 13,
+    "color": "#8FB6C7",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1578,
+    "size": 14,
+    "color": "#F7E7C6",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "semester": {
+  "bg": "/certs/bg-semester.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 690,
+    "size": 72,
+    "color": "#1E1B16",
+    "font": "Jost",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 930,
+    "size": 84,
+    "color": "#1E9E6A",
+    "font": "Bricolage Grotesque",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v} TRÄD"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 1030,
+    "size": 26,
+    "color": "#1E1B16",
+    "font": "Jost",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 1070,
+    "size": 17,
+    "color": "#2549C8",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1578,
+    "size": 19,
+    "color": "#1E1B16",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1548,
+    "size": 13,
+    "color": "#8C8672",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1578,
+    "size": 14,
+    "color": "#1E1B16",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "resa": {
+  "bg": "/certs/bg-resa.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 580,
+    "size": 72,
+    "color": "#173F52",
+    "font": "Anton",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "plats": {
+    "x": 620.0,
+    "y": 745,
+    "size": 30,
+    "color": "#254E3B",
+    "font": "Space Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 785,
+    "size": 18,
+    "color": "#5A4E36",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 330,
+    "y": 974,
+    "size": 25,
+    "color": "#254E3B",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "{v} TRÄD OMBORD"
+   },
+   "datum": {
+    "x": 880,
+    "y": 954,
+    "size": 25,
+    "color": "#B33A2B",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620,
+    "y": 1174,
+    "size": 25,
+    "color": "#173F52",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1589,
+    "size": 15,
+    "color": "#173F52",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "hjartans": {
+  "bg": "/certs/bg-hjartans.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 130,
+    "y": 812,
+    "size": 44,
+    "color": "#1E1B16",
+    "font": "Jost",
+    "anchor": "start",
+    "weight": "normal",
+    "letterSpacing": 1,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 130,
+    "y": 952,
+    "size": 44,
+    "color": "#E03131",
+    "font": "Jost",
+    "anchor": "start",
+    "weight": "normal",
+    "letterSpacing": 1,
+    "italic": false,
+    "template": "{v} TRÄD"
+   },
+   "plats": {
+    "x": 130,
+    "y": 1092,
+    "size": 44,
+    "color": "#1E1B16",
+    "font": "Jost",
+    "anchor": "start",
+    "weight": "normal",
+    "letterSpacing": 1,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 130,
+    "y": 1232,
+    "size": 30,
+    "color": "#1E1B16",
+    "font": "Jost",
+    "anchor": "start",
+    "weight": "normal",
+    "letterSpacing": 1,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1613,
+    "size": 19,
+    "color": "#1E1B16",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1583,
+    "size": 13,
+    "color": "#8C8672",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1613,
+    "size": 14,
+    "color": "#1E1B16",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ },
+ "environment": {
+  "bg": "/certs/bg-environment.jpg",
+  "canvas": {
+   "w": 1240,
+   "h": 1754
+  },
+  "falt": {
+   "namn": {
+    "x": 620.0,
+    "y": 455,
+    "size": 58,
+    "color": "#20342A",
+    "font": "Jost",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 1,
+    "italic": false,
+    "template": "{v}"
+   },
+   "antal": {
+    "x": 620.0,
+    "y": 540,
+    "size": 26,
+    "color": "#20342A",
+    "font": "Space Grotesk",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 2,
+    "italic": false,
+    "template": "HAR LÅTIT PLANTERA {v} TRÄD"
+   },
+   "plats": {
+    "x": 1070,
+    "y": 1332,
+    "size": 26,
+    "color": "#20342A",
+    "font": "Jost",
+    "anchor": "end",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "koordinater": {
+    "x": 620.0,
+    "y": 1440,
+    "size": 22,
+    "color": "#20342A",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "datum": {
+    "x": 200,
+    "y": 1613,
+    "size": 19,
+    "color": "#20342A",
+    "font": "Familjen Grotesk",
+    "anchor": "start",
+    "weight": "bold",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "{v}"
+   },
+   "id": {
+    "x": 620.0,
+    "y": 1583,
+    "size": 13,
+    "color": "#7C8F82",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "bold",
+    "letterSpacing": 1.5,
+    "italic": false,
+    "template": "N° {v}"
+   },
+   "url": {
+    "x": 620.0,
+    "y": 1613,
+    "size": 14,
+    "color": "#20342A",
+    "font": "JetBrains Mono",
+    "anchor": "middle",
+    "weight": "normal",
+    "letterSpacing": 0,
+    "italic": false,
+    "template": "smartklimat.org/v/{v}"
+   }
+  }
+ }
+}
