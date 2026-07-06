@@ -53,7 +53,11 @@ export interface MyCertificate {
   longitude: number | null;
   issued_date: string;
   theme_slug: string | null;
+  status: string | null;
+  deliver_at: string | null;
+  recipient_delivery_email: string | null;
 }
+
 
 export interface MyForestData {
   email: string;
