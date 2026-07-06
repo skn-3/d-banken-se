@@ -192,7 +192,11 @@ export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, 
   ensureFonts();
 
   const bg = await loadImage(karta.bg);
-  const s = bg.naturalWidth > 0 ? bg.naturalWidth / karta.canvas.w : 1;
+  // SVG-bakgrunder saknar meningsfull naturalWidth — rendera 2× canvas för att bevara skärpa.
+  const isSvg = /\.svg(\?|$)/i.test(karta.bg);
+  const s = isSvg
+    ? 2
+    : (bg.naturalWidth > karta.canvas.w ? bg.naturalWidth / karta.canvas.w : 1);
 
   const outW = Math.round(karta.canvas.w * s);
   const outH = Math.round(karta.canvas.h * s);
