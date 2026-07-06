@@ -1,0 +1,170 @@
+// Generisk fältkarte-renderare för tema-certifikat.
+// Läser /certs/faltkartor-teman.json en gång, ritar bg + varje fält
+// på en 1240×1754-canvas, exporterar som A4-PDF.
+import jsPDF from "jspdf";
+
+const KARTOR_URL = "/certs/faltkartor-teman.json";
+
+interface Falt {
+  x: number; y: number; size: number; color: string; font: string;
+  anchor: "start" | "middle" | "end";
+  weight: string; letterSpacing: number; italic: boolean;
+  template: string;
+}
+interface Karta {
+  bg: string;
+  canvas: { w: number; h: number };
+  falt: Record<string, Falt>;
+}
+type Faltkartor = Record<string, Karta>;
+
+export interface FaltkartaData {
+  verification_id: string;
+  recipient_name: string;
+  tree_count: number;
+  location_name: string;   // "Ort, Region, Land"
+  latitude: number | string;
+  longitude: number | string;
+  issued_date: string;     // ISO
+}
+
+let cache: Promise<Faltkartor> | null = null;
+async function loadKartor(): Promise<Faltkartor> {
+  if (!cache) {
+    cache = fetch(KARTOR_URL, { cache: "force-cache" }).then((r) => {
+      if (!r.ok) throw new Error(`Kunde inte ladda fältkartor (${r.status})`);
+      return r.json() as Promise<Faltkartor>;
+    });
+  }
+  return cache;
+}
+
+// ---------- Font-registrering ----------
+// De sju family-namnen som kartorna använder. Google Fonts-inbäddningar för
+// Bricolage/Familjen/JetBrains finns redan i __root.tsx. De fyra lokala fonterna
+// registreras här som @font-face en gång så canvas kan använda dem.
+const LOCAL_FONT_CSS = `
+@font-face { font-family: "Anton";          src: url("/fonts/Anton-Regular.ttf") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Space Grotesk";  src: url("/fonts/SpaceGrotesk-Medium.ttf") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Jost";           src: url("/fonts/Jost-Light.ttf") format("truetype"); font-weight: 100 900; font-style: normal italic; font-display: swap; }
+@font-face { font-family: "Poppins";        src: url("/fonts/Poppins-Light.ttf") format("truetype"); font-weight: 100 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Poppins";        src: url("/fonts/Poppins-SemiBold.ttf") format("truetype"); font-weight: 500 650; font-style: normal; font-display: swap; }
+@font-face { font-family: "Poppins";        src: url("/fonts/Poppins-Bold.ttf") format("truetype"); font-weight: 651 900; font-style: normal; font-display: swap; }
+`;
+
+let fontsInstalled = false;
+function ensureFonts() {
+  if (fontsInstalled || typeof document === "undefined") return;
+  const style = document.createElement("style");
+  style.setAttribute("data-cert-faltkarta-fonts", "1");
+  style.textContent = LOCAL_FONT_CSS;
+  document.head.appendChild(style);
+  fontsInstalled = true;
+}
+
+async function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Bild kunde inte laddas: ${src}`));
+    img.src = src;
+  });
+}
+
+function fmtDateSv(iso: string) {
+  return new Date(iso).toLocaleDateString("sv-SE", { day: "numeric", month: "long", year: "numeric" });
+}
+function fmtCoord(lat: number | string, lon: number | string) {
+  const a = typeof lat === "string" ? parseFloat(lat) : lat;
+  const b = typeof lon === "string" ? parseFloat(lon) : lon;
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return "";
+  return `${a.toFixed(6)} · ${b.toFixed(6)}`;
+}
+
+function valueFor(key: string, d: FaltkartaData): string | null {
+  switch (key) {
+    case "namn":         return d.recipient_name;
+    case "antal":        return String(d.tree_count);
+    case "plats":        return (d.location_name || "").trim();
+    case "koordinater":  return fmtCoord(d.latitude, d.longitude);
+    case "datum":        return fmtDateSv(d.issued_date);
+    case "id":           return d.verification_id;
+    case "url":          return d.verification_id;
+    default:             return null;
+  }
+}
+
+function buildFontString(f: Falt): string {
+  const style = f.italic ? "italic " : "";
+  const w = /^\d+$/.test(f.weight) ? f.weight : (f.weight === "bold" ? "700" : "400");
+  return `${style}${w} ${f.size}px "${f.font}"`;
+}
+
+async function preloadFonts(kartor: Karta): Promise<void> {
+  if (typeof document === "undefined" || !document.fonts) return;
+  const specs = new Set<string>();
+  Object.values(kartor.falt).forEach((f) => specs.add(buildFontString(f)));
+  await Promise.all(Array.from(specs).map((s) =>
+    document.fonts.load(s, "ÅÄÖabcåäö0123456789· ").catch(() => null)
+  ));
+  await document.fonts.ready;
+}
+
+/** Rita en textrad med anchor + letterSpacing (canvas letterSpacing polyfill). */
+function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt) {
+  ctx.save();
+  ctx.font = buildFontString(f);
+  ctx.fillStyle = f.color;
+  ctx.textBaseline = "alphabetic"; // y = baseline
+  ctx.textAlign = "left";          // vi hanterar anchor manuellt
+
+  const ls = f.letterSpacing || 0;
+  // Mät bredd inkl letterSpacing
+  let totalWidth = 0;
+  for (const ch of Array.from(text)) totalWidth += ctx.measureText(ch).width + ls;
+  totalWidth -= ls; // ingen efter sista tecknet
+
+  let x = f.x;
+  if (f.anchor === "middle") x = f.x - totalWidth / 2;
+  else if (f.anchor === "end") x = f.x - totalWidth;
+
+  for (const ch of Array.from(text)) {
+    ctx.fillText(ch, x, f.y);
+    x += ctx.measureText(ch).width + ls;
+  }
+  ctx.restore();
+}
+
+export async function downloadFaltkartaCertPdf(kartaSlug: string, data: FaltkartaData): Promise<void> {
+  ensureFonts();
+  const kartor = await loadKartor();
+  const karta = kartor[kartaSlug];
+  if (!karta) throw new Error(`Fältkarta saknas för slug: ${kartaSlug}`);
+
+  const { w, h } = karta.canvas;
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+
+  // 1) Bakgrund fullbleed
+  const bg = await loadImage(karta.bg);
+  ctx.drawImage(bg, 0, 0, w, h);
+
+  // 2) Ladda fonter så mätningen blir korrekt
+  await preloadFonts(karta);
+
+  // 3) Rita varje fält
+  for (const [key, f] of Object.entries(karta.falt)) {
+    const raw = valueFor(key, data);
+    if (raw == null || raw === "") continue;
+    const text = f.template ? f.template.replace("{v}", raw) : raw;
+    drawFieldText(ctx, text, f);
+  }
+
+  // 4) Ut till A4-PDF
+  const img = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+  pdf.addImage(img, "PNG", 0, 0, 210, 297, undefined, "FAST");
+  pdf.save(`vardebevis-${data.verification_id}.pdf`);
+}

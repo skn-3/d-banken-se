@@ -24,6 +24,9 @@ export const Route = createFileRoute("/api/public/hooks/theme-test-mail")({
           .from("greeting_themes").select("*").eq("slug", slug).maybeSingle();
         if (!theme) return new Response(JSON.stringify({ error: `no theme ${slug}` }), { status: 404 });
 
+        const kort = (theme.config as { kort?: string } | null)?.kort;
+        const heroImageUrl = kort ? (kort.startsWith("http") ? kort : `https://smartklimat.org${kort}`) : null;
+
         const { subject, html } = renderThanksEmail({
           recipientName,
           recipientEmail: to,
@@ -35,6 +38,7 @@ export const Route = createFileRoute("/api/public/hooks/theme-test-mail")({
           locationName: "Khasi Hills",
           giftMessage: "Grattis på födelsedagen från oss alla!",
           theme: (theme.config ?? null) as never,
+          heroImageUrl,
         });
         const result = await sendEmail({ to, subject, html });
         return new Response(JSON.stringify({ slug, to, subject, result }), {

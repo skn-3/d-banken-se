@@ -185,6 +185,7 @@ interface ThanksArgs {
   locationName?: string | null;
   giftMessage?: string | null;
   heroStampUrl?: string | null;
+  heroImageUrl?: string | null;
   theme?: ThanksTheme | null;
 }
 
@@ -293,7 +294,8 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
 
       <!-- A: HERO (themed) -->
       <tr><td style="padding:0 0 18px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${themeBg};border-radius:20px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${themeBg};border-radius:20px;overflow:hidden;">
+          ${a.heroImageUrl ? `<tr><td style="padding:0;line-height:0;font-size:0;"><img src="${a.heroImageUrl}" width="600" alt="" style="display:block;width:100%;max-width:600px;height:auto;border-radius:20px 20px 0 0;" /></td></tr>` : ""}
           <tr><td align="center" style="padding:36px 28px 32px;">
             <div style="font-family:${mono};font-size:11px;letter-spacing:0.32em;color:${themeSoft};text-transform:uppercase;">${escapeHtml(themeEyebrow)}</div>
             <div style="margin-top:14px;font-family:${bricolage};font-weight:700;font-size:28px;line-height:1.2;color:${themeHeroText};">${escapeHtml(themeHeading)}</div>

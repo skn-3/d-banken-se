@@ -10,6 +10,7 @@ export interface ThanksArgs {
   locationName?: string | null;
   giftMessage?: string | null;
   heroStampUrl?: string | null;
+  heroImageUrl?: string | null;
   variant?: "mockfjards" | null;
 }
 
@@ -140,7 +141,8 @@ export function renderThanksEmail(a: ThanksArgs): { subject: string; html: strin
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
       <tr><td style="padding:0 0 18px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0B3D2E;border-radius:20px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0B3D2E;border-radius:20px;overflow:hidden;">
+          ${a.heroImageUrl ? `<tr><td style="padding:0;line-height:0;font-size:0;"><img src="${a.heroImageUrl}" width="600" alt="" style="display:block;width:100%;max-width:600px;height:auto;border-radius:20px 20px 0 0;" /></td></tr>` : ""}
           <tr><td align="center" style="padding:36px 28px 32px;">
             <img src="${stampWhite}" width="68" height="68" alt="" style="display:block;margin:0 auto 18px;width:68px;height:68px;" />
             <div style="font-family:${mono};font-size:11px;letter-spacing:0.32em;color:#9FD9B6;text-transform:uppercase;">DITT TRÄD HAR FÅTT EN PLATS</div>

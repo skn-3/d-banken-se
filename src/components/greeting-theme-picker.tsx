@@ -80,10 +80,16 @@ export function GreetingThemePicker({ value, onChange, compact, title }: Props) 
               }}
             >
               <div className="h-14 rounded-lg mb-2 flex items-center justify-center overflow-hidden"
-                style={{ background: `linear-gradient(135deg, ${p.bg || "#0B3D2E"}, ${p.accent || "#1E9E6A"})` }}>
-                <span className="font-display text-xs" style={{ color: p.soft || "#EAF7EE" }}>
-                  {t.name}
-                </span>
+                style={{
+                  background: t.config?.kort
+                    ? `center/cover no-repeat url("${t.config.kort}"), linear-gradient(135deg, ${p.bg || "#0B3D2E"}, ${p.accent || "#1E9E6A"})`
+                    : `linear-gradient(135deg, ${p.bg || "#0B3D2E"}, ${p.accent || "#1E9E6A"})`,
+                }}>
+                {!t.config?.kort && (
+                  <span className="font-display text-xs" style={{ color: p.soft || "#EAF7EE" }}>
+                    {t.name}
+                  </span>
+                )}
               </div>
               <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
                 {t.category}
