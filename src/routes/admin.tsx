@@ -15,6 +15,7 @@ import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward
 import { getRewardBudget } from "@/lib/reward-economy.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
 import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
+import { AdminActivityTab, AdminEconomySettings, AdminPurchasesExport } from "@/components/admin-extra";
 
 
 export const Route = createFileRoute("/admin")({
