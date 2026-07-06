@@ -37,6 +37,9 @@ Deno.serve(async (req) => {
   // Optional theme + greeting
   const rawThemeId = p?.theme_id ?? p?.themeId ?? null;
   const rawGreeting = p?.halsning ?? p?.greeting ?? null;
+  const rawRecipientDeliveryEmail = String(p?.recipient_delivery_email ?? "").trim().toLowerCase();
+  const rawDeliverAt = String(p?.deliver_at ?? "").trim(); // ISO date "YYYY-MM-DD" eller full ISO
+
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
