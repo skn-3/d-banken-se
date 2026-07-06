@@ -314,6 +314,8 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
         {orgName} · <span className="font-mono" style={{ color: "var(--forest)" }}>{team.tree_count.toLocaleString("sv-SE")} träd totalt</span>
       </p>
 
+      <ChangeLeaderBlock teamId={team.id} teamName={team.name} sellers={sellers} onDone={reload} />
+
       <div className="mt-6">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold">Bjud in säljare</h3>
