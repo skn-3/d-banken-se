@@ -167,9 +167,13 @@ function drawFieldText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: 
 
 export async function downloadFaltkartaCertPdf(kartaSlug: string, data: FaltkartaData): Promise<void> {
   ensureFonts();
-  const kartor = await loadKartor();
-  const karta = kartor[kartaSlug];
+  let karta = await loadKartaFromDb(kartaSlug);
+  if (!karta) {
+    const kartor = await loadKartorFallback();
+    karta = kartor[kartaSlug] ?? null;
+  }
   if (!karta) throw new Error(`Fältkarta saknas för slug: ${kartaSlug}`);
+
 
   // 1) Ladda bg först — skalfaktorn härleds ur bg-bildens verkliga bredd
   //    jämfört med kartans referens-canvas (nya 2480×3508-bakgrunder ger s=2).
