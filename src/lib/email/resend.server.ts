@@ -314,9 +314,9 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
             <!-- ceremonial count -->
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 6px;">
               <tr>
-                <td width="40%" style="border-right:1px solid #DCBE6E;height:96px;">&nbsp;</td>
-                <td align="center" style="font-family:${bricolage};font-weight:700;font-size:76px;line-height:1;color:#1E9E6A;padding:0 12px;">${N}</td>
-                <td width="40%" style="border-left:1px solid #DCBE6E;height:96px;">&nbsp;</td>
+                <td width="40%" style="border-right:1px solid ${themeAccent};height:96px;">&nbsp;</td>
+                <td align="center" style="font-family:${bricolage};font-weight:700;font-size:76px;line-height:1;color:${themeCount};padding:0 12px;">${N}</td>
+                <td width="40%" style="border-left:1px solid ${themeAccent};height:96px;">&nbsp;</td>
               </tr>
             </table>
             <div style="text-align:center;font-family:${mono};font-size:11px;letter-spacing:0.28em;color:#0B3D2E;text-transform:uppercase;margin-top:14px;">TRÄD PLANTERADE I DITT NAMN</div>
