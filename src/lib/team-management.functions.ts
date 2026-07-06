@@ -257,7 +257,8 @@ export const getTeamInsights = createServerFn({ method: "GET" })
     const active28 = new Set<string>();
     const lastActiveBy: Record<string, number> = {};
 
-    (purchases ?? []).forEach((p: { tree_count: number; paid_at: string | null; created_at: string; registered_by_user_id: string }) => {
+    (purchases ?? []).forEach((p: { tree_count: number; paid_at: string | null; created_at: string; registered_by_user_id: string | null }) => {
+      if (!p.registered_by_user_id) return;
       const ts = p.paid_at ?? p.created_at;
       const day = ymdStockholm(new Date(ts));
       const t = new Date(ts).getTime();
