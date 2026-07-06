@@ -15,7 +15,7 @@ import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward
 import { getRewardBudget } from "@/lib/reward-economy.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
 import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
-import { AdminActivityTab, AdminEconomySettings, AdminPurchasesExport } from "@/components/admin-extra";
+import { AdminActivityTab, AdminEconomySettings, AdminPurchasesExport, AdminFailedPurchasesSection, AdminFailedPurchasesBadge } from "@/components/admin-extra";
 
 
 export const Route = createFileRoute("/admin")({
@@ -144,6 +144,7 @@ function AdminPage() {
                 <button key={k} onClick={() => setTab(k)} className="chip"
                   style={{ cursor: "pointer", background: tab === k ? "var(--mint)" : undefined }}>
                   {label}
+                  {k === "overview" && <AdminFailedPurchasesBadge />}
                 </button>
               ))}
             </div>
@@ -153,6 +154,7 @@ function AdminPage() {
 
             {tab === "overview" && (
               <>
+                <AdminFailedPurchasesSection />
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <Stat label="Användare" value={profiles.length.toString()} />
                   <Stat label="Träd planterade" value={totalTrees.toLocaleString("sv-SE")} />

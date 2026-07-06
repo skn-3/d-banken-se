@@ -635,6 +635,48 @@ export type Database = {
         }
         Relationships: []
       }
+      failed_purchases: {
+        Row: {
+          alert_sent_at: string | null
+          attempts: number
+          created_at: string
+          error: string
+          event_type: string | null
+          id: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          alert_sent_at?: string | null
+          attempts?: number
+          created_at?: string
+          error: string
+          event_type?: string | null
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          alert_sent_at?: string | null
+          attempts?: number
+          created_at?: string
+          error?: string
+          event_type?: string | null
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       greeting_blocklist: {
         Row: {
           created_at: string

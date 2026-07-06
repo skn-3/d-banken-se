@@ -115,6 +115,9 @@ Deno.serve(async (req) => {
     metadata,
   };
   if (isSubscription) params.subscription_data = { metadata };
+  // Engångsköp: aktivera Stripe-kvitto/faktura (prenumerationer får faktura per automatik).
+  if (!isSubscription) params.invoice_creation = { enabled: true };
+
 
   if (type === "gava") {
     params.custom_fields = [

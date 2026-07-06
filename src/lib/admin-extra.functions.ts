@@ -365,3 +365,191 @@ export const adminDeliverGiftNow = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+// ---- 6) Failed purchases (DRIFT-1) ------------------------------------
+
+const PRICE_PER_TREE_ORE = 3500;
+
+export const adminListFailedPurchases = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabaseAdmin as any).from("failed_purchases")
+      .select("id, session_id, error, event_type, resolved, resolved_at, alert_sent_at, attempts, created_at, updated_at")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as Array<{ id: string; session_id: string; error: string; event_type: string | null; resolved: boolean; resolved_at: string | null; alert_sent_at: string | null; attempts: number; created_at: string; updated_at: string }>;
+    return {
+      rows,
+      unresolved_count: rows.filter((r) => !r.resolved).length,
+    };
+  });
+
+export const adminCountFailedPurchases = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count, error } = await (supabaseAdmin as any).from("failed_purchases")
+      .select("id", { count: "exact", head: true }).eq("resolved", false);
+    if (error) throw new Error(error.message);
+    return { count: (count as number) ?? 0 };
+  });
+
+async function stripeFetch(path: string): Promise<any> {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY saknas i server-env");
+  const res = await fetch(`https://api.stripe.com/v1/${path}`, {
+    headers: { Authorization: `Bearer ${key}` },
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(`stripe_${res.status}: ${(body as { error?: { message?: string } })?.error?.message ?? "unknown"}`);
+  return body;
+}
+
+async function retryCheckoutSession(sessionId: string): Promise<{ verification_id: string | null }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const session = await stripeFetch(`checkout/sessions/${sessionId}?expand[]=customer_details&expand[]=custom_fields`);
+  const md = (session.metadata ?? {}) as Record<string, string>;
+  const type = String(md.type ?? "");
+  const quantity = Math.max(1, Math.floor(Number(md.quantity ?? 0)));
+  if (!quantity) throw new Error("missing_quantity");
+  const custEmail = String(session.customer_details?.email ?? session.customer_email ?? "").trim().toLowerCase();
+  const buyerName = String(session.customer_details?.name ?? "").trim();
+  let recipientName = buyerName || "Privatperson";
+  let greeting = String(md.halsning ?? "").trim();
+  const themeId = String(md.theme_id ?? "").trim() || null;
+  if (type === "gava") {
+    for (const f of (session.custom_fields ?? [])) {
+      if (f.key === "recipient_name") recipientName = String(f.text?.value ?? "").trim() || recipientName;
+      if (f.key === "greeting" && !greeting) greeting = String(f.text?.value ?? "").trim();
+    }
+  }
+  if (greeting.length > 120) greeting = greeting.slice(0, 120);
+  if (!custEmail) throw new Error("missing_email");
+
+  const orderRef = `stripe:${session.id}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabaseAdmin as any;
+  const existing = await sb.from("purchases").select("id, certificates(verification_id)").eq("source_order_ref", orderRef).maybeSingle();
+  if (existing.data) {
+    const vid = existing.data.certificates?.[0]?.verification_id ?? null;
+    if (vid) return { verification_id: vid };
+    // Certifikatet saknas — kör generate_certificate
+    const gen = await sb.rpc("generate_certificate", { _purchase_id: existing.data.id });
+    if (gen.error) throw new Error("certificate: " + gen.error.message);
+    return { verification_id: (gen.data as { verification_id?: string })?.verification_id ?? null };
+  }
+
+  let customerId: string;
+  const ec = await sb.from("customers").select("id").eq("email", custEmail).maybeSingle();
+  if (ec.data) customerId = ec.data.id;
+  else {
+    const ins = await sb.from("customers").insert({ email: custEmail, name: recipientName }).select("id").single();
+    if (ins.error) throw new Error("customer_insert: " + ins.error.message);
+    customerId = ins.data.id;
+  }
+  const total = quantity * PRICE_PER_TREE_ORE;
+  const pur = await sb.from("purchases").insert({
+    user_id: null, customer_id: customerId,
+    recipient_name: recipientName, recipient_email: custEmail,
+    tree_count: quantity, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
+    status: "paid", paid_at: new Date().toISOString(),
+    source: (type === "gava" ? "gift" : type === "manad" ? "monthly" : "web"), source_order_ref: orderRef,
+    theme_id: themeId, greeting: greeting || null,
+  }).select("id").single();
+  if (pur.error) throw new Error("purchase_insert: " + pur.error.message);
+  const gen = await sb.rpc("generate_certificate", { _purchase_id: pur.data.id });
+  if (gen.error) throw new Error("certificate: " + gen.error.message);
+  return { verification_id: (gen.data as { verification_id?: string })?.verification_id ?? null };
+}
+
+async function retryInvoice(invoiceId: string): Promise<{ verification_id: string | null }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const invoice = await stripeFetch(`invoices/${invoiceId}`);
+  const subId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  if (!subId) throw new Error("missing_subscription");
+  const sub = await stripeFetch(`subscriptions/${subId}`);
+  const quantity = Math.max(1, Math.floor(Number(sub.items?.data?.[0]?.quantity ?? 0)));
+  const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  const cust = customerId ? await stripeFetch(`customers/${customerId}`) : null;
+  const custEmail = String(cust?.email ?? invoice.customer_email ?? "").trim().toLowerCase();
+  const recipientName = String(cust?.name ?? "").trim() || "Privatperson";
+  if (!custEmail) throw new Error("missing_email");
+  const orderRef = `stripe:invoice:${invoice.id}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabaseAdmin as any;
+  const existing = await sb.from("purchases").select("id").eq("source_order_ref", orderRef).maybeSingle();
+  if (existing.data) {
+    const gen = await sb.rpc("generate_certificate", { _purchase_id: existing.data.id });
+    if (gen.error) throw new Error("certificate: " + gen.error.message);
+    return { verification_id: (gen.data as { verification_id?: string })?.verification_id ?? null };
+  }
+  let dbCustomerId: string;
+  const ec = await sb.from("customers").select("id").eq("email", custEmail).maybeSingle();
+  if (ec.data) dbCustomerId = ec.data.id;
+  else {
+    const ins = await sb.from("customers").insert({ email: custEmail, name: recipientName }).select("id").single();
+    if (ins.error) throw new Error("customer_insert: " + ins.error.message);
+    dbCustomerId = ins.data.id;
+  }
+  const total = quantity * PRICE_PER_TREE_ORE;
+  const pur = await sb.from("purchases").insert({
+    user_id: null, customer_id: dbCustomerId,
+    recipient_name: recipientName, recipient_email: custEmail,
+    tree_count: quantity, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
+    status: "paid", paid_at: new Date().toISOString(),
+    source: "monthly", source_order_ref: orderRef,
+  }).select("id").single();
+  if (pur.error) throw new Error("purchase_insert: " + pur.error.message);
+  const gen = await sb.rpc("generate_certificate", { _purchase_id: pur.data.id });
+  if (gen.error) throw new Error("certificate: " + gen.error.message);
+  return { verification_id: (gen.data as { verification_id?: string })?.verification_id ?? null };
+}
+
+export const adminRetryFailedPurchase = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sb = supabaseAdmin as any;
+    const { data: row, error: rowErr } = await sb.from("failed_purchases")
+      .select("id, session_id, resolved").eq("id", data.id).maybeSingle();
+    if (rowErr) throw new Error(rowErr.message);
+    if (!row) throw new Error("not_found");
+    if (row.resolved) return { ok: true, already_resolved: true, verification_id: null };
+
+    const sessionId: string = row.session_id;
+    let result: { verification_id: string | null };
+    try {
+      if (sessionId.startsWith("invoice:")) {
+        result = await retryInvoice(sessionId.slice("invoice:".length));
+      } else {
+        result = await retryCheckoutSession(sessionId);
+      }
+    } catch (e) {
+      const msg = (e as Error).message;
+      await sb.from("failed_purchases").update({
+        error: `retry: ${msg}`,
+        updated_at: new Date().toISOString(),
+      }).eq("id", data.id);
+      await logActivity(context.userId, "failed_purchase_retry_failed", { id: data.id, session_id: sessionId, error: msg });
+      throw new Error(msg);
+    }
+
+    await sb.from("failed_purchases").update({
+      resolved: true, resolved_at: new Date().toISOString(), resolved_by: context.userId,
+      updated_at: new Date().toISOString(),
+    }).eq("id", data.id);
+    await logActivity(context.userId, "failed_purchase_resolved", {
+      id: data.id, session_id: sessionId, verification_id: result.verification_id,
+    });
+    return { ok: true, verification_id: result.verification_id };
+  });
+
