@@ -251,7 +251,7 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
     ? `${a.recipientName} — ${N} träd planterade i ditt namn`
     : `${a.recipientName} — dina ${N} träd växer i ${proj.name}`;
 
-  const stampWhite = a.heroStampUrl && a.heroStampUrl.trim() ? a.heroStampUrl : "https://smartklimat.org/brand/logo-stamp-vit.png";
+  void a.heroStampUrl; // hero-stämpeln utelämnas tills brand-assets ligger på publik CDN
   const bricolage = "'Bricolage Grotesque',Helvetica,Arial,sans-serif";
   const body = "Helvetica,Arial,sans-serif";
   const mono = "'Courier New',monospace";
@@ -260,10 +260,13 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
   const tp = a.theme?.palette ?? {};
   const themeBg = tp.bg || "#0B3D2E";
   const themeSoft = tp.soft || "#9FD9B6";
-  const themeSoftHeading = tp.soft && tp.soft !== "#EAF7EE" ? tp.soft : "#ffffff";
+  const themeHeroText = tp.hero_text || (tp.soft && tp.soft !== "#EAF7EE" ? tp.soft : "#ffffff");
+  const themeAccent = tp.accent || "#DCBE6E";
+  const themeCount = tp.count_color || "#1E9E6A";
   const themeEyebrow = a.theme?.eyebrow || "DITT TRÄD HAR FÅTT EN PLATS";
   const rawHeading = a.theme?.heading_template || "Tack, från ett gemensamt klimat.";
   const themeHeading = rawHeading.replace(/\{recipient_name\}/g, a.recipientName);
+  const heroMotif = renderHeroMotif(a.theme?.motif);
 
   const greetingBlock = a.giftMessage && a.giftMessage.trim()
     ? `<tr><td style="padding:0 0 20px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EAF7EE;border-radius:14px;"><tr><td style="padding:16px 20px;font-family:${body};font-style:italic;font-size:15px;line-height:1.5;color:#15784F;">${escapeHtml(a.giftMessage)}</td></tr></table></td></tr>`
