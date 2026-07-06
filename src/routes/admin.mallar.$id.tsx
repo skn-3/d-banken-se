@@ -104,6 +104,7 @@ function EditorPage() {
   const getFn = useServerFn(adminGetCertTemplate);
   const saveFn = useServerFn(adminSaveCertTemplate);
   const uploadFn = useServerFn(adminUploadCertAsset);
+  const genSvgFn = useServerFn(studioGenerateSvg);
 
   const [state, setState] = useState<"checking" | "denied" | "ok" | "notfound">("checking");
   const [namn, setNamn] = useState("");
