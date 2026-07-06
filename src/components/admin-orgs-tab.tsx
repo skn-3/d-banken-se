@@ -457,5 +457,73 @@ function TeamDetail({ team, orgName, onBack }: { team: Team; orgName: string; on
   );
 }
 
+function ChangeLeaderBlock({ teamId, teamName, sellers, onDone }: { teamId: string; teamName: string; sellers: Seller[]; onDone: () => Promise<void> }) {
+  const changeFn = useServerFn(adminChangeTeamLeader);
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"member" | "email">("member");
+  const [memberId, setMemberId] = useState("");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const submit = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      const payload: { teamId: string; newUserId?: string; newEmail?: string } = { teamId };
+      if (mode === "member") {
+        if (!memberId) { setMsg("Välj en medlem."); setBusy(false); return; }
+        payload.newUserId = memberId;
+      } else {
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) { setMsg("Ogiltig e-post."); setBusy(false); return; }
+        payload.newEmail = email.trim().toLowerCase();
+      }
+      const r = await changeFn({ data: payload });
+      const mailInfo = `Mail: ny ${r.mail_new.ok ? "✓" : "✗"} · gammal ${r.old_leader ? (r.mail_old.ok ? "✓" : "✗") : "—"}`;
+      setMsg(`Klart. Ny ledare: ${r.new_leader.name ?? r.new_leader.email}. ${mailInfo}`);
+      setOpen(false); setMemberId(""); setEmail("");
+      await onDone();
+    } catch (e) { setMsg((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="mt-4 rounded-2xl border p-3" style={{ borderColor: "var(--border)" }}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm">
+          <span className="font-medium">Lagledare för {teamName}</span>
+          <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Ändrar rollen: ny ledare får team_leader, gammal blir vanlig medlem, båda mailas.
+          </div>
+        </div>
+        <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => { setOpen(v => !v); setMsg(null); }}>
+          {open ? "Avbryt" : "Byt lagledare"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-[auto_1fr_auto]">
+          <select className="input-field !py-1 !text-sm" value={mode} onChange={e => setMode(e.target.value as "member" | "email")}>
+            <option value="member">Befintlig medlem</option>
+            <option value="email">Ange e-post</option>
+          </select>
+          {mode === "member" ? (
+            <select className="input-field !py-1 !text-sm" value={memberId} onChange={e => setMemberId(e.target.value)}>
+              <option value="">— välj medlem —</option>
+              {sellers.map(s => <option key={s.user_id} value={s.user_id}>{s.name || s.email}</option>)}
+            </select>
+          ) : (
+            <input className="input-field !py-1 !text-sm" type="email" placeholder="ny.ledare@exempel.se"
+              value={email} onChange={e => setEmail(e.target.value)} />
+          )}
+          <button className="btn-primary !py-1 !px-3 text-xs" disabled={busy} onClick={submit}>
+            {busy ? "Byter…" : "Bekräfta byte"}
+          </button>
+        </div>
+      )}
+      {msg && <div className="mt-2 text-xs" style={{ color: "var(--muted-foreground)" }}>{msg}</div>}
+    </div>
+  );
+}
+
+
 
 
