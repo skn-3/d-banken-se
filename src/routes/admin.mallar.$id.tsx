@@ -14,6 +14,7 @@ import {
   type FaltkartaKarta,
   type FaltkartaFalt,
 } from "@/lib/download-cert-faltkarta";
+import { studioGenerateSvg } from "@/lib/studio.functions";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
