@@ -15,6 +15,7 @@ import { adminListOrders, adminFulfillOrder, adminListRewards, adminCreateReward
 import { getRewardBudget } from "@/lib/reward-economy.functions";
 import { adminListEvents, adminCreateEvent, adminToggleEvent, adminDeleteEvent } from "@/lib/events.functions";
 import { REWARD_CATEGORY_ORDER } from "@/lib/reward-catalog";
+import { AdminActivityTab, AdminEconomySettings, AdminPurchasesExport } from "@/components/admin-extra";
 
 
 export const Route = createFileRoute("/admin")({
@@ -61,7 +62,7 @@ interface Settings {
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 
-type Tab = "overview" | "entities" | "core" | "organizations" | "rewards" | "orders" | "boosters" | "templates" | "settings";
+type Tab = "overview" | "entities" | "core" | "organizations" | "rewards" | "orders" | "boosters" | "templates" | "settings" | "activity";
 
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -138,6 +139,7 @@ function AdminPage() {
                 ["boosters", "Boosters"],
                 ["templates", "Värdebevis-mallar"],
                 ["settings", "Planteringsplats"],
+                ["activity", "Aktivitetslogg"],
               ] as [Tab, string][]).map(([k, label]) => (
                 <button key={k} onClick={() => setTab(k)} className="chip"
                   style={{ cursor: "pointer", background: tab === k ? "var(--mint)" : undefined }}>
@@ -194,7 +196,10 @@ function AdminPage() {
                 </section>
 
                 <section className="surface-card mt-6 p-6">
-                  <h2 className="font-display text-xl font-semibold">Köp</h2>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="font-display text-xl font-semibold">Köp</h2>
+                    <AdminPurchasesExport />
+                  </div>
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
@@ -233,8 +238,13 @@ function AdminPage() {
             )}
 
             {tab === "settings" && settings && (
-              <SettingsTab settings={settings} reload={load} />
+              <>
+                <SettingsTab settings={settings} reload={load} />
+                <AdminEconomySettings />
+              </>
             )}
+
+            {tab === "activity" && <AdminActivityTab />}
           </>
         )}
       </main>
