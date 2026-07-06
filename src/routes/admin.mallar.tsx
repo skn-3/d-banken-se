@@ -123,8 +123,9 @@ function AdminMallarPage() {
                     className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>↓</button>
                   <button disabled={busy === r.id} onClick={() => duplicate(r)}
                     className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>Duplicera</button>
-                  <Link to="/admin/mallar/$id" params={{ id: r.id }}
-                    className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>Redigera</Link>
+                  <a href={`/admin/mallar/${r.id}`}
+                    className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--border)" }}>Redigera</a>
+
                 </div>
               </div>
             ))}
