@@ -136,14 +136,16 @@ Deno.serve(async (req) => {
     const buyerName = String(session.customer_details?.name ?? "").trim();
 
     let recipientName = buyerName || "Privatperson";
-    let greeting = "";
+    let greeting = String(md.halsning ?? "").trim();
+    const themeId = String(md.theme_id ?? "").trim() || null;
     if (type === "gava") {
       const cf = session.custom_fields ?? [];
       for (const f of cf) {
         if (f.key === "recipient_name") recipientName = String(f.text?.value ?? "").trim() || recipientName;
-        if (f.key === "greeting") greeting = String(f.text?.value ?? "").trim();
+        if (f.key === "greeting" && !greeting) greeting = String(f.text?.value ?? "").trim();
       }
     }
+    if (greeting.length > 120) greeting = greeting.slice(0, 120);
     if (!custEmail) return new Response("missing_email", { status: 400 });
 
     // Idempotens
