@@ -289,65 +289,29 @@ export type Database = {
       }
       cert_templates: {
         Row: {
+          accent_color: string
           aktiv: boolean
           allows_greeting: boolean
-          bg_url: string
-          canvas: Json
-          created_at: string
-          falt: Json
-          id: string
-          kort_url: string | null
-          namn: string
-          slug: string
-          sort: number
-        }
-        Insert: {
-          aktiv?: boolean
-          allows_greeting?: boolean
-          bg_url: string
-          canvas?: Json
-          created_at?: string
-          falt?: Json
-          id?: string
-          kort_url?: string | null
-          namn: string
-          slug: string
-          sort?: number
-        }
-        Update: {
-          aktiv?: boolean
-          allows_greeting?: boolean
-          bg_url?: string
-          canvas?: Json
-          created_at?: string
-          falt?: Json
-          id?: string
-          kort_url?: string | null
-          namn?: string
-          slug?: string
-          sort?: number
-        }
-        Relationships: []
-      }
-      certificate_templates: {
-        Row: {
-          accent_color: string
-          active: boolean
-          allows_greeting: boolean
           background_key: string
+          bg_url: string | null
           body_text: string
+          canvas: Json
           category: string
           company_user_id: string | null
           config: Json
           created_at: string
+          falt: Json
           heading_text: string
           id: string
           is_default: boolean
+          kort_url: string | null
           logo_url: string | null
-          name: string
+          name: string | null
+          namn: string
           org_id: string | null
           show_coordinates: boolean
           show_social: boolean
+          slug: string
           social_handles: string
           sort: number
           thumbnail_url: string | null
@@ -355,22 +319,28 @@ export type Database = {
         }
         Insert: {
           accent_color?: string
-          active?: boolean
+          aktiv?: boolean
           allows_greeting?: boolean
           background_key?: string
+          bg_url?: string | null
           body_text?: string
+          canvas?: Json
           category?: string
           company_user_id?: string | null
           config?: Json
           created_at?: string
+          falt?: Json
           heading_text?: string
           id?: string
           is_default?: boolean
+          kort_url?: string | null
           logo_url?: string | null
-          name: string
+          name?: string | null
+          namn: string
           org_id?: string | null
           show_coordinates?: boolean
           show_social?: boolean
+          slug: string
           social_handles?: string
           sort?: number
           thumbnail_url?: string | null
@@ -378,22 +348,28 @@ export type Database = {
         }
         Update: {
           accent_color?: string
-          active?: boolean
+          aktiv?: boolean
           allows_greeting?: boolean
           background_key?: string
+          bg_url?: string | null
           body_text?: string
+          canvas?: Json
           category?: string
           company_user_id?: string | null
           config?: Json
           created_at?: string
+          falt?: Json
           heading_text?: string
           id?: string
           is_default?: boolean
+          kort_url?: string | null
           logo_url?: string | null
-          name?: string
+          name?: string | null
+          namn?: string
           org_id?: string | null
           show_coordinates?: boolean
           show_social?: boolean
+          slug?: string
           social_handles?: string
           sort?: number
           thumbnail_url?: string | null
@@ -401,7 +377,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "certificate_templates_org_id_fkey"
+            foreignKeyName: "cert_templates_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -473,7 +449,7 @@ export type Database = {
             foreignKeyName: "certificates_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
-            referencedRelation: "certificate_templates"
+            referencedRelation: "cert_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -1008,7 +984,7 @@ export type Database = {
             foreignKeyName: "profiles_company_template_id_fkey"
             columns: ["company_template_id"]
             isOneToOne: false
-            referencedRelation: "certificate_templates"
+            referencedRelation: "cert_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -1133,7 +1109,7 @@ export type Database = {
             foreignKeyName: "purchases_certificate_template_id_fkey"
             columns: ["certificate_template_id"]
             isOneToOne: false
-            referencedRelation: "certificate_templates"
+            referencedRelation: "cert_templates"
             referencedColumns: ["id"]
           },
           {
@@ -1477,6 +1453,30 @@ export type Database = {
         }
         Relationships: []
       }
+      team_join_attempts: {
+        Row: {
+          attempted_at: string
+          code: string
+          id: string
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          attempted_at?: string
+          code: string
+          id?: string
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          attempted_at?: string
+          code?: string
+          id?: string
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string
@@ -1555,7 +1555,6 @@ export type Database = {
       teams: {
         Row: {
           cert_template_id: string | null
-          certificate_template_id: string | null
           city: string | null
           created_at: string
           created_by_user_id: string | null
@@ -1573,7 +1572,6 @@ export type Database = {
         }
         Insert: {
           cert_template_id?: string | null
-          certificate_template_id?: string | null
           city?: string | null
           created_at?: string
           created_by_user_id?: string | null
@@ -1591,7 +1589,6 @@ export type Database = {
         }
         Update: {
           cert_template_id?: string | null
-          certificate_template_id?: string | null
           city?: string | null
           created_at?: string
           created_by_user_id?: string | null
@@ -1613,13 +1610,6 @@ export type Database = {
             columns: ["cert_template_id"]
             isOneToOne: false
             referencedRelation: "cert_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "teams_certificate_template_id_fkey"
-            columns: ["certificate_template_id"]
-            isOneToOne: false
-            referencedRelation: "certificate_templates"
             referencedColumns: ["id"]
           },
           {
@@ -1678,31 +1668,6 @@ export type Database = {
       }
     }
     Views: {
-      admin_greetings_view: {
-        Row: {
-          certificate_greeting: string | null
-          certificate_id: string | null
-          certificate_template_id: string | null
-          purchase_created_at: string | null
-          purchase_greeting: string | null
-          purchase_id: string | null
-          recipient_email: string | null
-          recipient_name: string | null
-          template_name: string | null
-          tree_count: number | null
-          user_id: string | null
-          verification_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "purchases_certificate_template_id_fkey"
-            columns: ["certificate_template_id"]
-            isOneToOne: false
-            referencedRelation: "certificate_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       insights_daily_trees: {
         Row: {
           day: string | null
@@ -1935,28 +1900,24 @@ export type Database = {
       generate_certificate: {
         Args: { _purchase_id: string }
         Returns: {
-          created_at: string
-          customer_id: string | null
-          greeting: string | null
           id: string
+          verification_id: string
+        }[]
+      }
+      get_certificate_public: {
+        Args: { p_verification_id: string }
+        Returns: {
+          greeting: string
           issued_date: string
           latitude: number
           location_name: string
           longitude: number
-          purchase_id: string
           recipient_name: string
-          template_id: string | null
           template_snapshot: Json
+          theme_slug: string
           tree_count: number
-          user_id: string | null
           verification_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "certificates"
-          isOneToOne: true
-          isSetofReturn: false
-        }
+        }[]
       }
       get_internal_secret: { Args: { _name: string }; Returns: string }
       get_my_club: { Args: never; Returns: Json }
@@ -1973,21 +1934,6 @@ export type Database = {
           team_name: string
           type: string
           user_id: string
-        }[]
-      }
-      get_public_certificate: {
-        Args: { _verification_id: string }
-        Returns: {
-          greeting: string
-          issued_date: string
-          latitude: number
-          location_name: string
-          longitude: number
-          recipient_name: string
-          template_snapshot: Json
-          theme_slug: string
-          tree_count: number
-          verification_id: string
         }[]
       }
       get_team_activity_feed: {
