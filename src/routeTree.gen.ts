@@ -26,6 +26,7 @@ import { Route as AktiveraRouteImport } from './routes/aktivera'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VIdRouteImport } from './routes/v.$id'
+import { Route as AdminMallarRouteImport } from './routes/admin.mallar'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
 import { Route as ApiPublicSiteEventRouteImport } from './routes/api/public/site-event'
 import { Route as ApiPublicPushNotifyRouteImport } from './routes/api/public/push-notify'
@@ -118,6 +119,11 @@ const VIdRoute = VIdRouteImport.update({
   path: '/v/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMallarRoute = AdminMallarRouteImport.update({
+  id: '/mallar',
+  path: '/mallar',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
   id: '/api/public/unsubscribe',
   path: '/api/public/unsubscribe',
@@ -154,7 +160,7 @@ const ApiPublicHooksTeamWeeklyReportRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
   '/sverige': typeof SverigeRoute
+  '/admin/mallar': typeof AdminMallarRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
@@ -179,7 +186,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
   '/sverige': typeof SverigeRoute
+  '/admin/mallar': typeof AdminMallarRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
@@ -205,7 +213,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/aktivera': typeof AktiveraRoute
   '/auth': typeof AuthRoute
   '/beloningar': typeof BeloningarRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/saljare': typeof SaljareRoute
   '/skapa-lag': typeof SkapaLagRoute
   '/sverige': typeof SverigeRoute
+  '/admin/mallar': typeof AdminMallarRoute
   '/v/$id': typeof VIdRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/saljare'
     | '/skapa-lag'
     | '/sverige'
+    | '/admin/mallar'
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/site-event'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/saljare'
     | '/skapa-lag'
     | '/sverige'
+    | '/admin/mallar'
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/site-event'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
     | '/saljare'
     | '/skapa-lag'
     | '/sverige'
+    | '/admin/mallar'
     | '/v/$id'
     | '/api/public/push-notify'
     | '/api/public/site-event'
@@ -308,7 +320,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AktiveraRoute: typeof AktiveraRoute
   AuthRoute: typeof AuthRoute
   BeloningarRoute: typeof BeloningarRoute
@@ -453,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/mallar': {
+      id: '/admin/mallar'
+      path: '/mallar'
+      fullPath: '/admin/mallar'
+      preLoaderRoute: typeof AdminMallarRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/public/unsubscribe': {
       id: '/api/public/unsubscribe'
       path: '/api/public/unsubscribe'
@@ -498,9 +517,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminMallarRoute: typeof AdminMallarRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminMallarRoute: AdminMallarRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AktiveraRoute: AktiveraRoute,
   AuthRoute: AuthRoute,
   BeloningarRoute: BeloningarRoute,
