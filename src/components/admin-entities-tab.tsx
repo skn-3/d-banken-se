@@ -67,6 +67,9 @@ export function AdminEntitiesTab() {
   const [templates, setTemplates] = useState<CertTemplate[]>([]);
   const [orgs, setOrgs] = useState<Organization[]>([]);
 
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey(k => k + 1);
+
   useEffect(() => {
     (async () => {
       const [c, p, ct, t, prof, tmpl, o] = await Promise.all([
@@ -93,7 +96,7 @@ export function AdminEntitiesTab() {
       setTemplates((tmpl.data ?? []) as CertTemplate[]);
       setOrgs((o.data ?? []) as Organization[]);
     })();
-  }, []);
+  }, [reloadKey]);
 
   const templateBySlug = useMemo(() => new Map(templates.map(t => [t.slug, t])), [templates]);
   const templateById = useMemo(() => new Map(templates.map(t => [t.id, t])), [templates]);
