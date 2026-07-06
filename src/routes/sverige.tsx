@@ -120,9 +120,9 @@ function SellersBoard({ period, page, setPage, currentUserId }: { period: Period
                   <span className="font-semibold truncate" style={{ color: "var(--forest)" }}>{r.first_name || "Säljare"}</span>
                   {b && <BuffRow buffs={b} />}
                 </div>
-                {r.team_name && (
+                {(r.team_name || r.organization_name) && (
                   <div className="text-xs font-medium" style={{ color: "#B8912B" }}>
-                    ‹{r.team_name}{r.team_city ? `, ${r.team_city}` : ""}›
+                    ‹{r.team_name || r.organization_name}{r.team_city ? `, ${r.team_city}` : ""}›
                   </div>
                 )}
               </div>
