@@ -236,10 +236,10 @@ export function AdminEntitiesTab() {
       {/* Views */}
       <div className="mt-6">
         {sub === "kunder" && <CustomersView rows={filteredCustomers} purchases={purchases} highlight={search.highlight} onOpenPurchases={(cid) => setParams({ sub: "kop", q: undefined, highlight: undefined, team: undefined, status: undefined })} setParams={setParams} />}
-        {sub === "kop" && <PurchasesView rows={filteredPurchases} certs={certs} templateById={templateById} highlight={search.highlight} setParams={setParams} />}
-        {sub === "certifikat" && <CertsView rows={filteredCerts} templateById={templateById} highlight={search.highlight} />}
+        {sub === "kop" && <PurchasesView rows={filteredPurchases} certs={certs} templateById={templateById} highlight={search.highlight} setParams={setParams} onReload={reload} />}
+        {sub === "certifikat" && <CertsView rows={filteredCerts} templateById={templateById} highlight={search.highlight} onReload={reload} />}
         {sub === "lag" && <TeamsView rows={filteredTeams} sellers={sellers} templateById={templateById} highlight={search.highlight} setParams={setParams} />}
-        {sub === "saljare" && <SellersView rows={filteredSellers} purchases={purchases} highlight={search.highlight} setParams={setParams} />}
+        {sub === "saljare" && <SellersView rows={filteredSellers} purchases={purchases} highlight={search.highlight} setParams={setParams} onReload={reload} />}
       </div>
 
       {/* Empty state */}
