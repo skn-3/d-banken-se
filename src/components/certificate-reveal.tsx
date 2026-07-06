@@ -47,23 +47,36 @@ export function CertificateReveal({ theme, onDone, children }: Props) {
           role="dialog" aria-label="Bevis reveal"
         >
           <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 w-full h-full" />
-          <div
-            className="relative rounded-3xl px-8 py-6 text-center"
-            style={{
-              background: palette.soft,
-              color: palette.ink,
-              transform: "scale(0.4)",
-              animation: "certreveal-pop 1.4s cubic-bezier(0.2,0.9,0.3,1.2) forwards",
-              boxShadow: "0 30px 60px rgba(0,0,0,0.25)",
-            }}
-          >
-            <div className="text-[10px] tracking-[0.28em] uppercase" style={{ color: palette.muted }}>
-              {theme?.config?.eyebrow ?? "DITT BEVIS"}
+          {theme?.config?.kort ? (
+            <img
+              src={theme.config.kort}
+              alt=""
+              className="relative rounded-3xl shadow-2xl"
+              style={{
+                maxHeight: "78vh", maxWidth: "78vw", objectFit: "cover",
+                animation: "certreveal-pop 1.4s cubic-bezier(0.2,0.9,0.3,1.2) forwards",
+                transform: "scale(0.4)",
+              }}
+            />
+          ) : (
+            <div
+              className="relative rounded-3xl px-8 py-6 text-center"
+              style={{
+                background: palette.soft,
+                color: palette.ink,
+                transform: "scale(0.4)",
+                animation: "certreveal-pop 1.4s cubic-bezier(0.2,0.9,0.3,1.2) forwards",
+                boxShadow: "0 30px 60px rgba(0,0,0,0.25)",
+              }}
+            >
+              <div className="text-[10px] tracking-[0.28em] uppercase" style={{ color: palette.muted }}>
+                {theme?.config?.eyebrow ?? "DITT BEVIS"}
+              </div>
+              <div className="mt-2 font-display text-2xl font-semibold" style={{ color: palette.ink }}>
+                {(theme?.config?.heading_template ?? "Ditt bevis är klart").replace("{recipient_name}", "").trim()}
+              </div>
             </div>
-            <div className="mt-2 font-display text-2xl font-semibold" style={{ color: palette.ink }}>
-              {(theme?.config?.heading_template ?? "Ditt bevis är klart").replace("{recipient_name}", "").trim()}
-            </div>
-          </div>
+          )}
         </div>
       )}
       <div style={phase === "reveal" ? { visibility: "hidden" } : undefined}>{children}</div>
