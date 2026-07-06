@@ -61,13 +61,15 @@ interface Settings {
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 
-type Tab = "overview" | "core" | "organizations" | "rewards" | "orders" | "boosters" | "templates" | "settings";
+type Tab = "overview" | "entities" | "core" | "organizations" | "rewards" | "orders" | "boosters" | "templates" | "settings";
 
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [state, setState] = useState<"checking" | "denied" | "ok">("checking");
-  const [tab, setTab] = useState<Tab>("overview");
+  const tab: Tab = ((search.tab as Tab | undefined) || "overview");
+  const setTab = (t: Tab) => navigate({ to: "/admin", search: { ...search, tab: t === "overview" ? undefined : t } });
 
   const [profiles, setProfiles] = useState<AdminProfile[]>([]);
   const [purchases, setPurchases] = useState<AdminPurchase[]>([]);
