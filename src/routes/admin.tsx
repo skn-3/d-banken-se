@@ -65,7 +65,8 @@ function AdminPage() {
     const [p, q, t, s] = await Promise.all([
       supabase.from("profiles").select("user_id, name, email, created_at, company_template_id").order("created_at", { ascending: false }),
       supabase.from("purchases").select("id, user_id, tree_count, total_amount_ore, status, created_at").order("created_at", { ascending: false }),
-      supabase.from("certificate_templates").select("*").order("is_default", { ascending: false }).order("created_at", { ascending: true }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from("cert_templates").select("*").order("is_default", { ascending: false }).order("created_at", { ascending: true }),
       supabase.from("app_settings").select("planting_location_name, planting_latitude, planting_longitude").eq("id", 1).maybeSingle(),
     ]);
     setProfiles((p.data ?? []) as AdminProfile[]);
@@ -742,8 +743,10 @@ function TemplatesTab({ templates, editing, setEditing, reload }: {
                 <button
                   className="btn-secondary !py-1.5 !px-3 text-sm"
                   onClick={async () => {
-                    await supabase.from("certificate_templates").update({ is_default: false }).eq("is_default", true);
-                    await supabase.from("certificate_templates").update({ is_default: true }).eq("id", t.id);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const sb = supabase as any;
+                    await sb.from("cert_templates").update({ is_default: false }).eq("is_default", true);
+                    await sb.from("cert_templates").update({ is_default: true }).eq("id", t.id);
                     await reload();
                   }}
                 >Sätt som standard</button>
@@ -801,11 +804,15 @@ function TemplateEditor({ template, onClose, onSaved }: {
         company_user_id: t.company_user_id || null,
         is_default: t.is_default,
       };
+      // cert_templates har `namn`/`aktiv` — säkerställ båda skrivs för kompat.
+      const dbRow = { ...payload, namn: payload.name, aktiv: true, slug: `admin-${payload.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sb = supabase as any;
       if (t.id) {
-        const { error } = await supabase.from("certificate_templates").update(payload).eq("id", t.id);
+        const { error } = await sb.from("cert_templates").update(dbRow).eq("id", t.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("certificate_templates").insert(payload);
+        const { error } = await sb.from("cert_templates").insert(dbRow);
         if (error) throw error;
       }
       await onSaved();

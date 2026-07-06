@@ -54,7 +54,8 @@ function VerifyPage() {
     let cancelled = false;
     (async () => {
       const { data: rows, error } = await supabase
-        .rpc("get_public_certificate", { _verification_id: id });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .rpc("get_certificate_public" as any, { p_verification_id: id } as any);
       if (cancelled) return;
       const row = Array.isArray(rows) ? rows[0] : rows;
       if (error || !row) { setState("missing"); return; }
