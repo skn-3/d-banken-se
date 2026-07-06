@@ -365,6 +365,8 @@ function RewardsCatalogTab() {
       imageUrl: draft.image_url,
       active: draft.active,
       sortOrder: draft.sort_order,
+      stock: draft.stock,
+      isDigital: draft.is_digital,
     }});
     setShowNew(false);
     setDraft({ id: "", name: "", description: "", cost_points: 10, cost_ore: 0, category: "Småpriser", image_url: null, active: true, sort_order: 100, stock: null, is_digital: false });
@@ -382,6 +384,8 @@ function RewardsCatalogTab() {
       imageUrl: r.image_url,
       active: r.active,
       sortOrder: r.sort_order,
+      stock: r.stock,
+      isDigital: r.is_digital,
     }});
     setEditing(null);
     await reload();
