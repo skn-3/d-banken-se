@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
+import { CertificateA4, type CertA4Data } from "@/components/certificate-a4";
+import { downloadA4CertificateAsPdf } from "@/lib/download-cert-a4";
+
 
 export const Route = createFileRoute("/v/$id")({
   head: ({ params }) => ({
@@ -22,7 +25,10 @@ interface Row {
   longitude: number | string;
   issued_date: string;
   template_snapshot: Record<string, unknown>;
+  greeting: string | null;
+  theme_slug: string | null;
 }
+
 
 const PAPER_BG = "#EAF7EE";
 
@@ -31,7 +37,10 @@ function VerifyPage() {
   const { id } = Route.useParams();
   const [state, setState] = useState<"loading" | "missing" | "ok">("loading");
   const [data, setData] = useState<CertificateData | null>(null);
+  const [a4, setA4] = useState<CertA4Data | null>(null);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const a4Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +59,19 @@ function VerifyPage() {
         latitude: r.latitude,
         longitude: r.longitude,
         issued_date: r.issued_date,
+        greeting: r.greeting,
         template: snapshotToTemplate(r.template_snapshot),
+      });
+      setA4({
+        verification_id: r.verification_id,
+        recipient_name: r.recipient_name,
+        tree_count: r.tree_count,
+        location_name: r.location_name,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        issued_date: r.issued_date,
+        greeting: r.greeting,
+        themeSlug: r.theme_slug,
       });
       setState("ok");
     })();
@@ -64,6 +85,19 @@ function VerifyPage() {
       setTimeout(() => setCopied(false), 2000);
     } catch { /* ignore */ }
   }
+
+  async function handleDownload() {
+    if (!a4Ref.current) return;
+    setDownloading(true);
+    try {
+      // Ge bilderna (bakgrund + QR + stämpel) en tick att renderas.
+      await new Promise((r) => setTimeout(r, 300));
+      await downloadA4CertificateAsPdf(a4Ref.current, id);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
 
   return (
     <div className="min-h-screen w-full" style={{ background: PAPER_BG }}>
@@ -124,9 +158,28 @@ function VerifyPage() {
                 {copied ? "Kopierad ✓" : "Kopiera länk"}
               </button>
             </div>
+
+            {/* Ladda ner värdebevis (A4-PDF) */}
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="mt-5 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity"
+              style={{ background: "#0B3D2E", opacity: downloading ? 0.6 : 1 }}
+            >
+              {downloading ? "Förbereder PDF…" : "Ladda ner värdebevis (PDF)"}
+            </button>
+
+            {/* Off-screen A4 render för PDF-export */}
+            {a4 && (
+              <div style={{ position: "fixed", left: -99999, top: 0, pointerEvents: "none" }} aria-hidden>
+                <CertificateA4 ref={a4Ref} data={a4} />
+              </div>
+            )}
           </div>
         )}
       </main>
     </div>
   );
 }
+

@@ -324,6 +324,8 @@ export function buildThanksEmail(a: ThanksArgs): { subject: string; html: string
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:26px 0 6px;">
               <a href="${a.verifyUrl}" style="display:inline-block;background:#1E9E6A;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:999px;font-family:${body};font-weight:600;font-size:14px;">Visa och verifiera ditt bevis →</a>
             </td></tr></table>
+            <div style="text-align:center;font-family:${body};font-size:12.5px;color:#4F6B5E;margin-top:6px;">På verifieringssidan kan du ladda ner värdebeviset som A4-PDF.</div>
+
 
             <div style="text-align:center;font-family:${mono};font-size:10px;letter-spacing:0.22em;color:#6E9483;text-transform:uppercase;margin-top:16px;">BEVIS ${escapeHtml(a.verificationId)} · ${escapeHtml(a.dateText)}</div>
           </td></tr>
