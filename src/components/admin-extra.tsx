@@ -109,7 +109,7 @@ export function AdminEconomySettings() {
 
   useEffect(() => {
     (async () => {
-      const r = await getFn({ data: {} });
+      const r = await getFn();
       setTeamShare(r.team_share_ore_per_tree);
       setOrigTeamShare(r.team_share_ore_per_tree);
       setRewardBudget(r.reward_budget_ore_per_tree);
