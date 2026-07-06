@@ -12,6 +12,7 @@ import { getRewardGoal, type RewardGoal } from "@/lib/reward-emoji";
 import { EventBanner } from "@/components/event-banner";
 import { Onboarding, hasSeenOnboarding, markOnboardingSeen } from "@/components/onboarding";
 import { PlantingForm } from "@/components/planting-form";
+import { GreetingThemePicker } from "@/components/greeting-theme-picker";
 import skottAsset from "@/assets/stages/skott.png.asset.json";
 import plantaAsset from "@/assets/stages/planta.png.asset.json";
 import ungtAsset from "@/assets/stages/ungt-trad.png.asset.json";
