@@ -1,0 +1,1 @@
+- MÄT-2 server-side purchase tracking (Meta CAPI + GA4) — klart, väntar på secrets\n- Fixa typecheck-fel (search-params + /plantera-länkar) — pågår

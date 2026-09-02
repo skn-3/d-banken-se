@@ -408,7 +408,7 @@ function EditorPage() {
 
   const cancel = useCallback(() => {
     if (dirty && !confirm("Osparade ändringar. Lämna ändå?")) return;
-    navigate({ to: "/admin/mallar" });
+    navigate({ to: "/admin/mallar", search: {} });
   }, [dirty, navigate]);
 
   if (state === "checking") return <Shell><div className="surface-card p-8 text-center">Laddar…</div></Shell>;

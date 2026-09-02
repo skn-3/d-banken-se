@@ -192,7 +192,7 @@ function RewardsPage() {
               <span style={{ color: "var(--forest)" }}>{ctx.previewName ?? "Säljare"}</span>
               <span className="ml-2 text-xs" style={{ color: "var(--muted-foreground)" }}>(read-only)</span>
             </div>
-            <button className="btn-secondary !px-3 !py-1 text-xs" onClick={() => navigate({ to: "/admin" })}>← Tillbaka till admin</button>
+            <button className="btn-secondary !px-3 !py-1 text-xs" onClick={() => navigate({ to: "/admin", search: {} })}>← Tillbaka till admin</button>
           </div>
         )}
 

@@ -496,7 +496,7 @@ function DoneScreen({ code, teamName }: { code: string; teamName: string }) {
       </div>
 
       <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
-        <Link to="/saljare" className="btn-primary">Till säljarvyn</Link>
+        <Link to="/saljare" search={{}} className="btn-primary">Till säljarvyn</Link>
         <Link to="/konto" className="btn-ghost">Till mitt konto</Link>
       </div>
     </div>
