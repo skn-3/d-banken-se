@@ -233,8 +233,8 @@ function ForestView() {
           <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Din skog växer med varje träd — ge bort eller plantera själv.</div>
         </div>
         <div className="flex gap-3">
-          <Link to="/plantera" className="btn-primary">Plantera fler</Link>
-          <Link to="/plantera" className="btn-primary" style={{ background: "var(--gold, #DCBE6E)", color: "#0B3D2E" }}>Ge bort träd</Link>
+          <a href="https://smartklimat.org/plantera" className="btn-primary">Plantera fler</a>
+          <a href="https://smartklimat.org/plantera?typ=gava" className="btn-primary" style={{ background: "var(--gold, #DCBE6E)", color: "#0B3D2E" }}>Ge bort träd</a>
         </div>
       </section>
     </div>

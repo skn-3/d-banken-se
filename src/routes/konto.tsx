@@ -200,7 +200,7 @@ function KontoPage() {
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link to="/hjalp" className="btn-secondary">Hjälp</Link>
               {isAdmin && (
-                <button onClick={() => navigate({ to: "/admin" })} className="btn-secondary">Öppna admin</button>
+                <button onClick={() => navigate({ to: "/admin", search: { tab: undefined, sub: undefined, q: undefined, from: undefined, to: undefined, tema: undefined, status: undefined, team: undefined, proj: undefined, highlight: undefined } })} className="btn-secondary">Öppna admin</button>
               )}
             </div>
           </>

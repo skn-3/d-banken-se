@@ -1,6 +1,7 @@
 import Stripe from "https://esm.sh/stripe@17.5.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { renderThanksEmail } from "../_shared/thanks-email.ts";
+import { trackPurchase } from "../_shared/tracking.ts";
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
 const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
@@ -164,6 +165,19 @@ Deno.serve(async (req) => {
         await sendEmail(custEmail, subject, html);
       }
 
+      try {
+        await trackPurchase({
+          eventId: String(invoice.id),
+          email: custEmail,
+          valueSek: total / 100,
+          quantity,
+          contentId: "trad-manad",
+          metadata: (sub.metadata ?? {}) as Record<string, string>,
+        });
+      } catch (te) {
+        console.error("tracking failed (non-blocking)", (te as Error).message);
+      }
+
       console.log("stripe-webhook invoice.paid ok", { invoice: invoice.id, quantity, vid });
       return new Response(JSON.stringify({ received: true, verification_id: vid }), { status: 200, headers: { "content-type": "application/json" } });
     } catch (e) {
@@ -302,8 +316,24 @@ Deno.serve(async (req) => {
       });
       await sendEmail(custEmail, subject, html);
     }
-
-
+    // Server-side mätning (Meta CAPI + GA4). Får ALDRIG stoppa beviset.
+    try {
+      let contentId = "trad";
+      if (themeId) {
+        const ts = await db.from("greeting_themes").select("slug").eq("id", themeId).maybeSingle();
+        if (ts.data?.slug) contentId = String(ts.data.slug);
+      }
+      await trackPurchase({
+        eventId: session.id,
+        email: custEmail,
+        valueSek: total / 100,
+        quantity,
+        contentId,
+        metadata: (md ?? {}) as Record<string, string>,
+      });
+    } catch (te) {
+      console.error("tracking failed (non-blocking)", (te as Error).message);
+    }
 
     console.log("stripe-webhook ok", { session: session.id, type, quantity, vid, greeting: greeting ? "yes" : "no" });
     return new Response(JSON.stringify({ received: true, verification_id: vid }), { status: 200, headers: { "content-type": "application/json" } });

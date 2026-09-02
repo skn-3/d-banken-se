@@ -85,7 +85,7 @@ function ActivatePage() {
   }
 
   if (hasSession && rawCode && team) {
-    return <Shell wide>{joining ? <p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Kopplar dig till laget…</p> : <IntroCarousel team={team} onDone={() => navigate({ to: "/saljare" })} />}</Shell>;
+    return <Shell wide>{joining ? <p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Kopplar dig till laget…</p> : <IntroCarousel team={team} onDone={() => navigate({ to: "/saljare", search: { as: undefined } })} />}</Shell>;
   }
 
   // Team code present in URL
@@ -170,7 +170,7 @@ function InvitePasswordCard() {
     setSaving(false);
     if (error) { setError(error.message); return; }
     setDone(true);
-    setTimeout(() => navigate({ to: "/saljare" }), 1200);
+    setTimeout(() => navigate({ to: "/saljare", search: { as: undefined } }), 1200);
   };
 
   return (

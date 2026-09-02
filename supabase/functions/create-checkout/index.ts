@@ -106,6 +106,21 @@ Deno.serve(async (req) => {
   if (deliverAtIso) metadata.deliver_at = deliverAtIso;
   if (recipientDeliveryEmail) metadata.recipient_delivery_email = recipientDeliveryEmail;
 
+  // Attribution (utm_*, gclid, fbclid, fbp) — används av Meta CAPI / GA4 i webhooken.
+  const attribution = (p?.attribution && typeof p.attribution === "object") ? p.attribution : {};
+  const ATTR_KEYS = [
+    "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+    "gclid", "fbclid", "fbp", "fbc",
+  ];
+  for (const k of ATTR_KEYS) {
+    const v = attribution?.[k] ?? p?.[k];
+    if (v === undefined || v === null) continue;
+    const s = String(v).trim().slice(0, 300);
+    if (s) metadata[k] = s;
+  }
+
+
+
 
   const params: any = {
     mode: isSubscription ? "subscription" : "payment",
