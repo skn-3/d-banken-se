@@ -303,8 +303,24 @@ Deno.serve(async (req) => {
       });
       await sendEmail(custEmail, subject, html);
     }
-
-
+    // Server-side mätning (Meta CAPI + GA4). Får ALDRIG stoppa beviset.
+    try {
+      let contentId = "trad";
+      if (themeId) {
+        const ts = await db.from("greeting_themes").select("slug").eq("id", themeId).maybeSingle();
+        if (ts.data?.slug) contentId = String(ts.data.slug);
+      }
+      await trackPurchase({
+        eventId: session.id,
+        email: custEmail,
+        valueSek: total / 100,
+        quantity,
+        contentId,
+        metadata: (md ?? {}) as Record<string, string>,
+      });
+    } catch (te) {
+      console.error("tracking failed (non-blocking)", (te as Error).message);
+    }
 
     console.log("stripe-webhook ok", { session: session.id, type, quantity, vid, greeting: greeting ? "yes" : "no" });
     return new Response(JSON.stringify({ received: true, verification_id: vid }), { status: 200, headers: { "content-type": "application/json" } });
