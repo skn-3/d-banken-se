@@ -155,7 +155,7 @@ function SellersBoard({ period, page, setPage, currentUserId }: { period: Period
       )}
 
       <div className="mt-6 text-center">
-        <Link to="/saljare" search={{}} className="text-sm underline" style={{ color: "var(--forest)" }}>Tillbaka till säljarvyn</Link>
+        <Link to="/saljare" search={{ as: undefined }} className="text-sm underline" style={{ color: "var(--forest)" }}>Tillbaka till säljarvyn</Link>
       </div>
     </div>
   );

@@ -393,7 +393,7 @@ function SellerPage() {
               <span style={{ color: "var(--forest)" }}>{ctx.previewName ?? "Säljare"}</span>
               <span className="ml-2 text-xs" style={{ color: "var(--muted-foreground)" }}>(read-only)</span>
             </div>
-            <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => navigate({ to: "/admin", search: {} })}>
+            <button className="btn-secondary !py-1 !px-3 text-xs" onClick={() => navigate({ to: "/admin", search: { tab: undefined, sub: undefined, q: undefined, from: undefined, to: undefined, tema: undefined, status: undefined, team: undefined, proj: undefined, highlight: undefined } })}>
               ← Tillbaka till admin
             </button>
           </div>

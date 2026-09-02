@@ -37,7 +37,7 @@ export function SiteHeader() {
   const userLinks = (onClick?: () => void) => (
     <>
       {isSeller ? (
-        <Link to="/saljare" search={{}} onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Säljarvy</Link>
+        <Link to="/saljare" search={{ as: undefined }} onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Säljarvy</Link>
       ) : (
         <Link to="/kop" onClick={onClick} className="btn-secondary whitespace-nowrap text-center">Plantera träd</Link>
       )}

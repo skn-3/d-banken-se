@@ -408,7 +408,7 @@ function EditorPage() {
 
   const cancel = useCallback(() => {
     if (dirty && !confirm("Osparade ändringar. Lämna ändå?")) return;
-    navigate({ to: "/admin/mallar", search: {} });
+    navigate({ to: "/admin/mallar", search: { tab: undefined, sub: undefined, q: undefined, from: undefined, to: undefined, tema: undefined, status: undefined, team: undefined, proj: undefined, highlight: undefined } });
   }, [dirty, navigate]);
 
   if (state === "checking") return <Shell><div className="surface-card p-8 text-center">Laddar…</div></Shell>;

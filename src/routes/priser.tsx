@@ -74,7 +74,7 @@ function LeaderRewardsPage() {
               {ctx?.teamName ? `${ctx.teamName} — kvittera när barnet fått sitt pris.` : "Kvittera när barnet fått sitt pris."}
             </div>
           </div>
-          <Link to="/saljare" search={{}} className="btn-secondary !px-3 !py-2 text-sm">← Hem</Link>
+          <Link to="/saljare" search={{ as: undefined }} className="btn-secondary !px-3 !py-2 text-sm">← Hem</Link>
         </header>
 
         {loading ? (
