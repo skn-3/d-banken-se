@@ -2,9 +2,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Träd planterade innan systemet togs i bruk — läggs ovanpå databasens live-antal. Uppdateras aldrig nedåt.
+const HISTORICAL_BASELINE = 26700;
+
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minuter
 
-let cachedValue: number | null = null;
+let cachedDbValue: number | null = null;
 let cachedAt = 0;
 
 const CORS_HEADERS = {
@@ -30,8 +33,8 @@ Deno.serve(async (req) => {
   }
 
   const now = Date.now();
-  if (cachedValue !== null && now - cachedAt < CACHE_TTL_MS) {
-    return json({ trees_total: cachedValue });
+  if (cachedDbValue !== null && now - cachedAt < CACHE_TTL_MS) {
+    return json({ trees_total: HISTORICAL_BASELINE + cachedDbValue });
   }
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
@@ -45,15 +48,15 @@ Deno.serve(async (req) => {
   if (error) {
     console.error("public-stats query error", error.message);
     // serve stale cache if available
-    if (cachedValue !== null) {
-      return json({ trees_total: cachedValue });
+    if (cachedDbValue !== null) {
+      return json({ trees_total: HISTORICAL_BASELINE + cachedDbValue });
     }
     return json({ error: "query_failed" }, 500);
   }
 
-  const total = (data ?? []).reduce((sum: number, row: any) => sum + (row.tree_count ?? 0), 0);
-  cachedValue = total;
+  const dbTotal = (data ?? []).reduce((sum: number, row: any) => sum + (row.tree_count ?? 0), 0);
+  cachedDbValue = dbTotal;
   cachedAt = now;
 
-  return json({ trees_total: total });
+  return json({ trees_total: HISTORICAL_BASELINE + dbTotal });
 });
