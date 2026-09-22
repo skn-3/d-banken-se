@@ -65,7 +65,24 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (existing.data) {
     const cert = await db.from("certificates").select("verification_id").eq("purchase_id", existing.data.id).maybeSingle();
-    const vid = cert.data?.verification_id ?? null;
+    let vid = cert.data?.verification_id ?? null;
+    if (!vid) {
+      // Befintligt köp utan bevis: generera nu (aldrig mail på dublettvägen)
+      const gen = await db.rpc("generate_certificate", { _purchase_id: existing.data.id });
+      if (gen.error) return json(500, { ok: false, reason: "certificate_failed", detail: gen.error.message });
+      const row = Array.isArray(gen.data) ? (gen.data as any)[0] : (gen.data as any);
+      vid = row?.verification_id ?? null;
+      const certId = row?.id ?? null;
+      if (certId) {
+        const cur = await db.from("certificates").select("template_snapshot").eq("id", certId).maybeSingle();
+        await db.from("certificates").update({
+          template_snapshot: {
+            ...((cur.data?.template_snapshot as any) ?? {}),
+            partner: { name: "Mockfjärds Fönster", logo: "/brand/mockfjards-badge.png" },
+          },
+        }).eq("id", certId);
+      }
+    }
     return json(200, { ok: true, verification_id: vid, url: vid ? verifyUrl(vid) : null });
   }
 
@@ -104,7 +121,22 @@ Deno.serve(async (req) => {
     if ((pur.error as any).code === "23505") {
       const ex2 = await db.from("purchases").select("id").eq("source", SOURCE).eq("source_order_ref", orderNumber).maybeSingle();
       const cert = ex2.data ? await db.from("certificates").select("verification_id").eq("purchase_id", ex2.data.id).maybeSingle() : { data: null } as any;
-      const vid = cert.data?.verification_id ?? null;
+      let vid = cert.data?.verification_id ?? null;
+      if (!vid && ex2.data) {
+        const gen2 = await db.rpc("generate_certificate", { _purchase_id: ex2.data.id });
+        if (gen2.error) return json(500, { ok: false, reason: "certificate_failed", detail: gen2.error.message });
+        const row2 = Array.isArray(gen2.data) ? (gen2.data as any)[0] : (gen2.data as any);
+        vid = row2?.verification_id ?? null;
+        if (row2?.id) {
+          const cur2 = await db.from("certificates").select("template_snapshot").eq("id", row2.id).maybeSingle();
+          await db.from("certificates").update({
+            template_snapshot: {
+              ...((cur2.data?.template_snapshot as any) ?? {}),
+              partner: { name: "Mockfjärds Fönster", logo: "/brand/mockfjards-badge.png" },
+            },
+          }).eq("id", row2.id);
+        }
+      }
       return json(200, { ok: true, verification_id: vid, url: vid ? verifyUrl(vid) : null });
     }
     return json(500, { ok: false, reason: "purchase_insert_failed", detail: pur.error.message });
@@ -113,14 +145,17 @@ Deno.serve(async (req) => {
   // 4) Generera värdebevis
   const gen = await db.rpc("generate_certificate", { _purchase_id: pur.data.id });
   if (gen.error) return json(500, { ok: false, reason: "certificate_failed", detail: gen.error.message });
-  const vid = (gen.data as any)?.verification_id ?? null;
-  const certId = (gen.data as any)?.id ?? null;
+  const genRow = Array.isArray(gen.data) ? (gen.data as any)[0] : (gen.data as any);
+  const vid = genRow?.verification_id ?? null;
+  const certId = genRow?.id ?? null;
+  let certLocation: string | null = null;
 
   // 4b) Lägg partner-info i template_snapshot
   if (certId) {
-    const currentSnapshot = (gen.data as any)?.template_snapshot ?? {};
+    const cur = await db.from("certificates").select("template_snapshot, location_name").eq("id", certId).maybeSingle();
+    certLocation = (cur.data as any)?.location_name ?? null;
     const newSnapshot = {
-      ...currentSnapshot,
+      ...(((cur.data as any)?.template_snapshot) ?? {}),
       partner: { name: "Mockfjärds Fönster", logo: "/brand/mockfjards-badge.png" },
     };
     await db.from("certificates").update({ template_snapshot: newSnapshot }).eq("id", certId);
@@ -129,7 +164,7 @@ Deno.serve(async (req) => {
   // 5) Mail — endast om recipient_email finns
   if (vid && recipientEmail) {
     const dateText = new Date(pur.data.created_at).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
-    const locationName = (gen.data as any)?.location_name ?? null;
+    const locationName = certLocation;
     const { subject, html } = renderThanksEmail({
       recipientName: customerName, treeCount, dateText,
       verificationId: vid, verifyUrl: verifyUrl(vid),
