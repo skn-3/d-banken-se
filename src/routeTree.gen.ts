@@ -27,10 +27,12 @@ import { Route as AktiveraRouteImport } from './routes/aktivera'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VIdRouteImport } from './routes/v.$id'
+import { Route as HCodeRouteImport } from './routes/h.$code'
 import { Route as AdminMallarRouteImport } from './routes/admin.mallar'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
 import { Route as ApiPublicSiteEventRouteImport } from './routes/api/public/site-event'
 import { Route as ApiPublicPushNotifyRouteImport } from './routes/api/public/push-notify'
+import { Route as ApiPublicAterkallaRouteImport } from './routes/api/public/aterkalla'
 import { Route as AdminMallarIdRouteImport } from './routes/admin.mallar.$id'
 import { Route as ApiPublicHooksWeeklyBackupRouteImport } from './routes/api/public/hooks/weekly-backup'
 import { Route as ApiPublicHooksThemeTestMailRouteImport } from './routes/api/public/hooks/theme-test-mail'
@@ -127,6 +129,11 @@ const VIdRoute = VIdRouteImport.update({
   path: '/v/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HCodeRoute = HCodeRouteImport.update({
+  id: '/h/$code',
+  path: '/h/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminMallarRoute = AdminMallarRouteImport.update({
   id: '/mallar',
   path: '/mallar',
@@ -145,6 +152,11 @@ const ApiPublicSiteEventRoute = ApiPublicSiteEventRouteImport.update({
 const ApiPublicPushNotifyRoute = ApiPublicPushNotifyRouteImport.update({
   id: '/api/public/push-notify',
   path: '/api/public/push-notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAterkallaRoute = ApiPublicAterkallaRouteImport.update({
+  id: '/api/public/aterkalla',
+  path: '/api/public/aterkalla',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminMallarIdRoute = AdminMallarIdRouteImport.update({
@@ -196,8 +208,10 @@ export interface FileRoutesByFullPath {
   '/skog': typeof SkogRoute
   '/sverige': typeof SverigeRoute
   '/admin/mallar': typeof AdminMallarRouteWithChildren
+  '/h/$code': typeof HCodeRoute
   '/v/$id': typeof VIdRoute
   '/admin/mallar/$id': typeof AdminMallarIdRoute
+  '/api/public/aterkalla': typeof ApiPublicAterkallaRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -225,8 +239,10 @@ export interface FileRoutesByTo {
   '/skog': typeof SkogRoute
   '/sverige': typeof SverigeRoute
   '/admin/mallar': typeof AdminMallarRouteWithChildren
+  '/h/$code': typeof HCodeRoute
   '/v/$id': typeof VIdRoute
   '/admin/mallar/$id': typeof AdminMallarIdRoute
+  '/api/public/aterkalla': typeof ApiPublicAterkallaRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -255,8 +271,10 @@ export interface FileRoutesById {
   '/skog': typeof SkogRoute
   '/sverige': typeof SverigeRoute
   '/admin/mallar': typeof AdminMallarRouteWithChildren
+  '/h/$code': typeof HCodeRoute
   '/v/$id': typeof VIdRoute
   '/admin/mallar/$id': typeof AdminMallarIdRoute
+  '/api/public/aterkalla': typeof ApiPublicAterkallaRoute
   '/api/public/push-notify': typeof ApiPublicPushNotifyRoute
   '/api/public/site-event': typeof ApiPublicSiteEventRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -286,8 +304,10 @@ export interface FileRouteTypes {
     | '/skog'
     | '/sverige'
     | '/admin/mallar'
+    | '/h/$code'
     | '/v/$id'
     | '/admin/mallar/$id'
+    | '/api/public/aterkalla'
     | '/api/public/push-notify'
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
@@ -315,8 +335,10 @@ export interface FileRouteTypes {
     | '/skog'
     | '/sverige'
     | '/admin/mallar'
+    | '/h/$code'
     | '/v/$id'
     | '/admin/mallar/$id'
+    | '/api/public/aterkalla'
     | '/api/public/push-notify'
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
@@ -344,8 +366,10 @@ export interface FileRouteTypes {
     | '/skog'
     | '/sverige'
     | '/admin/mallar'
+    | '/h/$code'
     | '/v/$id'
     | '/admin/mallar/$id'
+    | '/api/public/aterkalla'
     | '/api/public/push-notify'
     | '/api/public/site-event'
     | '/api/public/unsubscribe'
@@ -373,7 +397,9 @@ export interface RootRouteChildren {
   SkapaLagRoute: typeof SkapaLagRoute
   SkogRoute: typeof SkogRoute
   SverigeRoute: typeof SverigeRoute
+  HCodeRoute: typeof HCodeRoute
   VIdRoute: typeof VIdRoute
+  ApiPublicAterkallaRoute: typeof ApiPublicAterkallaRoute
   ApiPublicPushNotifyRoute: typeof ApiPublicPushNotifyRoute
   ApiPublicSiteEventRoute: typeof ApiPublicSiteEventRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
@@ -511,6 +537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/h/$code': {
+      id: '/h/$code'
+      path: '/h/$code'
+      fullPath: '/h/$code'
+      preLoaderRoute: typeof HCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/mallar': {
       id: '/admin/mallar'
       path: '/mallar'
@@ -537,6 +570,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/push-notify'
       fullPath: '/api/public/push-notify'
       preLoaderRoute: typeof ApiPublicPushNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/aterkalla': {
+      id: '/api/public/aterkalla'
+      path: '/api/public/aterkalla'
+      fullPath: '/api/public/aterkalla'
+      preLoaderRoute: typeof ApiPublicAterkallaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/mallar/$id': {
@@ -617,7 +657,9 @@ const rootRouteChildren: RootRouteChildren = {
   SkapaLagRoute: SkapaLagRoute,
   SkogRoute: SkogRoute,
   SverigeRoute: SverigeRoute,
+  HCodeRoute: HCodeRoute,
   VIdRoute: VIdRoute,
+  ApiPublicAterkallaRoute: ApiPublicAterkallaRoute,
   ApiPublicPushNotifyRoute: ApiPublicPushNotifyRoute,
   ApiPublicSiteEventRoute: ApiPublicSiteEventRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
