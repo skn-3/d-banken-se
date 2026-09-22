@@ -39,7 +39,10 @@ function esc(s: string) {
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
+  // Testadresser (@example.com) skickas aldrig på riktigt.
+  if (to.toLowerCase().endsWith("@example.com")) { console.log("dry-run mail", { to, subject }); return true; }
   if (!RESEND_API_KEY) { console.error("RESEND_API_KEY missing"); return false; }
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${RESEND_API_KEY}` },
