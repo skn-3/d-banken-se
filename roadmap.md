@@ -7,3 +7,6 @@
 - [x] Publicera och verifiera på app.smartklimat.org.
 - [x] Återställ Mockfjärds brödtext i mall, befintliga bevis, webb och PDF.
 - [x] Verifiera lokalt och live med skärmdumpar av webb och PDF.
+- [ ] Finjustera Mockfjärds webb- och PDF-layout enligt kundgranskningens fyra punkter.
+- [ ] Uppdatera befintliga Mockfjärds-snapshots med partnerdata bevarad och utan mejl.
+- [ ] Verifiera lokalt, publicera och verifiera webb samt PDF live.
