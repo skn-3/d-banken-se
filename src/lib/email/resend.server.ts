@@ -94,8 +94,10 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
     return result;
   }
 
-  // Bevismail / temamail: alltid verifierade send.smartklimat.org (aldrig resend.dev).
-  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <bevis@send.smartklimat.org>";
+  // Bevismail / temamail: avsändardomänen smartklimat.org är verifierad hos Resend.
+  // (send.smartklimat.org har status "failed" och kan inte skicka.)
+  const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <bevis@smartklimat.org>";
+
   const payload: { from: string; to: string; subject: string; html: string; reply_to?: string } = { from, to, subject, html };
   if (replyTo) payload.reply_to = replyTo;
 

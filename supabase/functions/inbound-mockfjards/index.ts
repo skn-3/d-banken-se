@@ -7,7 +7,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INBOUND_SECRET = Deno.env.get("SMARTKLIMAT_INBOUND_SECRET") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <bevis@send.smartklimat.org>";
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+// smartklimat.org är verifierad hos Resend; send.smartklimat.org har status "failed".
+const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <bevis@smartklimat.org>";
+
 const APP_PUBLIC_URL = "https://app.smartklimat.org";
 const PRICE_PER_TREE_ORE = 3500;
 const SOURCE = "mockfjards";
@@ -40,17 +43,93 @@ function esc(s: string) {
 
 async function sendEmail(to: string, subject: string, html: string) {
   // Testadresser (@example.com) skickas aldrig på riktigt.
-  if (to.toLowerCase().endsWith("@example.com")) { console.log("dry-run mail", { to, subject }); return true; }
-  if (!RESEND_API_KEY) { console.error("RESEND_API_KEY missing"); return false; }
+  if (to.toLowerCase().endsWith("@example.com")) {
+    console.log("dry-run mail (testadress)", { to, subject });
+    return { ok: true, dryRun: true, messageId: null, status: null, body: null };
+  }
+  if (!RESEND_API_KEY) {
+    console.error("RESEND_API_KEY missing", { to, subject });
+    return { ok: false, dryRun: false, messageId: null, status: null, body: "resend_api_key_missing" };
+  }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
+  const payload = JSON.stringify({ from: RESEND_FROM, to, subject, html });
+  // RESEND_API_KEY är en kopplingsnyckel: mailen går via Lovables Resend-gateway.
+  // Direktanropet mot api.resend.com finns kvar som reserv.
+  const attempts: Array<{ label: string; url: string; headers: Record<string, string> }> = [];
+  if (LOVABLE_API_KEY) {
+    attempts.push({
+      label: "gateway",
+      url: "https://connector-gateway.lovable.dev/resend/emails",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-connection-api-key": RESEND_API_KEY,
+      },
+    });
+  }
+  attempts.push({
+    label: "direct",
+    url: "https://api.resend.com/emails",
     headers: { "content-type": "application/json", authorization: `Bearer ${RESEND_API_KEY}` },
-    body: JSON.stringify({ from: RESEND_FROM, to, subject, html }),
   });
-  if (!res.ok) { console.error("Resend fail", res.status, await res.text()); return false; }
-  return true;
+
+  let last = { ok: false, dryRun: false, messageId: null as string | null, status: null as number | null, body: null as string | null };
+  for (const attempt of attempts) {
+    const res = await fetch(attempt.url, { method: "POST", headers: attempt.headers, body: payload });
+    const text = await res.text();
+    if (!res.ok) {
+      console.error("Resend fail", { via: attempt.label, to, from: RESEND_FROM, subject, status: res.status, body: text });
+      last = { ok: false, dryRun: false, messageId: null, status: res.status, body: text };
+      continue;
+    }
+    let messageId: string | null = null;
+    try {
+      const parsed = JSON.parse(text) as { id?: string; data?: { id?: string } };
+      messageId = parsed.id ?? parsed.data?.id ?? null;
+    } catch { /* ignore */ }
+    console.log("Resend ok", { via: attempt.label, to, from: RESEND_FROM, subject, messageId, body: text });
+    return { ok: true, dryRun: false, messageId, status: res.status, body: text };
+  }
+  return last;
 }
+
+
+function legalFooter(revokeUrl: string): string {
+  return `<div style="max-width:536px;margin:22px auto 0;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#6E9483;text-align:center">
+  <div>${esc(COMPANY_NAME)} · Org.nr ${esc(COMPANY_ORGNR)}</div>
+  <div>${esc(COMPANY_ADDRESS)}</div>
+  <div style="margin-top:8px">
+    <a href="https://smartklimat.org/integritet" style="color:#15784F;text-decoration:underline">Integritetspolicy</a>
+    &nbsp;·&nbsp;
+    <a href="${esc(revokeUrl)}" style="color:#15784F;text-decoration:underline">Återkalla mitt samtycke</a>
+  </div>
+</div>`;
+}
+
+// Bevismail — identisk mall och sidfot som src/lib/email/claim-mails.server.ts.
+function certMail(a: {
+  recipientName: string; treeCount: number; verificationId: string;
+  verifyUrl: string; revokeUrl: string; locationName?: string | null;
+}) {
+  const n = a.treeCount.toLocaleString("sv-SE");
+  const subject = `${a.recipientName} — ditt värdebevis för ${n} träd`;
+  const html = `<!doctype html><html lang="sv"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" /><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:0;background:#F4FAF5;font-family:Helvetica,Arial,sans-serif;color:#0B3D2E">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4FAF5;padding:26px 12px"><tr><td align="center">
+<table role="presentation" width="536" cellpadding="0" cellspacing="0" style="max-width:536px;width:100%;background:#fff;border-radius:16px;border:1px solid #D9EBE0">
+<tr><td style="padding:30px 28px;text-align:center">
+  <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.26em;color:#15784F">SMARTKLIMAT · MOCKFJÄRDS</div>
+  <h1 style="font-size:24px;margin:14px 0 10px;color:#0B3D2E">Tack, ${esc(a.recipientName)}.</h1>
+  <p style="font-size:15px;line-height:1.6;color:#334E42;margin:0 0 6px">Dina <b>${n} träd</b> är planterade${a.locationName ? ` i ${esc(a.locationName)}` : ""} och ditt personliga värdebevis är nu utfärdat.</p>
+  <p style="font-size:13px;color:#6E9483;margin:0 0 20px">Verifierings-id: <b>${esc(a.verificationId)}</b></p>
+  <a href="${esc(a.verifyUrl)}" style="display:inline-block;background:#0B3D2E;color:#fff;text-decoration:none;padding:13px 28px;border-radius:24px;font-weight:bold;font-size:14px">Se ditt värdebevis</a>
+</td></tr></table>
+${legalFooter(a.revokeUrl)}
+</td></tr></table></body></html>`;
+  return { subject, html };
+}
+
 
 function updateMail(name: string, from: number, to: number, verifyUrl: string, revokeUrl: string) {
   const subject = `Dina ${from.toLocaleString("sv-SE")} träd har blivit ${to.toLocaleString("sv-SE")}`;
@@ -82,12 +161,51 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json(405, { ok: false, reason: "method_not_allowed" });
 
   const provided = req.headers.get("x-smartklimat-secret") ?? "";
-  if (!INBOUND_SECRET || !timingSafeEqual(provided, INBOUND_SECRET))
-    return json(401, { ok: false, reason: "unauthorized" });
+  const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const bySecret = !!INBOUND_SECRET && timingSafeEqual(provided, INBOUND_SECRET);
+  const bearerMatchesEnv = !!SERVICE_KEY && bearer.length > 0 && timingSafeEqual(bearer, SERVICE_KEY);
+
+  // Servernyckeln kan finnas i olika format (legacy JWT / sb_secret) mellan
+  // körmiljöerna, så en nyckel som inte är identisk verifieras mot admin-API:t.
+  async function isServiceRole(): Promise<boolean> {
+    if (bearerMatchesEnv) return true;
+    if (!bearer) return false;
+    try {
+      const probe = createClient(SUPABASE_URL, bearer, { auth: { persistSession: false } });
+      const { error } = await probe.auth.admin.listUsers({ page: 1, perPage: 1 });
+      return !error;
+    } catch { return false; }
+  }
+
+  if (!bySecret && !(await isServiceRole())) return json(401, { ok: false, reason: "unauthorized" });
 
   // deno-lint-ignore no-explicit-any
   let p: any;
   try { p = await req.json(); } catch { return json(400, { ok: false, reason: "invalid_json" }); }
+
+  // Bevismail-läge: endast service role-anrop (från hämtningsflödets serverfunktion).
+  if (String(p?.action ?? "") === "send_claim_mail") {
+    if (!(await isServiceRole())) return json(401, { ok: false, reason: "service_role_required" });
+
+    const to = String(p?.to ?? "").trim().toLowerCase();
+    const recipientName = String(p?.recipient_name ?? "").trim();
+    const verificationId = String(p?.verification_id ?? "").trim();
+    const revokeToken = String(p?.revoke_token ?? "").trim();
+    const trees = Math.floor(Number(p?.tree_count ?? 0));
+    if (!to || !recipientName || !verificationId || !revokeToken)
+      return json(400, { ok: false, reason: "missing_fields" });
+    const { subject, html } = certMail({
+      recipientName, treeCount: trees, verificationId,
+      verifyUrl: `${APP_PUBLIC_URL}/v/${verificationId}`,
+      revokeUrl: `${APP_PUBLIC_URL}/api/public/aterkalla?t=${revokeToken}`,
+      locationName: p?.location_name ? String(p.location_name) : null,
+    });
+    const sent = await sendEmail(to, subject, html);
+    console.log("[send_claim_mail] resultat", { to, verificationId, ...sent });
+    return json(sent.ok ? 200 : 502, { ok: sent.ok, ...sent, subject });
+  }
+
+
 
   // Persondata ignoreras helt — endast dessa fält läses.
   const caseId = String(p?.case_id ?? "").trim();

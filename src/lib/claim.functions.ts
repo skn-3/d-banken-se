@@ -100,7 +100,7 @@ export const claimCertificate = createServerFn({ method: "POST" })
       updated_at: new Date().toISOString(),
     }).eq("case_id", kase.case_id);
 
-    // Bevismail
+    // Bevismail — skickas via Resend-kopplingen från den verifierade avsändardomänen.
     const verifyUrl = `${APP_PUBLIC_URL}/v/${kase.verification_id}`;
     const revokeUrl = `${APP_PUBLIC_URL}/api/public/aterkalla?t=${kase.revoke_token}`;
     const { data: cert } = await supabaseAdmin
@@ -121,8 +121,11 @@ export const claimCertificate = createServerFn({ method: "POST" })
     } else {
       const { sendEmail } = await import("@/lib/email/resend.server");
       const res = await sendEmail({ to: email, subject, html });
-      if (!res.ok) console.error("[claim] bevismail misslyckades", res.error);
+      if (!res.ok) console.error("[claim] bevismail misslyckades", { status: res.status, body: res.body });
+      else console.log("[claim] bevismail skickat", { to: email, messageId: res.messageId });
     }
+
 
     return { status: "claimed" as const, verification_id: kase.verification_id, alreadyClaimed: false };
   });
+
