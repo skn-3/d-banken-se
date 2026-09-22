@@ -9,6 +9,8 @@ const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <bevis@sen
 const APP_PUBLIC_URL = "https://smartklimat.org";
 const PRICE_PER_TREE_ORE = 3500;
 const SOURCE = "mockfjards";
+// Aktiveras efter Johannes godkännande av mall och bevis
+const SEND_CUSTOMER_EMAIL = false;
 
 function timingSafeEqual(a: string, b: string): boolean {
   const enc = new TextEncoder();
@@ -161,8 +163,8 @@ Deno.serve(async (req) => {
     await db.from("certificates").update({ template_snapshot: newSnapshot }).eq("id", certId);
   }
 
-  // 5) Mail — endast om recipient_email finns
-  if (vid && recipientEmail) {
+  // 5) Mail — endast om recipient_email finns och SEND_CUSTOMER_EMAIL är på
+  if (SEND_CUSTOMER_EMAIL && vid && recipientEmail) {
     const dateText = new Date(pur.data.created_at).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
     const locationName = certLocation;
     const { subject, html } = renderThanksEmail({
