@@ -510,8 +510,10 @@ Deno.serve(async (req) => {
     const supp = await db.from("email_suppression").select("email").eq("email", kase.claim_email).maybeSingle();
     if (!supp.data) {
       const revokeUrl = `${APP_PUBLIC_URL}/api/public/aterkalla?t=${kase.revoke_token}`;
+      const certRow = await db.from("certificates").select("location_name").eq("id", kase.certificate_id).maybeSingle();
       const { subject, html } = updateMail(
         String(kase.claim_name ?? ""), prevTrees, newTotal, kase.verification_id, verifyUrl(kase.verification_id), revokeUrl,
+        (certRow.data?.location_name as string | null) ?? null,
       );
       await sendEmail(kase.claim_email, subject, html);
     }
