@@ -13,7 +13,7 @@ interface Falt {
   weight?: string; letterSpacing?: number; italic?: boolean;
   template?: string;
   // Discriminator: undefined/"field" = dynamic field, "static" = fast text, "logo" = bild
-  type?: "field" | "static" | "logo";
+  type?: "field" | "static" | "logo" | "line";
   text?: string;   // static
   url?: string;    // logo
   width?: number;  // logo (canvas-px)
@@ -188,6 +188,13 @@ async function drawLogo(ctx: CanvasRenderingContext2D, f: Falt, s: number) {
   } catch { /* noop */ }
 }
 
+function drawLine(ctx: CanvasRenderingContext2D, f: Falt, s: number) {
+  ctx.save();
+  ctx.fillStyle = f.color ?? "#DCBE6E";
+  ctx.fillRect(f.x * s, f.y * s, (f.width ?? 240) * s, Math.max(1, s));
+  ctx.restore();
+}
+
 export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, filename: string): Promise<void> {
   ensureFonts();
 
@@ -212,6 +219,10 @@ export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, 
   for (const [key, f] of Object.entries(karta.falt)) {
     if (f.type === "logo") {
       await drawLogo(ctx, f, s);
+      continue;
+    }
+    if (f.type === "line") {
+      drawLine(ctx, f, s);
       continue;
     }
     if (f.type === "static") {
