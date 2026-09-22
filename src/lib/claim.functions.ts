@@ -100,29 +100,35 @@ export const claimCertificate = createServerFn({ method: "POST" })
       updated_at: new Date().toISOString(),
     }).eq("case_id", kase.case_id);
 
-    // Bevismail
-    const verifyUrl = `${APP_PUBLIC_URL}/v/${kase.verification_id}`;
-    const revokeUrl = `${APP_PUBLIC_URL}/api/public/aterkalla?t=${kase.revoke_token}`;
+    // Bevismail — skickas via edge-funktionen inbound-mockfjards (service role),
+    // vars Resend-nyckel är verifierad för avsändardomänen i produktion.
     const { data: cert } = await supabaseAdmin
       .from("certificates").select("location_name").eq("id", kase.certificate_id).maybeSingle();
-    const { renderClaimCertEmail } = await import("@/lib/email/claim-mails.server");
-    const { subject, html } = renderClaimCertEmail({
-      recipientName: data.name,
-      treeCount: kase.total_trees ?? 0,
-      verificationId: kase.verification_id,
-      verifyUrl,
-      revokeUrl,
-      locationName: cert?.location_name ?? null,
-    });
-
-    // Testadresser (@example.com) skickas aldrig på riktigt.
-    if (email.endsWith("@example.com")) {
-      console.log("[claim] dry-run mail (testadress)", { to: email, subject });
-    } else {
-      const { sendEmail } = await import("@/lib/email/resend.server");
-      const res = await sendEmail({ to: email, subject, html });
-      if (!res.ok) console.error("[claim] bevismail misslyckades", res.error);
+    try {
+      const url = `${process.env.SUPABASE_URL}/functions/v1/inbound-mockfjards`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          action: "send_claim_mail",
+          to: email,
+          recipient_name: data.name,
+          tree_count: kase.total_trees ?? 0,
+          verification_id: kase.verification_id,
+          revoke_token: kase.revoke_token,
+          location_name: cert?.location_name ?? null,
+        }),
+      });
+      const body = await res.text();
+      if (!res.ok) console.error("[claim] bevismail misslyckades", { status: res.status, body });
+      else console.log("[claim] bevismail skickat", { to: email, body });
+    } catch (err) {
+      console.error("[claim] bevismail kastade fel", err);
     }
 
     return { status: "claimed" as const, verification_id: kase.verification_id, alreadyClaimed: false };
   });
+
