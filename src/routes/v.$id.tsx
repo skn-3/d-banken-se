@@ -54,39 +54,45 @@ function VerifyPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data: rows, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .rpc("get_certificate_public" as any, { p_verification_id: id } as any);
-      if (cancelled) return;
-      const row = Array.isArray(rows) ? rows[0] : rows;
-      if (error || !row) { setState("missing"); return; }
-      const r = row as Row;
-      setData({
-        verification_id: r.verification_id,
-        recipient_name: r.recipient_name,
-        tree_count: r.tree_count,
-        location_name: r.location_name,
-        latitude: r.latitude,
-        longitude: r.longitude,
-        issued_date: r.issued_date,
-        greeting: r.greeting,
-        template: snapshotToTemplate(r.template_snapshot),
-      });
-      setA4({
-        verification_id: r.verification_id,
-        recipient_name: r.recipient_name,
-        tree_count: r.tree_count,
-        location_name: r.location_name,
-        latitude: r.latitude,
-        longitude: r.longitude,
-        issued_date: r.issued_date,
-        greeting: r.greeting,
-        themeSlug: r.theme_slug,
-      });
-      setState("ok");
+      try {
+        const { data: rows, error } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .rpc("get_certificate_public" as any, { p_verification_id: id } as any);
+        if (cancelled) return;
+        const row = Array.isArray(rows) ? rows[0] : rows;
+        if (error || !row) { setState("missing"); return; }
+        const r = row as Row;
+        setData({
+          verification_id: r.verification_id,
+          recipient_name: r.recipient_name,
+          tree_count: r.tree_count,
+          location_name: r.location_name,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          issued_date: r.issued_date,
+          greeting: r.greeting,
+          template: snapshotToTemplate(r.template_snapshot),
+        });
+        setA4({
+          verification_id: r.verification_id,
+          recipient_name: r.recipient_name,
+          tree_count: r.tree_count,
+          location_name: r.location_name,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          issued_date: r.issued_date,
+          greeting: r.greeting,
+          themeSlug: r.theme_slug,
+        });
+        setState("ok");
+      } catch (err) {
+        console.error("[v/$id] kunde inte hämta värdebevis", err);
+        if (!cancelled) setState("missing");
+      }
     })();
     return () => { cancelled = true; };
   }, [id]);
+
 
   async function copyLink() {
     try {
