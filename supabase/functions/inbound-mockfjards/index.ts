@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
   // 5) Mail — endast om recipient_email finns
   if (vid && recipientEmail) {
     const dateText = new Date(pur.data.created_at).toLocaleDateString("sv-SE", { year: "numeric", month: "long", day: "numeric" });
-    const locationName = (gen.data as any)?.location_name ?? null;
+    const locationName = certLocation;
     const { subject, html } = renderThanksEmail({
       recipientName: customerName, treeCount, dateText,
       verificationId: vid, verifyUrl: verifyUrl(vid),
