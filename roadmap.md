@@ -20,3 +20,7 @@
 - [x] Sidfot med bolagsnamn, org.nr 559370-9453, [ADRESS], integritetspolicy och återkallelselänk.
 - [ ] Postadress saknas i kodbasen — ersätt platshållaren [ADRESS] när uppgiften finns.
 - [x] Integritetspolicyn beskriver den nya direktinsamlingen.
+
+## Premiumdesign för Mockfjärds bevismail
+- [x] Premiumlayout, mini-bevis, singular/plural och dold adressplatshållare i båda renderarna.
+- [ ] Visuell HTML-kontroll, dry-run av hämtningsflödet, driftsättning, publicering och skarp omsändning.

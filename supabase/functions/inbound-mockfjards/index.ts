@@ -94,10 +94,15 @@ async function sendEmail(to: string, subject: string, html: string) {
 }
 
 
+function addressRow(): string {
+  const address = COMPANY_ADDRESS.trim();
+  return address && address !== "[ADRESS]" ? `<div>${esc(address)}</div>` : "";
+}
+
 function legalFooter(revokeUrl: string): string {
   return `<div style="max-width:536px;margin:22px auto 0;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#6E9483;text-align:center">
   <div>${esc(COMPANY_NAME)} · Org.nr ${esc(COMPANY_ORGNR)}</div>
-  <div>${esc(COMPANY_ADDRESS)}</div>
+  ${addressRow()}
   <div style="margin-top:8px">
     <a href="https://smartklimat.org/integritet" style="color:#15784F;text-decoration:underline">Integritetspolicy</a>
     &nbsp;·&nbsp;
@@ -106,55 +111,68 @@ function legalFooter(revokeUrl: string): string {
 </div>`;
 }
 
+const GOLD_STAMP_URL = `${APP_PUBLIC_URL}/brand/logo-stamp-guld.png`;
+const MOCKFJARDS_BG_URL = `${APP_PUBLIC_URL}/certs/bg-mockfjards.jpg`;
+
+function miniCertificate(treeCount: number, verificationId: string): string {
+  const n = treeCount.toLocaleString("sv-SE");
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;margin:0 0 24px;background:#F3F0E6;border:1px solid #E4D7AA;border-radius:8px;overflow:hidden">
+  <tr><td background="${MOCKFJARDS_BG_URL}" bgcolor="#F3F0E6" style="background-color:#F3F0E6;background-image:url('${MOCKFJARDS_BG_URL}');background-position:center;background-size:cover;padding:30px 18px;text-align:center">
+    <div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.4;letter-spacing:3px;color:#577064">SMARTKLIMAT · MOCKFJÄRDS</div>
+    <div style="width:112px;height:1px;background:#DCBE6E;margin:14px auto 12px"></div>
+    <div style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.1;color:#0B3D2E;font-weight:bold">VÄRDEBEVIS</div>
+    <div style="font-family:Georgia,'Times New Roman',serif;font-size:58px;line-height:1;color:#0B3D2E;font-weight:bold;margin-top:14px">${n}</div>
+    <div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.4;letter-spacing:3px;color:#9B7B2F;margin-top:4px">TRÄD</div>
+    <div style="width:180px;height:1px;background:#DCBE6E;margin:16px auto 10px"></div>
+    <div style="font-family:'Courier New',Courier,monospace;font-size:9px;line-height:1.5;color:#466355">${esc(verificationId)}</div>
+  </td></tr></table>`;
+}
+
+function mailShell(inner: string, revokeUrl: string, title: string): string {
+  return `<!doctype html><html lang="sv"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" /><title>${esc(title)}</title></head>
+<body style="margin:0;padding:0;background:#F4FAF5;font-family:Helvetica,Arial,sans-serif;color:#0B3D2E">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#F4FAF5"><tr><td align="center" style="padding:34px 12px">
+  <table role="presentation" width="536" cellpadding="0" cellspacing="0" style="width:100%;max-width:536px;border-collapse:separate;background:#ffffff;border:1px solid #DCBE6E;border-radius:12px">
+    <tr><td align="center" style="padding:30px 28px 32px;text-align:center">
+      <img src="${GOLD_STAMP_URL}" width="72" height="72" alt="SmartKlimat" style="display:block;width:72px;height:72px;margin:0 auto 18px;object-fit:contain" />
+      ${inner}
+    </td></tr>
+  </table>
+  ${legalFooter(revokeUrl)}
+</td></tr></table></body></html>`;
+}
+
 // Bevismail — identisk mall och sidfot som src/lib/email/claim-mails.server.ts.
 function certMail(a: {
   recipientName: string; treeCount: number; verificationId: string;
   verifyUrl: string; revokeUrl: string; locationName?: string | null;
 }) {
   const n = a.treeCount.toLocaleString("sv-SE");
-  const subject = `${a.recipientName} — ditt värdebevis för ${n} träd`;
-  const html = `<!doctype html><html lang="sv"><head><meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" /><title>${esc(subject)}</title></head>
-<body style="margin:0;padding:0;background:#F4FAF5;font-family:Helvetica,Arial,sans-serif;color:#0B3D2E">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4FAF5;padding:26px 12px"><tr><td align="center">
-<table role="presentation" width="536" cellpadding="0" cellspacing="0" style="max-width:536px;width:100%;background:#fff;border-radius:16px;border:1px solid #D9EBE0">
-<tr><td style="padding:30px 28px;text-align:center">
-  <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.26em;color:#15784F">SMARTKLIMAT · MOCKFJÄRDS</div>
-  <h1 style="font-size:24px;margin:14px 0 10px;color:#0B3D2E">Tack, ${esc(a.recipientName)}.</h1>
-  <p style="font-size:15px;line-height:1.6;color:#334E42;margin:0 0 6px">Dina <b>${n} träd</b> är planterade${a.locationName ? ` i ${esc(a.locationName)}` : ""} och ditt personliga värdebevis är nu utfärdat.</p>
-  <p style="font-size:13px;color:#6E9483;margin:0 0 20px">Verifierings-id: <b>${esc(a.verificationId)}</b></p>
-  <a href="${esc(a.verifyUrl)}" style="display:inline-block;background:#0B3D2E;color:#fff;text-decoration:none;padding:13px 28px;border-radius:24px;font-weight:bold;font-size:14px">Se ditt värdebevis</a>
-</td></tr></table>
-${legalFooter(a.revokeUrl)}
-</td></tr></table></body></html>`;
-  return { subject, html };
+  const singular = a.treeCount === 1;
+  const subject = singular ? `${a.recipientName} — ditt värdebevis` : `${a.recipientName} — ditt värdebevis för ${n} träd`;
+  const planted = singular
+    ? `Ditt träd är planterat${a.locationName ? ` i ${esc(a.locationName)}` : ""}`
+    : `Dina <b>${n} träd</b> är planterade${a.locationName ? ` i ${esc(a.locationName)}` : ""}`;
+  const inner = `<div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.4;letter-spacing:3px;color:#15784F">SMARTKLIMAT · MOCKFJÄRDS</div>
+  <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.2;font-weight:normal;margin:15px 0 10px;color:#0B3D2E">Tack, ${esc(a.recipientName)}.</h1>
+  <p style="font-size:15px;line-height:1.65;color:#334E42;margin:0 0 24px">${planted} och ditt personliga värdebevis är nu utfärdat.</p>
+  ${miniCertificate(a.treeCount, a.verificationId)}
+  <a href="${esc(a.verifyUrl)}" style="display:inline-block;background:#0B3D2E;color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:24px;font-weight:bold;font-size:14px;line-height:1.2">Se ditt värdebevis</a>`;
+  return { subject, html: mailShell(inner, a.revokeUrl, subject) };
 }
 
 
-function updateMail(name: string, from: number, to: number, verifyUrl: string, revokeUrl: string) {
-  const subject = `Dina ${from.toLocaleString("sv-SE")} träd har blivit ${to.toLocaleString("sv-SE")}`;
-  const html = `<!doctype html><html lang="sv"><head><meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" /><title>${esc(subject)}</title></head>
-<body style="margin:0;padding:0;background:#F4FAF5;font-family:Helvetica,Arial,sans-serif;color:#0B3D2E">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4FAF5;padding:26px 12px"><tr><td align="center">
-<table role="presentation" width="536" cellpadding="0" cellspacing="0" style="max-width:536px;width:100%;background:#fff;border-radius:16px;border:1px solid #D9EBE0">
-<tr><td style="padding:30px 28px;text-align:center">
-  <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.26em;color:#15784F">SMARTKLIMAT · MOCKFJÄRDS</div>
-  <h1 style="font-size:24px;margin:14px 0 10px">Dina ${from.toLocaleString("sv-SE")} träd har blivit ${to.toLocaleString("sv-SE")}.</h1>
-  <p style="font-size:15px;line-height:1.6;color:#334E42;margin:0 0 20px">Hej ${esc(name)}! Fler träd har planterats i ditt namn och ditt värdebevis är uppdaterat.</p>
-  <a href="${verifyUrl}" style="display:inline-block;background:#0B3D2E;color:#fff;text-decoration:none;padding:13px 28px;border-radius:24px;font-weight:bold;font-size:14px">Se ditt uppdaterade bevis</a>
-</td></tr></table>
-<div style="max-width:536px;margin:22px auto 0;font-size:11.5px;line-height:1.6;color:#6E9483;text-align:center">
-  <div>${esc(COMPANY_NAME)} · Org.nr ${COMPANY_ORGNR}</div>
-  <div>${esc(COMPANY_ADDRESS)}</div>
-  <div style="margin-top:8px">
-    <a href="https://smartklimat.org/integritet" style="color:#15784F;text-decoration:underline">Integritetspolicy</a>
-    &nbsp;·&nbsp;
-    <a href="${revokeUrl}" style="color:#15784F;text-decoration:underline">Återkalla mitt samtycke</a>
-  </div>
-</div>
-</td></tr></table></body></html>`;
-  return { subject, html };
+function updateMail(name: string, fromCount: number, toCount: number, verificationId: string, verifyUrl: string, revokeUrl: string) {
+  const from = fromCount.toLocaleString("sv-SE");
+  const to = toCount.toLocaleString("sv-SE");
+  const subject = fromCount === 1 ? `Ditt träd har blivit ${to}` : `Dina ${from} träd har blivit ${to}`;
+  const inner = `<div style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.4;letter-spacing:3px;color:#15784F">SMARTKLIMAT · MOCKFJÄRDS</div>
+  <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.2;font-weight:normal;margin:15px 0 10px;color:#0B3D2E">${esc(subject)}.</h1>
+  <p style="font-size:15px;line-height:1.65;color:#334E42;margin:0 0 24px">Hej ${esc(name)}! Fler träd har planterats i ditt namn och ditt värdebevis är uppdaterat.</p>
+  ${miniCertificate(toCount, verificationId)}
+  <a href="${esc(verifyUrl)}" style="display:inline-block;background:#0B3D2E;color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:24px;font-weight:bold;font-size:14px;line-height:1.2">Se ditt uppdaterade bevis</a>`;
+  return { subject, html: mailShell(inner, revokeUrl, subject) };
 }
 
 Deno.serve(async (req) => {
@@ -315,7 +333,7 @@ Deno.serve(async (req) => {
     if (!supp.data) {
       const revokeUrl = `${APP_PUBLIC_URL}/api/public/aterkalla?t=${kase.revoke_token}`;
       const { subject, html } = updateMail(
-        String(kase.claim_name ?? ""), prevTrees, newTotal, verifyUrl(kase.verification_id), revokeUrl,
+        String(kase.claim_name ?? ""), prevTrees, newTotal, kase.verification_id, verifyUrl(kase.verification_id), revokeUrl,
       );
       await sendEmail(kase.claim_email, subject, html);
     }
