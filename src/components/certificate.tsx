@@ -162,12 +162,12 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
         <img src={t.bg_url || "/certs/bg-mockfjards.jpg"} alt="" crossOrigin="anonymous" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.02) 70%)" }} />
         <div style={{ position: "relative", zIndex: 1, minHeight: 980, padding: "44px 58px 40px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ width: "100%", display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
-            <div style={{ padding: "7px 12px", borderRadius: 10, background: "rgba(255,255,255,0.72)", boxShadow: "0 2px 14px rgba(11,61,46,0.08)" }}>
-              <img src={t.partner?.logo || "/brand/mockfjards-badge.png"} alt="Mockfjärds" crossOrigin="anonymous" style={{ display: "block", width: "auto", height: 60, objectFit: "contain" }} />
+          <div style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <div style={{ padding: 7, borderRadius: "50%", background: "rgba(255,255,255,0.72)", boxShadow: "0 2px 14px rgba(11,61,46,0.08)" }}>
+              <img src={t.partner?.logo || "/brand/mockfjards-badge.png"} alt="Mockfjärds" crossOrigin="anonymous" style={{ display: "block", width: 72, height: 72, objectFit: "contain" }} />
             </div>
           </div>
-          <div style={{ width: 190, height: 1, marginTop: 20, background: "#DCBE6E" }} />
+          <div style={{ width: 190, height: 1, marginTop: 8, background: "#DCBE6E" }} />
           <div style={{ marginTop: 22, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 48, lineHeight: 1, color: "#0B3D2E" }}>VÄRDEBEVIS</div>
           {data.recipient_name.trim() ? (
             <>

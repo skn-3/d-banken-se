@@ -4,6 +4,11 @@
 - [x] Mall, layout, brödtext, badge-platta och botteninfo i webb + PDF.
 - [x] Alla 89 befintliga bevis ombyggda, publicerat och live-verifierat.
 
+## Centrerat Mockfjärds-toppmärke (pågår)
+- [ ] Centrera och förstora partnerbadgen i webb och PDF utan att flytta övrigt innehåll.
+- [ ] Uppdatera Mockfjärds-mallen och befintliga Mockfjärds-bevis utan mejlutskick.
+- [ ] Verifiera två bevis lokalt och live i webb och PDF, samt publicera.
+
 ## Säkerhetshärdning (klart)
 - [x] greeting_blocklist: admin-only läsning, validering via security definer-RPC.
 - [x] point_events: icke-admin ser bara pågående kampanjer.
