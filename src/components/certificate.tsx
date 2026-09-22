@@ -27,6 +27,8 @@ export interface CertificateData {
   issued_date: string;
   greeting?: string | null;
   template: {
+    template_slug?: string | null;
+    bg_url?: string | null;
     logo_url?: string | null;
     accent_color: string;
     heading_text: string;
@@ -37,6 +39,7 @@ export interface CertificateData {
     social_handles: string;
     config: TemplateConfig;
     allows_greeting?: boolean;
+    partner?: { name?: string; logo?: string } | null;
   };
 }
 
@@ -143,6 +146,44 @@ interface Props {
 
 export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificate({ data, scale = 1 }, ref) {
   const { template: t, greeting } = data;
+  if (t.template_slug === "mockfjards") {
+    const coordinates = `${Number(data.latitude).toFixed(4)}, ${Number(data.longitude).toFixed(4)}`;
+    return (
+      <div
+        ref={ref}
+        style={{
+          width: 720, minHeight: 980, position: "relative", overflow: "hidden", borderRadius: 24,
+          border: "1px solid rgba(11,61,46,0.12)", boxShadow: "0 30px 80px -50px rgba(11,61,46,0.25)",
+          backgroundColor: "#FAF8F0", color: "#0B3D2E",
+          fontFamily: '"Familjen Grotesk", system-ui, sans-serif',
+          transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top left",
+        }}
+      >
+        <img src={t.bg_url || "/certs/bg-mockfjards.jpg"} alt="" crossOrigin="anonymous" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.02) 70%)" }} />
+        <div style={{ position: "relative", zIndex: 1, minHeight: 980, padding: "44px 58px 40px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <img src={t.partner?.logo || "/brand/mockfjards-badge.png"} alt="Mockfjärds" crossOrigin="anonymous" style={{ width: 142, height: 58, objectFit: "contain", objectPosition: "left center" }} />
+            <img src="/brand/logo-stamp-guld.png" alt="SmartKlimat" crossOrigin="anonymous" style={{ width: 74, height: 74, objectFit: "contain" }} />
+          </div>
+          <div style={{ width: 190, height: 1, marginTop: 20, background: "#DCBE6E" }} />
+          <div style={{ marginTop: 22, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 48, lineHeight: 1, color: "#0B3D2E" }}>VÄRDEBEVIS</div>
+          <div style={{ marginTop: 22, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.2em", color: "#6D806F" }}>DETTA BEVIS INTYGAR ATT</div>
+          <div style={{ marginTop: 16, maxWidth: 570, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 44, lineHeight: 1.05, color: "#0B3D2E" }}>{data.recipient_name}</div>
+          <div style={{ width: 310, height: 1, marginTop: 22, background: "#DCBE6E" }} />
+          <div style={{ marginTop: 18, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.2em", color: "#6D806F" }}>HAR LÅTIT PLANTERA</div>
+          <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 112, lineHeight: 0.9, color: "#0B3D2E" }}>{data.tree_count.toLocaleString("sv-SE")}</div>
+          <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 22, color: "#DCBE6E" }}>{data.tree_count === 1 ? "TRÄD" : "TRÄD"}</div>
+          {greeting && <div style={{ marginTop: 18, maxWidth: 480, fontSize: 14, fontStyle: "italic", lineHeight: 1.45, color: "#385749" }}>&ldquo;{greeting}&rdquo;</div>}
+          <div style={{ flex: 1 }} />
+          <div style={{ width: "100%", borderTop: "1px solid #DCBE6E", paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, lineHeight: 1.55, color: "#355447", textAlign: "left" }}>
+            <div><strong>UTFÄRDAT</strong><br />{fmtDate(data.issued_date)}<br />{data.location_name}</div>
+            <div style={{ textAlign: "right" }}><strong>{data.verification_id}</strong><br />{coordinates}<br />smartklimat.org/v/{data.verification_id}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const theme = resolveTheme(t);
   const cfg = t.config ?? {};
   const highlight = cfg.highlight ?? "trad_stort";
@@ -259,7 +300,12 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
 
 export function snapshotToTemplate(snapshot: Record<string, unknown>): CertificateData["template"] {
   const cfg = (snapshot.config as TemplateConfig) ?? {};
+  const partner = snapshot.partner && typeof snapshot.partner === "object"
+    ? snapshot.partner as { name?: string; logo?: string }
+    : null;
   return {
+    template_slug: (snapshot.template_slug as string) ?? null,
+    bg_url: (snapshot.bg_url as string) ?? null,
     logo_url: (snapshot.logo_url as string) ?? null,
     accent_color: (snapshot.accent_color as string) ?? "#1E9E6A",
     heading_text: (snapshot.heading_text as string) ?? "VÄRDEBEVIS",
@@ -270,5 +316,6 @@ export function snapshotToTemplate(snapshot: Record<string, unknown>): Certifica
     social_handles: (snapshot.social_handles as string) ?? "@smartklimat",
     config: cfg,
     allows_greeting: (snapshot.allows_greeting as boolean) ?? false,
+    partner,
   };
 }
