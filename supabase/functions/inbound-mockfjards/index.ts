@@ -65,7 +65,24 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (existing.data) {
     const cert = await db.from("certificates").select("verification_id").eq("purchase_id", existing.data.id).maybeSingle();
-    const vid = cert.data?.verification_id ?? null;
+    let vid = cert.data?.verification_id ?? null;
+    if (!vid) {
+      // Befintligt köp utan bevis: generera nu (aldrig mail på dublettvägen)
+      const gen = await db.rpc("generate_certificate", { _purchase_id: existing.data.id });
+      if (gen.error) return json(500, { ok: false, reason: "certificate_failed", detail: gen.error.message });
+      const row = Array.isArray(gen.data) ? (gen.data as any)[0] : (gen.data as any);
+      vid = row?.verification_id ?? null;
+      const certId = row?.id ?? null;
+      if (certId) {
+        const cur = await db.from("certificates").select("template_snapshot").eq("id", certId).maybeSingle();
+        await db.from("certificates").update({
+          template_snapshot: {
+            ...((cur.data?.template_snapshot as any) ?? {}),
+            partner: { name: "Mockfjärds Fönster", logo: "/brand/mockfjards-badge.png" },
+          },
+        }).eq("id", certId);
+      }
+    }
     return json(200, { ok: true, verification_id: vid, url: vid ? verifyUrl(vid) : null });
   }
 
