@@ -10,3 +10,5 @@
 - [x] Finjustera Mockfjärds webb- och PDF-layout enligt kundgranskningens fyra punkter.
 - [x] Uppdatera befintliga Mockfjärds-snapshots med partnerdata bevarad och utan mejl.
 - [x] Verifiera lokalt, publicera och verifiera webb samt PDF live.
+- [x] Gör plattan bakom Mockfjärds-badgen tajt i webb och kontrollera PDF.
+- [x] Verifiera lokalt, publicera och kontrollera webb samt PDF live.
