@@ -59,6 +59,10 @@ Deno.serve(async (req) => {
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const verifyUrl = (vid: string) => `${APP_PUBLIC_URL}/v/${vid}`;
+  const templateResult = await db.from("cert_templates").select("id").eq("slug", "mockfjards").eq("aktiv", true).maybeSingle();
+  if (templateResult.error || !templateResult.data)
+    return json(500, { ok: false, reason: "mockfjards_template_missing" });
+  const mockfjardsTemplateId = templateResult.data.id;
 
   // 1) Idempotens på (source, order_number)
   const existing = await db
@@ -117,6 +121,7 @@ Deno.serve(async (req) => {
     status: "paid", paid_at: new Date().toISOString(),
     registered_by_user_id: null, source: SOURCE, source_order_ref: orderNumber,
     source_seller: sellerName,
+    certificate_template_id: mockfjardsTemplateId,
   }).select("id, created_at").single();
 
   if (pur.error) {

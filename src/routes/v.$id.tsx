@@ -11,6 +11,7 @@ import { downloadFaltkartaCertPdf } from "@/lib/download-cert-faltkarta";
 const FALTKARTA_SLUGS = new Set([
   "fodelsedag","morsdag","farsdag","pask","jul",
   "sommar","semester","resa","hjartans","environment",
+  "mockfjards",
 ]);
 
 
@@ -62,6 +63,7 @@ function VerifyPage() {
         const row = Array.isArray(rows) ? rows[0] : rows;
         if (error || !row) { setState("missing"); return; }
         const r = row as Row;
+        const template = snapshotToTemplate(r.template_snapshot);
         setData({
           verification_id: r.verification_id,
           recipient_name: r.recipient_name,
@@ -71,7 +73,7 @@ function VerifyPage() {
           longitude: r.longitude,
           issued_date: r.issued_date,
           greeting: r.greeting,
-          template: snapshotToTemplate(r.template_snapshot),
+          template,
         });
         setA4({
           verification_id: r.verification_id,
@@ -82,7 +84,7 @@ function VerifyPage() {
           longitude: r.longitude,
           issued_date: r.issued_date,
           greeting: r.greeting,
-          themeSlug: r.theme_slug,
+          themeSlug: template.template_slug || r.theme_slug,
         });
         setState("ok");
       } catch (err) {
