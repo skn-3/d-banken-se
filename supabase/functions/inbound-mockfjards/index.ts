@@ -7,7 +7,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INBOUND_SECRET = Deno.env.get("SMARTKLIMAT_INBOUND_SECRET") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <bevis@send.smartklimat.org>";
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+// smartklimat.org är verifierad hos Resend; send.smartklimat.org har status "failed".
+const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "SmartKlimat <bevis@smartklimat.org>";
+
 const APP_PUBLIC_URL = "https://app.smartklimat.org";
 const PRICE_PER_TREE_ORE = 3500;
 const SOURCE = "mockfjards";
