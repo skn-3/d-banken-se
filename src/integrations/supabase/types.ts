@@ -555,6 +555,45 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_log: {
+        Row: {
+          action: string
+          case_id: string | null
+          claim_code: string
+          consent_certificate: boolean
+          consent_updates: boolean
+          created_at: string
+          email: string
+          id: string
+          name: string
+          text_version: string
+        }
+        Insert: {
+          action?: string
+          case_id?: string | null
+          claim_code: string
+          consent_certificate?: boolean
+          consent_updates?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          text_version: string
+        }
+        Update: {
+          action?: string
+          case_id?: string | null
+          claim_code?: string
+          consent_certificate?: boolean
+          consent_updates?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          text_version?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           account_user_id: string | null
@@ -758,6 +797,126 @@ export type Database = {
           reason?: string
           ref_id?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      mockfjards_cases: {
+        Row: {
+          case_id: string
+          certificate_id: string
+          claim_code: string
+          claim_email: string | null
+          claim_name: string | null
+          claimed_at: string | null
+          created_at: string
+          purchase_id: string
+          revoke_token: string
+          revoked_at: string | null
+          seller: string | null
+          total_trees: number
+          updated_at: string
+          updates_opt_in: boolean
+          verification_id: string
+        }
+        Insert: {
+          case_id: string
+          certificate_id: string
+          claim_code: string
+          claim_email?: string | null
+          claim_name?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          purchase_id: string
+          revoke_token: string
+          revoked_at?: string | null
+          seller?: string | null
+          total_trees?: number
+          updated_at?: string
+          updates_opt_in?: boolean
+          verification_id: string
+        }
+        Update: {
+          case_id?: string
+          certificate_id?: string
+          claim_code?: string
+          claim_email?: string | null
+          claim_name?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          purchase_id?: string
+          revoke_token?: string
+          revoked_at?: string | null
+          seller?: string | null
+          total_trees?: number
+          updated_at?: string
+          updates_opt_in?: boolean
+          verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mockfjards_cases_certificate_id_fkey"
+            columns: ["certificate_id"]
+            isOneToOne: false
+            referencedRelation: "admin_greetings_view"
+            referencedColumns: ["certificate_id"]
+          },
+          {
+            foreignKeyName: "mockfjards_cases_certificate_id_fkey"
+            columns: ["certificate_id"]
+            isOneToOne: false
+            referencedRelation: "certificates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mockfjards_cases_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "admin_greetings_view"
+            referencedColumns: ["purchase_id"]
+          },
+          {
+            foreignKeyName: "mockfjards_cases_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mockfjards_cases_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "register_rader"
+            referencedColumns: ["purchase_id"]
+          },
+        ]
+      }
+      mockfjards_events: {
+        Row: {
+          case_id: string
+          created_at: string
+          event_ref: string
+          event_type: string
+          id: string
+          seller: string | null
+          tree_count: number
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          event_ref: string
+          event_type: string
+          id?: string
+          seller?: string | null
+          tree_count: number
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          event_ref?: string
+          event_type?: string
+          id?: string
+          seller?: string | null
+          tree_count?: number
         }
         Relationships: []
       }
@@ -1998,6 +2157,7 @@ export type Database = {
         }
         Returns: string
       }
+      check_greeting_allowed: { Args: { _text: string }; Returns: Json }
       claim_deal: {
         Args: { _deal_id: string }
         Returns: {

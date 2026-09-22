@@ -8,6 +8,13 @@
       "when": 1790071578828,
       "tag": "0000_fix_generate_certificate_ambiguous_id",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790080637232,
+      "tag": "0001_security_hardening_and_mockfjards_claim_flow",
+      "breakpoints": true
     }
   ]
 }
