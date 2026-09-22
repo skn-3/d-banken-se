@@ -49,21 +49,47 @@ async function sendEmail(to: string, subject: string, html: string) {
     return { ok: false, dryRun: false, messageId: null, status: null, body: "resend_api_key_missing" };
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${RESEND_API_KEY}` },
-    body: JSON.stringify({ from: RESEND_FROM, to, subject, html }),
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    console.error("Resend fail", { to, from: RESEND_FROM, subject, status: res.status, body: text });
-    return { ok: false, dryRun: false, messageId: null, status: res.status, body: text };
+  const payload = JSON.stringify({ from: RESEND_FROM, to, subject, html });
+  // RESEND_API_KEY är en kopplingsnyckel: mailen går via Lovables Resend-gateway.
+  // Direktanropet mot api.resend.com finns kvar som reserv.
+  const attempts: Array<{ label: string; url: string; headers: Record<string, string> }> = [];
+  if (LOVABLE_API_KEY) {
+    attempts.push({
+      label: "gateway",
+      url: "https://connector-gateway.lovable.dev/resend/emails",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-connection-api-key": RESEND_API_KEY,
+      },
+    });
   }
-  let messageId: string | null = null;
-  try { messageId = (JSON.parse(text) as { id?: string }).id ?? null; } catch { /* ignore */ }
-  console.log("Resend ok", { to, from: RESEND_FROM, subject, messageId, body: text });
-  return { ok: true, dryRun: false, messageId, status: res.status, body: text };
+  attempts.push({
+    label: "direct",
+    url: "https://api.resend.com/emails",
+    headers: { "content-type": "application/json", authorization: `Bearer ${RESEND_API_KEY}` },
+  });
+
+  let last = { ok: false, dryRun: false, messageId: null as string | null, status: null as number | null, body: null as string | null };
+  for (const attempt of attempts) {
+    const res = await fetch(attempt.url, { method: "POST", headers: attempt.headers, body: payload });
+    const text = await res.text();
+    if (!res.ok) {
+      console.error("Resend fail", { via: attempt.label, to, from: RESEND_FROM, subject, status: res.status, body: text });
+      last = { ok: false, dryRun: false, messageId: null, status: res.status, body: text };
+      continue;
+    }
+    let messageId: string | null = null;
+    try {
+      const parsed = JSON.parse(text) as { id?: string; data?: { id?: string } };
+      messageId = parsed.id ?? parsed.data?.id ?? null;
+    } catch { /* ignore */ }
+    console.log("Resend ok", { via: attempt.label, to, from: RESEND_FROM, subject, messageId, body: text });
+    return { ok: true, dryRun: false, messageId, status: res.status, body: text };
+  }
+  return last;
 }
+
 
 function legalFooter(revokeUrl: string): string {
   return `<div style="max-width:536px;margin:22px auto 0;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#6E9483;text-align:center">
