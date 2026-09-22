@@ -23,4 +23,4 @@
 
 ## Premiumdesign för Mockfjärds bevismail
 - [x] Premiumlayout, mini-bevis, singular/plural och dold adressplatshållare i båda renderarna.
-- [ ] Visuell HTML-kontroll, dry-run av hämtningsflödet, driftsättning, publicering och skarp omsändning.
+- [x] Visuell HTML-kontroll, dry-run av hämtningsflödet, driftsättning, publicering och skarp omsändning.
