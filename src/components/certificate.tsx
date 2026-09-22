@@ -175,7 +175,7 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 112, lineHeight: 0.9, color: "#0B3D2E" }}>{data.tree_count.toLocaleString("sv-SE")}</div>
           <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 22, color: "#DCBE6E" }}>{data.tree_count === 1 ? "TRÄD" : "TRÄD"}</div>
           {greeting && <div style={{ marginTop: 18, maxWidth: 480, fontSize: 14, fontStyle: "italic", lineHeight: 1.45, color: "#385749" }}>&ldquo;{greeting}&rdquo;</div>}
-          {t.body_text && <p style={{ margin: "18px auto 0", maxWidth: 570, fontSize: 12, lineHeight: 1.45, color: "#385749", textAlign: "center" }}>{t.body_text}</p>}
+          {t.body_text && <p style={{ margin: "18px auto 0", maxWidth: 570, fontSize: 13, lineHeight: 1.45, color: "#385749", textAlign: "center" }}>{t.body_text}</p>}
           <div style={{ flex: 1 }} />
           <div style={{ width: "100%", borderTop: "1px solid #DCBE6E", paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, lineHeight: 1.55, color: "#355447", textAlign: "left" }}>
             <div><strong>UTFÄRDAT</strong><br />{fmtDate(data.issued_date)}<br />{data.location_name}</div>
