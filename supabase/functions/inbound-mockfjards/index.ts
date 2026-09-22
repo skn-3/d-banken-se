@@ -134,8 +134,21 @@ Deno.serve(async (req) => {
   const provided = req.headers.get("x-smartklimat-secret") ?? "";
   const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
   const bySecret = !!INBOUND_SECRET && timingSafeEqual(provided, INBOUND_SECRET);
-  const byServiceRole = !!SERVICE_KEY && timingSafeEqual(bearer, SERVICE_KEY);
-  if (!bySecret && !byServiceRole) return json(401, { ok: false, reason: "unauthorized" });
+  const bearerMatchesEnv = !!SERVICE_KEY && bearer.length > 0 && timingSafeEqual(bearer, SERVICE_KEY);
+
+  // Servernyckeln kan finnas i olika format (legacy JWT / sb_secret) mellan
+  // körmiljöerna, så en nyckel som inte är identisk verifieras mot admin-API:t.
+  async function isServiceRole(): Promise<boolean> {
+    if (bearerMatchesEnv) return true;
+    if (!bearer) return false;
+    try {
+      const probe = createClient(SUPABASE_URL, bearer, { auth: { persistSession: false } });
+      const { error } = await probe.auth.admin.listUsers({ page: 1, perPage: 1 });
+      return !error;
+    } catch { return false; }
+  }
+
+  if (!bySecret && !(await isServiceRole())) return json(401, { ok: false, reason: "unauthorized" });
 
   // deno-lint-ignore no-explicit-any
   let p: any;
@@ -143,7 +156,8 @@ Deno.serve(async (req) => {
 
   // Bevismail-läge: endast service role-anrop (från hämtningsflödets serverfunktion).
   if (String(p?.action ?? "") === "send_claim_mail") {
-    if (!byServiceRole) return json(401, { ok: false, reason: "service_role_required" });
+    if (!(await isServiceRole())) return json(401, { ok: false, reason: "service_role_required" });
+
     const to = String(p?.to ?? "").trim().toLowerCase();
     const recipientName = String(p?.recipient_name ?? "").trim();
     const verificationId = String(p?.verification_id ?? "").trim();
