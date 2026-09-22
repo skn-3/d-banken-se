@@ -169,9 +169,14 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           </div>
           <div style={{ width: 190, height: 1, marginTop: 20, background: "#DCBE6E" }} />
           <div style={{ marginTop: 22, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 48, lineHeight: 1, color: "#0B3D2E" }}>VÄRDEBEVIS</div>
-          <div style={{ marginTop: 22, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.2em", color: "#6D806F" }}>DETTA BEVIS INTYGAR ATT</div>
-          <div style={{ marginTop: 16, maxWidth: 570, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 44, lineHeight: 1.05, color: "#0B3D2E" }}>{data.recipient_name}</div>
+          {data.recipient_name.trim() ? (
+            <>
+              <div style={{ marginTop: 22, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.2em", color: "#6D806F" }}>DETTA BEVIS INTYGAR ATT</div>
+              <div style={{ marginTop: 16, maxWidth: 570, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 44, lineHeight: 1.05, color: "#0B3D2E" }}>{data.recipient_name}</div>
+            </>
+          ) : null}
           <div style={{ width: 310, height: 1, marginTop: 22, background: "#DCBE6E" }} />
+
           <div style={{ marginTop: 18, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.2em", color: "#6D806F" }}>HAR LÅTIT PLANTERA</div>
           <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 112, lineHeight: 0.9, color: "#0B3D2E" }}>{data.tree_count.toLocaleString("sv-SE")}</div>
           <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 22, color: "#DCBE6E" }}>{data.tree_count === 1 ? "TRÄD" : "TRÄD"}</div>

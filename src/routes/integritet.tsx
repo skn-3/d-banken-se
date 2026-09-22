@@ -22,7 +22,38 @@ function IntegritetPage() {
 
         <div className="mt-6 space-y-6 text-sm leading-relaxed" style={{ color: "var(--forest)" }}>
           <section>
-            <h2 className="font-display text-lg font-semibold">Vilka uppgifter samlar vi in?</h2>
+            <h2 className="font-display text-lg font-semibold">Personuppgiftsansvarig</h2>
+            <p className="mt-2">
+              SmartKlimatKompensera på Tellus AB (SmartKlimat), org.nr 559370-9453, är
+              personuppgiftsansvarig för behandlingen som beskrivs här. Kontakt:{" "}
+              <a href="mailto:hej@smartklimat.org" className="underline">hej@smartklimat.org</a>.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold">När du hämtar ditt värdebevis</h2>
+            <p className="mt-2">
+              Får du en QR-kod eller länk i ett kundmöte är dina träd redan planterade,
+              och beviset är anonymt fram till dess att du själv hämtar det. Vi samlar in
+              uppgifterna direkt från dig på hämtningssidan — ingen samarbetspartner skickar
+              ditt namn eller din e-post till oss.
+            </p>
+            <ul className="mt-3 list-disc space-y-1 pl-5">
+              <li><b>Uppgifter:</b> ditt namn, din e-postadress och en samtyckeslogg (tidsstämpel, vilken text du godkände, hämtningskoden och vilka rutor du kryssade).</li>
+              <li><b>Ändamål:</b> utfärda ditt personliga värdebevis, mejla det till dig och — om du valde det — skicka uppdateringar om trädens utveckling.</li>
+              <li><b>Laglig grund:</b> ditt samtycke.</li>
+              <li><b>Lagringstid:</b> så länge värdebeviset är personligt. Återkallar du samtycket tas namn och e-post bort omgående och beviset blir anonymt igen. Samtyckesloggen sparas i 24 månader som bevis på att samtycke lämnats och återkallats.</li>
+            </ul>
+            <p className="mt-3">
+              Du har rätt att begära utdrag, rättelse, radering, begränsning och invändning,
+              samt att återkalla ditt samtycke när som helst — via länken längst ned i våra
+              mail eller genom att mejla oss. Du kan också vända dig till
+              Integritetsskyddsmyndigheten med klagomål.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold">Vilka uppgifter samlar vi in i övrigt?</h2>
             <p className="mt-2">
               För att kunna använda SmartKlimat lagrar vi förnamn, e-post och profilbild.
               Säljares lag och roll lagras för att räkna träd och poäng. Kunders förnamn och
@@ -32,6 +63,7 @@ function IntegritetPage() {
             </p>
 
           </section>
+
 
           <section>
             <h2 className="font-display text-lg font-semibold">Vad delas publikt?</h2>

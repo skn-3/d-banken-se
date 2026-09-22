@@ -113,14 +113,17 @@ export const adminDeleteTemplate = createServerFn({ method: "POST" })
 export const moderateGreeting = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ text: z.string().trim().max(120) }).parse(i))
   .handler(async ({ data }) => {
+    // Listan med spärrade ord är admin-only i RLS; valideringen sker i en
+    // security definer-RPC så vanliga användare aldrig kan läsa listan.
     const s = publicClient();
-    const { data: rows, error } = await s.from("greeting_blocklist").select("word");
-    if (error) return { ok: true }; // fail-open on read
-    const lower = data.text.toLowerCase();
-    const hit = (rows ?? []).find((r) => r.word && lower.includes(r.word.toLowerCase()));
-    if (hit) return { ok: false as const, reason: `Innehåller olämpligt ord.` };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: res, error } = await (s as any).rpc("check_greeting_allowed", { _text: data.text });
+    if (error) return { ok: true }; // fail-open
+    const r = (res ?? {}) as { ok?: boolean; reason?: string };
+    if (r.ok === false) return { ok: false as const, reason: r.reason ?? "Innehåller olämpligt ord." };
     return { ok: true as const };
   });
+
 
 // Admin: greetings feed
 export const adminListGreetings = createServerFn({ method: "GET" })
