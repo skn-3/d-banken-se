@@ -132,12 +132,37 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json(405, { ok: false, reason: "method_not_allowed" });
 
   const provided = req.headers.get("x-smartklimat-secret") ?? "";
-  if (!INBOUND_SECRET || !timingSafeEqual(provided, INBOUND_SECRET))
-    return json(401, { ok: false, reason: "unauthorized" });
+  const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const bySecret = !!INBOUND_SECRET && timingSafeEqual(provided, INBOUND_SECRET);
+  const byServiceRole = !!SERVICE_KEY && timingSafeEqual(bearer, SERVICE_KEY);
+  if (!bySecret && !byServiceRole) return json(401, { ok: false, reason: "unauthorized" });
 
   // deno-lint-ignore no-explicit-any
   let p: any;
   try { p = await req.json(); } catch { return json(400, { ok: false, reason: "invalid_json" }); }
+
+  // Bevismail-läge: endast service role-anrop (från hämtningsflödets serverfunktion).
+  if (String(p?.action ?? "") === "send_claim_mail") {
+    if (!byServiceRole) return json(401, { ok: false, reason: "service_role_required" });
+    const to = String(p?.to ?? "").trim().toLowerCase();
+    const recipientName = String(p?.recipient_name ?? "").trim();
+    const verificationId = String(p?.verification_id ?? "").trim();
+    const revokeToken = String(p?.revoke_token ?? "").trim();
+    const trees = Math.floor(Number(p?.tree_count ?? 0));
+    if (!to || !recipientName || !verificationId || !revokeToken)
+      return json(400, { ok: false, reason: "missing_fields" });
+    const { subject, html } = certMail({
+      recipientName, treeCount: trees, verificationId,
+      verifyUrl: `${APP_PUBLIC_URL}/v/${verificationId}`,
+      revokeUrl: `${APP_PUBLIC_URL}/api/public/aterkalla?t=${revokeToken}`,
+      locationName: p?.location_name ? String(p.location_name) : null,
+    });
+    const sent = await sendEmail(to, subject, html);
+    console.log("[send_claim_mail] resultat", { to, verificationId, ...sent });
+    return json(sent.ok ? 200 : 502, { ok: sent.ok, ...sent, subject });
+  }
+
+
 
   // Persondata ignoreras helt — endast dessa fält läses.
   const caseId = String(p?.case_id ?? "").trim();
