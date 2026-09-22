@@ -5,3 +5,5 @@
 - [x] Re-skinna alla befintliga Mockfjärds-bevis via SQL med partner-objekt bevarat och utan mail.
 - [x] Verifiera webbvisning och PDF för SK-2026-ACEBF9 med skärmdumpar.
 - [x] Publicera och verifiera på app.smartklimat.org.
+- [ ] Återställ Mockfjärds brödtext i mall, befintliga bevis, webb och PDF.
+- [ ] Verifiera lokalt och live med skärmdumpar av webb och PDF.

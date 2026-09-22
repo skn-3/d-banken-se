@@ -13,15 +13,19 @@ interface Falt {
   weight?: string; letterSpacing?: number; italic?: boolean;
   template?: string;
   // Discriminator: undefined/"field" = dynamic field, "static" = fast text, "logo" = bild
-  type?: "field" | "static" | "logo" | "line";
+  type?: "field" | "static" | "logo" | "line" | "body";
   text?: string;   // static
   url?: string;    // logo
   width?: number;  // logo (canvas-px)
+  maxWidth?: number;
+  lineHeight?: number;
+  maxLines?: number;
 }
 interface Karta {
   bg: string;
   canvas: { w: number; h: number };
   falt: Record<string, Falt>;
+  bodyText?: string;
 }
 type Faltkartor = Record<string, Karta>;
 
@@ -56,7 +60,7 @@ async function loadKartaFromDb(slug: string): Promise<Karta | null> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("cert_templates")
-      .select("bg_url, falt, canvas, aktiv")
+      .select("bg_url, falt, canvas, aktiv, body_text")
       .eq("slug", slug)
       .eq("aktiv", true)
       .maybeSingle();
@@ -65,6 +69,7 @@ async function loadKartaFromDb(slug: string): Promise<Karta | null> {
       bg: data.bg_url,
       canvas: data.canvas ?? { w: 1240, h: 1754 },
       falt: data.falt ?? {},
+      bodyText: data.body_text ?? "",
     };
     dbCache.set(slug, karta);
     return karta;
@@ -195,6 +200,38 @@ function drawLine(ctx: CanvasRenderingContext2D, f: Falt, s: number) {
   ctx.restore();
 }
 
+function drawBodyText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: number) {
+  ctx.save();
+  ctx.font = buildFontString(f, s);
+  ctx.fillStyle = f.color ?? "#385749";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+
+  const words = text.trim().split(/\s+/);
+  const maxWidth = (f.maxWidth ?? 760) * s;
+  const maxLines = f.maxLines ?? 3;
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && ctx.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+
+  const visibleLines = lines.slice(0, maxLines);
+  if (lines.length > maxLines && visibleLines.length > 0) {
+    visibleLines[maxLines - 1] = `${visibleLines[maxLines - 1].replace(/[.…]*$/, "")}…`;
+  }
+  const lineHeight = (f.lineHeight ?? ((f.size ?? 24) * 1.35)) * s;
+  visibleLines.forEach((row, index) => ctx.fillText(row, f.x * s, (f.y * s) + (index * lineHeight)));
+  ctx.restore();
+}
+
 export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, filename: string): Promise<void> {
   ensureFonts();
 
@@ -223,6 +260,10 @@ export async function renderFaltkartaCertPdf(karta: Karta, data: FaltkartaData, 
     }
     if (f.type === "line") {
       drawLine(ctx, f, s);
+      continue;
+    }
+    if (f.type === "body") {
+      if (karta.bodyText) drawBodyText(ctx, karta.bodyText, f, s);
       continue;
     }
     if (f.type === "static") {
