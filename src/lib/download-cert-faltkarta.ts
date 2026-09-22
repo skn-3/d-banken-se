@@ -17,6 +17,9 @@ interface Falt {
   text?: string;   // static
   url?: string;    // logo
   width?: number;  // logo (canvas-px)
+  plate?: boolean;
+  platePadding?: number;
+  plateRadius?: number;
   maxWidth?: number;
   lineHeight?: number;
   maxLines?: number;
@@ -189,6 +192,20 @@ async function drawLogo(ctx: CanvasRenderingContext2D, f: Falt, s: number) {
     const img = await loadImage(f.url);
     const w = (f.width ?? 200) * s;
     const h = img.naturalHeight > 0 ? (w * img.naturalHeight) / img.naturalWidth : w;
+    if (f.plate) {
+      const padding = (f.platePadding ?? 18) * s;
+      const radius = (f.plateRadius ?? 16) * s;
+      const x = (f.x * s) - padding;
+      const y = (f.y * s) - padding;
+      const plateW = w + (padding * 2);
+      const plateH = h + (padding * 2);
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.beginPath();
+      ctx.roundRect(x, y, plateW, plateH, radius);
+      ctx.fill();
+      ctx.restore();
+    }
     ctx.drawImage(img, f.x * s, f.y * s, w, h);
   } catch { /* noop */ }
 }
@@ -208,8 +225,8 @@ function drawBodyText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: n
   ctx.textBaseline = "alphabetic";
 
   const words = text.trim().split(/\s+/);
-  const maxWidth = (f.maxWidth ?? 760) * s;
-  const maxLines = f.maxLines ?? 3;
+  const maxWidth = (f.maxWidth ?? 640) * s;
+  const maxLines = f.maxLines ?? 4;
   const lines: string[] = [];
   let line = "";
   for (const word of words) {
@@ -224,9 +241,6 @@ function drawBodyText(ctx: CanvasRenderingContext2D, text: string, f: Falt, s: n
   if (line) lines.push(line);
 
   const visibleLines = lines.slice(0, maxLines);
-  if (lines.length > maxLines && visibleLines.length > 0) {
-    visibleLines[maxLines - 1] = `${visibleLines[maxLines - 1].replace(/[.…]*$/, "")}…`;
-  }
   const lineHeight = (f.lineHeight ?? ((f.size ?? 24) * 1.35)) * s;
   visibleLines.forEach((row, index) => ctx.fillText(row, f.x * s, (f.y * s) + (index * lineHeight)));
   ctx.restore();

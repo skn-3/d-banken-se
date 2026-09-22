@@ -162,9 +162,10 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
         <img src={t.bg_url || "/certs/bg-mockfjards.jpg"} alt="" crossOrigin="anonymous" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.02) 70%)" }} />
         <div style={{ position: "relative", zIndex: 1, minHeight: 980, padding: "44px 58px 40px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <img src={t.partner?.logo || "/brand/mockfjards-badge.png"} alt="Mockfjärds" crossOrigin="anonymous" style={{ width: 142, height: 58, objectFit: "contain", objectPosition: "left center" }} />
-            <img src="/brand/logo-stamp-guld.png" alt="SmartKlimat" crossOrigin="anonymous" style={{ width: 74, height: 74, objectFit: "contain" }} />
+          <div style={{ width: "100%", display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+            <div style={{ padding: "7px 12px", borderRadius: 10, background: "rgba(255,255,255,0.72)", boxShadow: "0 2px 14px rgba(11,61,46,0.08)" }}>
+              <img src={t.partner?.logo || "/brand/mockfjards-badge.png"} alt="Mockfjärds" crossOrigin="anonymous" style={{ display: "block", width: 142, height: 58, objectFit: "contain", objectPosition: "left center" }} />
+            </div>
           </div>
           <div style={{ width: 190, height: 1, marginTop: 20, background: "#DCBE6E" }} />
           <div style={{ marginTop: 22, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 48, lineHeight: 1, color: "#0B3D2E" }}>VÄRDEBEVIS</div>
@@ -175,12 +176,16 @@ export const Certificate = forwardRef<HTMLDivElement, Props>(function Certificat
           <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 112, lineHeight: 0.9, color: "#0B3D2E" }}>{data.tree_count.toLocaleString("sv-SE")}</div>
           <div style={{ marginTop: 8, fontFamily: '"Bricolage Grotesque", serif', fontWeight: 700, fontSize: 22, color: "#DCBE6E" }}>{data.tree_count === 1 ? "TRÄD" : "TRÄD"}</div>
           {greeting && <div style={{ marginTop: 18, maxWidth: 480, fontSize: 14, fontStyle: "italic", lineHeight: 1.45, color: "#385749" }}>&ldquo;{greeting}&rdquo;</div>}
-          {t.body_text && <p style={{ margin: "18px auto 0", maxWidth: 570, fontSize: 13, lineHeight: 1.45, color: "#385749", textAlign: "center" }}>{t.body_text}</p>}
-          <div style={{ flex: 1 }} />
-          <div style={{ width: "100%", borderTop: "1px solid #DCBE6E", paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, lineHeight: 1.55, color: "#355447", textAlign: "left" }}>
-            <div><strong>UTFÄRDAT</strong><br />{fmtDate(data.issued_date)}<br />{data.location_name}</div>
-            <div style={{ textAlign: "right" }}><strong>{data.verification_id}</strong><br />{coordinates}<br />smartklimat.org/v/{data.verification_id}</div>
+          {t.body_text && <p style={{ margin: "18px auto 0", maxWidth: 440, fontSize: 13, lineHeight: 1.45, color: "#385749", textAlign: "center" }}>{t.body_text}</p>}
+          <div style={{ width: 440, borderTop: "1px solid #DCBE6E", marginTop: 18, paddingTop: 12, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, lineHeight: 1.5, color: "#355447", textAlign: "center" }}>
+            <div>{data.location_name}</div>
+            <div>{coordinates}</div>
+            <div>{fmtDate(data.issued_date)}</div>
+            <div style={{ marginTop: 2, fontWeight: 700 }}>{data.verification_id}</div>
+            <div>smartklimat.org/v/{data.verification_id}</div>
           </div>
+          <img src="/brand/logo-stamp-guld.png" alt="SmartKlimat" crossOrigin="anonymous" style={{ width: 82, height: 82, marginTop: 12, objectFit: "contain", filter: "drop-shadow(0 3px 8px rgba(151,110,25,0.18))" }} />
+          <div style={{ flex: 1 }} />
         </div>
       </div>
     );
