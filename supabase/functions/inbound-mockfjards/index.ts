@@ -145,14 +145,17 @@ Deno.serve(async (req) => {
   // 4) Generera värdebevis
   const gen = await db.rpc("generate_certificate", { _purchase_id: pur.data.id });
   if (gen.error) return json(500, { ok: false, reason: "certificate_failed", detail: gen.error.message });
-  const vid = (gen.data as any)?.verification_id ?? null;
-  const certId = (gen.data as any)?.id ?? null;
+  const genRow = Array.isArray(gen.data) ? (gen.data as any)[0] : (gen.data as any);
+  const vid = genRow?.verification_id ?? null;
+  const certId = genRow?.id ?? null;
+  let certLocation: string | null = null;
 
   // 4b) Lägg partner-info i template_snapshot
   if (certId) {
-    const currentSnapshot = (gen.data as any)?.template_snapshot ?? {};
+    const cur = await db.from("certificates").select("template_snapshot, location_name").eq("id", certId).maybeSingle();
+    certLocation = (cur.data as any)?.location_name ?? null;
     const newSnapshot = {
-      ...currentSnapshot,
+      ...(((cur.data as any)?.template_snapshot) ?? {}),
       partner: { name: "Mockfjärds Fönster", logo: "/brand/mockfjards-badge.png" },
     };
     await db.from("certificates").update({ template_snapshot: newSnapshot }).eq("id", certId);
