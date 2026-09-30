@@ -69,14 +69,26 @@ export const claimCertificate = createServerFn({ method: "POST" })
       customerId = ins.data?.id ?? null;
     }
 
+    // Mottagaren har tagit emot träden: alla väntande händelser blir 'claimed' och räknas först nu.
+    const claimedAtIso = new Date().toISOString();
+    await supabaseAdmin.from("mockfjards_events")
+      .update({ status: "claimed", claimed_at: claimedAtIso })
+      .eq("case_id", kase.case_id).eq("status", "pending");
+    const totalTrees = kase.total_trees ?? 0;
+
+    const { data: purRow } = await supabaseAdmin.from("purchases")
+      .select("status").eq("id", kase.purchase_id).maybeSingle();
     await supabaseAdmin.from("purchases").update({
       recipient_name: data.name,
       recipient_email: email,
       ...(customerId ? { customer_id: customerId } : {}),
+      ...(totalTrees > 0 ? { tree_count: totalTrees, total_amount_ore: totalTrees * 2500 } : {}),
+      ...(purRow?.status === "pending" ? { status: "paid", paid_at: claimedAtIso } : {}),
     }).eq("id", kase.purchase_id);
 
     await supabaseAdmin.from("certificates").update({
       recipient_name: data.name,
+      ...(totalTrees > 0 ? { tree_count: totalTrees } : {}),
       ...(customerId ? { customer_id: customerId } : {}),
     }).eq("id", kase.certificate_id);
 
