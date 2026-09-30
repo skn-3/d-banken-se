@@ -77,12 +77,12 @@ export const claimCertificate = createServerFn({ method: "POST" })
     const totalTrees = kase.total_trees ?? 0;
 
     const { data: purRow } = await supabaseAdmin.from("purchases")
-      .select("status").eq("id", kase.purchase_id).maybeSingle();
+      .select("status, unit_price_ore").eq("id", kase.purchase_id).maybeSingle();
     await supabaseAdmin.from("purchases").update({
       recipient_name: data.name,
       recipient_email: email,
       ...(customerId ? { customer_id: customerId } : {}),
-      ...(totalTrees > 0 ? { tree_count: totalTrees, total_amount_ore: totalTrees * 2500 } : {}),
+      ...(totalTrees > 0 ? { tree_count: totalTrees, total_amount_ore: totalTrees * (purRow?.unit_price_ore ?? 0) } : {}),
       ...(purRow?.status === "pending" ? { status: "paid", paid_at: claimedAtIso } : {}),
     }).eq("id", kase.purchase_id);
 
