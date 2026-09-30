@@ -7,9 +7,9 @@ export const Route = createFileRoute("/h/$code")({
   head: ({ params }) => ({
     meta: [
       { title: "Hämta ditt värdebevis — SmartKlimat" },
-      { name: "description", content: "Dina träd är redan planterade. Hämta ditt personliga värdebevis från SmartKlimat." },
+      { name: "description", content: "Bekräfta dina träd och hämta ditt personliga värdebevis från SmartKlimat." },
       { property: "og:title", content: "Hämta ditt värdebevis — SmartKlimat" },
-      { property: "og:description", content: "Dina träd är redan planterade. Hämta ditt personliga värdebevis." },
+      { property: "og:description", content: "Bekräfta dina träd och hämta ditt personliga värdebevis." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
@@ -152,10 +152,10 @@ function ClaimPage() {
           {!loading && status === "open" && !done && (
             <>
               <div className="mt-6 text-center">
-                <div className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>Planterade träd</div>
+                <div className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>Träd till dig</div>
                 <div className="font-display text-6xl font-bold leading-none" style={{ color: INK }}>{trees.toLocaleString("sv-SE")}</div>
                 <h1 className="mt-4 font-display text-xl font-semibold" style={{ color: INK }}>
-                  Dina träd är redan planterade — hämta ditt personliga värdebevis
+                  Dina träd planteras när du bekräftat — hämta ditt personliga värdebevis
                 </h1>
               </div>
 

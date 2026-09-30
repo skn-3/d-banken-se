@@ -141,3 +141,14 @@ export const claimCertificate = createServerFn({ method: "POST" })
     return { status: "claimed" as const, verification_id: kase.verification_id, alreadyClaimed: false };
   });
 
+
+/** Publik: är beviset ett Mockfjärds-ärende som väntar på mottagarens bekräftelse? */
+export const getVerificationPending = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown) => z.object({ id: z.string().trim().min(4).max(40) }).parse(i))
+  .handler(async ({ data }): Promise<{ pending: boolean }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("mockfjards_cases").select("claimed_at")
+      .eq("verification_id", data.id).maybeSingle();
+    return { pending: !!row && !row.claimed_at };
+  });
