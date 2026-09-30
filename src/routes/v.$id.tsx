@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { getVerificationPending } from "@/lib/claim.functions";
 import { Certificate, snapshotToTemplate, type CertificateData } from "@/components/certificate";
 import { CertificateA4, type CertA4Data } from "@/components/certificate-a4";
 import { downloadA4CertificateAsPdf } from "@/lib/download-cert-a4";
@@ -51,6 +53,16 @@ function VerifyPage() {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const a4Ref = useRef<HTMLDivElement>(null);
+  const [pending, setPending] = useState(false);
+  const fetchPending = useServerFn(getVerificationPending);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPending({ data: { id } })
+      .then((r) => { if (!cancelled) setPending(r.pending); })
+      .catch(() => { /* ignoreras — standardläge är vanligt bevis */ });
+    return () => { cancelled = true; };
+  }, [id, fetchPending]);
 
   useEffect(() => {
     let cancelled = false;
@@ -174,11 +186,17 @@ function VerifyPage() {
 
         {state === "ok" && data && (
           <div className="mx-auto flex flex-col items-center" style={{ maxWidth: 420 }}>
-            {/* Verified pill */}
+            {pending ? (
+              <div className="mb-5 w-full rounded-2xl border px-4 py-3 text-center text-xs" style={{ background: "#FFF8E6", borderColor: "rgba(220,190,110,0.6)", color: "#0B3D2E" }}>
+                <div className="font-semibold">Väntar på mottagarens bekräftelse</div>
+                <div className="mt-1" style={{ color: "#4F6B5E" }}>Träden planteras när mottagaren har bekräftat och hämtat sitt värdebevis.</div>
+              </div>
+            ) : (
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold" style={{ background: "#E8F5EE", borderColor: "rgba(30,158,106,0.35)", color: "#0B6E4F" }}>
               <span className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] text-white" style={{ background: "#1E9E6A" }}>✓</span>
               Verifierat äkta · SmartKlimat
             </div>
+            )}
 
             {/* Certificate — scaled to fit ~420 (base 720) */}
             <div style={{ width: 420, height: (420 / 720) * 980 + 4 }}>

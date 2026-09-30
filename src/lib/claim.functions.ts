@@ -69,14 +69,26 @@ export const claimCertificate = createServerFn({ method: "POST" })
       customerId = ins.data?.id ?? null;
     }
 
+    // Mottagaren har tagit emot träden: alla väntande händelser blir 'claimed' och räknas först nu.
+    const claimedAtIso = new Date().toISOString();
+    await supabaseAdmin.from("mockfjards_events")
+      .update({ status: "claimed", claimed_at: claimedAtIso })
+      .eq("case_id", kase.case_id).eq("status", "pending");
+    const totalTrees = kase.total_trees ?? 0;
+
+    const { data: purRow } = await supabaseAdmin.from("purchases")
+      .select("status, unit_price_ore").eq("id", kase.purchase_id).maybeSingle();
     await supabaseAdmin.from("purchases").update({
       recipient_name: data.name,
       recipient_email: email,
       ...(customerId ? { customer_id: customerId } : {}),
+      ...(totalTrees > 0 ? { tree_count: totalTrees, total_amount_ore: totalTrees * (purRow?.unit_price_ore ?? 0) } : {}),
+      ...(purRow?.status === "pending" ? { status: "paid", paid_at: claimedAtIso } : {}),
     }).eq("id", kase.purchase_id);
 
     await supabaseAdmin.from("certificates").update({
       recipient_name: data.name,
+      ...(totalTrees > 0 ? { tree_count: totalTrees } : {}),
       ...(customerId ? { customer_id: customerId } : {}),
     }).eq("id", kase.certificate_id);
 
@@ -129,3 +141,14 @@ export const claimCertificate = createServerFn({ method: "POST" })
     return { status: "claimed" as const, verification_id: kase.verification_id, alreadyClaimed: false };
   });
 
+
+/** Publik: är beviset ett Mockfjärds-ärende som väntar på mottagarens bekräftelse? */
+export const getVerificationPending = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown) => z.object({ id: z.string().trim().min(4).max(40) }).parse(i))
+  .handler(async ({ data }): Promise<{ pending: boolean }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("mockfjards_cases").select("claimed_at")
+      .eq("verification_id", data.id).maybeSingle();
+    return { pending: !!row && !row.claimed_at };
+  });

@@ -423,16 +423,25 @@ Deno.serve(async (req) => {
   const tpl = await db.from("cert_templates").select("id").eq("slug", "mockfjards").eq("aktiv", true).maybeSingle();
   if (tpl.error || !tpl.data) return json(500, { ok: false, reason: "mockfjards_template_missing" });
 
+  const existing = await db.from("mockfjards_cases")
+    .select("*").eq("case_id", caseId).maybeSingle();
+
+  // Principen: träd räknas först när mottagaren tagit emot dem via hämtningsformuläret.
+  // Händelser på ett redan hämtat ärende är redan mottagna → 'claimed' direkt.
+  const accepted = !!existing.data?.claimed_at;
+  const nowIso = new Date().toISOString();
+
   // 1) Idempotens: logga händelsen; dubbletter räknas aldrig två gånger.
   const evt = await db.from("mockfjards_events")
-    .insert({ case_id: caseId, event_type: eventType, event_ref: eventRef, tree_count: treeCount, seller })
+    .insert({
+      case_id: caseId, event_type: eventType, event_ref: eventRef, tree_count: treeCount, seller,
+      status: accepted ? "claimed" : "pending",
+      claimed_at: accepted ? nowIso : null,
+    })
     .select("id").maybeSingle();
   const isDuplicate = !!evt.error && String((evt.error as { code?: string }).code) === "23505";
   if (evt.error && !isDuplicate)
     return json(500, { ok: false, reason: "event_log_failed", detail: evt.error.message });
-
-  const existing = await db.from("mockfjards_cases")
-    .select("*").eq("case_id", caseId).maybeSingle();
 
   if (isDuplicate) {
     if (!existing.data) return json(200, { ok: true, duplicate: true, claim_url: null, verification_id: null, total_trees: 0 });
@@ -444,14 +453,15 @@ Deno.serve(async (req) => {
     });
   }
 
-  // 2a) Första händelsen för ärendet: skapa köp + bevis + hämtningskod.
+  // 2a) Första händelsen för ärendet: skapa VÄNTANDE köp + bevis + hämtningskod.
+  // Köpet får status 'pending' och räknas därför inte i några planteringsräknare förrän hämtning.
   if (!existing.data) {
     const total = treeCount * PRICE_PER_TREE_ORE;
     const pur = await db.from("purchases").insert({
       user_id: null, customer_id: null,
       recipient_name: "", recipient_email: null,
       tree_count: treeCount, unit_price_ore: PRICE_PER_TREE_ORE, total_amount_ore: total,
-      status: "paid", paid_at: new Date().toISOString(),
+      status: "pending", paid_at: null,
       registered_by_user_id: null, source: SOURCE, source_order_ref: caseId,
       source_seller: seller,
       certificate_template_id: tpl.data.id,
@@ -487,26 +497,32 @@ Deno.serve(async (req) => {
       code = randomFrom(CLAIM_CODE_ALPHABET, 8);
     }
 
-    console.log("inbound-mockfjards created", { caseId, eventType, treeCount, vid });
-    return json(200, { ok: true, claim_url: claimUrl(code), verification_id: vid, total_trees: treeCount });
+    console.log("inbound-mockfjards created (pending)", { caseId, eventType, treeCount, vid });
+    return json(200, { ok: true, status: "pending", claim_url: claimUrl(code), verification_id: vid, total_trees: treeCount });
   }
 
-  // 2b) Senare händelse på samma ärende: öka trädantalet på samma bevis.
+  // 2b) Senare händelse på samma ärende.
   const kase = existing.data;
   const prevTrees = kase.total_trees as number;
   const newTotal = prevTrees + treeCount;
 
-  await db.from("purchases").update({
-    tree_count: newTotal,
-    total_amount_ore: newTotal * PRICE_PER_TREE_ORE,
-  }).eq("id", kase.purchase_id);
-  await db.from("certificates").update({ tree_count: newTotal }).eq("id", kase.certificate_id);
   await db.from("mockfjards_cases").update({
-    total_trees: newTotal, seller: seller ?? kase.seller, updated_at: new Date().toISOString(),
+    total_trees: newTotal, seller: seller ?? kase.seller, updated_at: nowIso,
   }).eq("case_id", caseId);
 
+  const purRow = await db.from("purchases").select("status").eq("id", kase.purchase_id).maybeSingle();
+  const purchasePending = purRow.data?.status === "pending";
+  // Köp/bevis följer bara med om händelsen är mottagen, eller om köpet ännu är väntande (räknas ändå inte).
+  if (accepted || purchasePending) {
+    await db.from("purchases").update({
+      tree_count: newTotal,
+      total_amount_ore: newTotal * PRICE_PER_TREE_ORE,
+    }).eq("id", kase.purchase_id);
+    await db.from("certificates").update({ tree_count: newTotal }).eq("id", kase.certificate_id);
+  }
+
   // 3) Uppdateringsmail om ärendet redan är hämtat (inget nytt samtycke krävs).
-  if (kase.claimed_at && kase.claim_email && !kase.revoked_at) {
+  if (accepted && kase.claim_email && !kase.revoked_at) {
     const supp = await db.from("email_suppression").select("email").eq("email", kase.claim_email).maybeSingle();
     if (!supp.data) {
       const revokeUrl = `${APP_PUBLIC_URL}/api/public/aterkalla?t=${kase.revoke_token}`;
@@ -519,9 +535,9 @@ Deno.serve(async (req) => {
     }
   }
 
-  console.log("inbound-mockfjards updated", { caseId, eventType, treeCount, newTotal });
+  console.log("inbound-mockfjards updated", { caseId, eventType, treeCount, newTotal, accepted });
   return json(200, {
-    ok: true, claim_url: claimUrl(kase.claim_code),
+    ok: true, status: accepted ? "claimed" : "pending", claim_url: claimUrl(kase.claim_code),
     verification_id: kase.verification_id, total_trees: newTotal,
   });
 });
