@@ -893,29 +893,35 @@ export type Database = {
       mockfjards_events: {
         Row: {
           case_id: string
+          claimed_at: string | null
           created_at: string
           event_ref: string
           event_type: string
           id: string
           seller: string | null
+          status: string
           tree_count: number
         }
         Insert: {
           case_id: string
+          claimed_at?: string | null
           created_at?: string
           event_ref: string
           event_type: string
           id?: string
           seller?: string | null
+          status?: string
           tree_count: number
         }
         Update: {
           case_id?: string
+          claimed_at?: string | null
           created_at?: string
           event_ref?: string
           event_type?: string
           id?: string
           seller?: string | null
+          status?: string
           tree_count?: number
         }
         Relationships: []

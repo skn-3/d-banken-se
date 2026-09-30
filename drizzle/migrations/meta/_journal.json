@@ -15,6 +15,13 @@
       "when": 1790080637232,
       "tag": "0001_security_hardening_and_mockfjards_claim_flow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790747138383,
+      "tag": "0002_mockfjards_events_status",
+      "breakpoints": true
     }
   ]
 }
