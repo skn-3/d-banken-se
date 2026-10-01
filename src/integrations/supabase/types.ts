@@ -308,6 +308,77 @@ export type Database = {
         }
         Relationships: []
       }
+      business_customers: {
+        Row: {
+          active: boolean
+          address_line: string | null
+          contact_reference: string | null
+          created_at: string
+          customer_no: string
+          default_price_per_tree: number
+          email: string | null
+          id: string
+          invoice_prefix: string
+          ledger_start_at: string
+          legal_name: string
+          low_balance_threshold: number
+          notes: string | null
+          org_nr: string | null
+          organization_id: string | null
+          payment_terms_days: number
+          postal_city: string | null
+          vat_rate: number
+        }
+        Insert: {
+          active?: boolean
+          address_line?: string | null
+          contact_reference?: string | null
+          created_at?: string
+          customer_no: string
+          default_price_per_tree?: number
+          email?: string | null
+          id?: string
+          invoice_prefix: string
+          ledger_start_at?: string
+          legal_name: string
+          low_balance_threshold?: number
+          notes?: string | null
+          org_nr?: string | null
+          organization_id?: string | null
+          payment_terms_days?: number
+          postal_city?: string | null
+          vat_rate?: number
+        }
+        Update: {
+          active?: boolean
+          address_line?: string | null
+          contact_reference?: string | null
+          created_at?: string
+          customer_no?: string
+          default_price_per_tree?: number
+          email?: string | null
+          id?: string
+          invoice_prefix?: string
+          ledger_start_at?: string
+          legal_name?: string
+          low_balance_threshold?: number
+          notes?: string | null
+          org_nr?: string | null
+          organization_id?: string | null
+          payment_terms_days?: number
+          postal_city?: string | null
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cert_templates: {
         Row: {
           accent_color: string
@@ -522,6 +593,57 @@ export type Database = {
           lov?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      company_settings: {
+        Row: {
+          address_line: string
+          bankgiro: string
+          bookkeeping_email: string
+          email: string
+          id: number
+          legal_name: string
+          org_nr: string
+          our_reference: string
+          phone: string
+          postal_city: string
+          tagline: string
+          updated_at: string
+          vat_nr: string
+          website: string
+        }
+        Insert: {
+          address_line?: string
+          bankgiro?: string
+          bookkeeping_email?: string
+          email?: string
+          id?: number
+          legal_name?: string
+          org_nr?: string
+          our_reference?: string
+          phone?: string
+          postal_city?: string
+          tagline?: string
+          updated_at?: string
+          vat_nr?: string
+          website?: string
+        }
+        Update: {
+          address_line?: string
+          bankgiro?: string
+          bookkeeping_email?: string
+          email?: string
+          id?: number
+          legal_name?: string
+          org_nr?: string
+          our_reference?: string
+          phone?: string
+          postal_city?: string
+          tagline?: string
+          updated_at?: string
+          vat_nr?: string
+          website?: string
         }
         Relationships: []
       }
@@ -772,6 +894,116 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      invoice_series: {
+        Row: {
+          next_seq: number
+          prefix: string
+        }
+        Insert: {
+          next_seq?: number
+          prefix: string
+        }
+        Update: {
+          next_seq?: number
+          prefix?: string
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          bookkeeping_sent_at: string | null
+          created_at: string
+          created_by: string | null
+          credited_by_invoice_id: string | null
+          credits_invoice_id: string | null
+          customer_id: string
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_no: string | null
+          lines: Json
+          net_amount: number
+          paid_at: string | null
+          pdf_path: string | null
+          series_seq: number | null
+          status: string
+          total_amount: number
+          trees: number
+          vat_amount: number
+        }
+        Insert: {
+          bookkeeping_sent_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          credited_by_invoice_id?: string | null
+          credits_invoice_id?: string | null
+          customer_id: string
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_no?: string | null
+          lines?: Json
+          net_amount?: number
+          paid_at?: string | null
+          pdf_path?: string | null
+          series_seq?: number | null
+          status?: string
+          total_amount?: number
+          trees?: number
+          vat_amount?: number
+        }
+        Update: {
+          bookkeeping_sent_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          credited_by_invoice_id?: string | null
+          credits_invoice_id?: string | null
+          customer_id?: string
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_no?: string | null
+          lines?: Json
+          net_amount?: number
+          paid_at?: string | null
+          pdf_path?: string | null
+          series_seq?: number | null
+          status?: string
+          total_amount?: number
+          trees?: number
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_credited_by_invoice_id_fkey"
+            columns: ["credited_by_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_credits_invoice_id_fkey"
+            columns: ["credits_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "business_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_tree_balance"
+            referencedColumns: ["customer_id"]
+          },
+        ]
       }
       lov_transactions: {
         Row: {
@@ -1884,6 +2116,85 @@ export type Database = {
           },
         ]
       }
+      tree_ledger: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          entry_type: string
+          id: string
+          invoice_id: string | null
+          note: string | null
+          purchase_id: string | null
+          trees: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          entry_type: string
+          id?: string
+          invoice_id?: string | null
+          note?: string | null
+          purchase_id?: string | null
+          trees: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          entry_type?: string
+          id?: string
+          invoice_id?: string | null
+          note?: string | null
+          purchase_id?: string | null
+          trees?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_ledger_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "business_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tree_ledger_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_tree_balance"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "tree_ledger_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tree_ledger_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "admin_greetings_view"
+            referencedColumns: ["purchase_id"]
+          },
+          {
+            foreignKeyName: "tree_ledger_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tree_ledger_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "register_rader"
+            referencedColumns: ["purchase_id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1955,6 +2266,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customer_tree_balance: {
+        Row: {
+          balance: number | null
+          consumed: number | null
+          credited: number | null
+          customer_id: string | null
+        }
+        Relationships: []
       }
       insights_daily_trees: {
         Row: {
@@ -2271,6 +2591,10 @@ export type Database = {
         Returns: string
       }
       lookup_team_by_code: { Args: { _code: string }; Returns: Json }
+      next_invoice_no: {
+        Args: { _prefix: string }
+        Returns: Record<string, unknown>
+      }
       process_seller_weekly_streaks: { Args: never; Returns: undefined }
       process_weekly_achievements: { Args: never; Returns: undefined }
       purchase_reward: {
@@ -2311,6 +2635,11 @@ export type Database = {
       seller_points_balance: { Args: { _user_id: string }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      sync_all_consumption: { Args: never; Returns: number }
+      sync_purchase_consumption: {
+        Args: { _purchase_id: string }
+        Returns: undefined
+      }
       update_team_self_service: {
         Args: {
           _certificate_template_id: string

@@ -8,6 +8,7 @@ import { SiteHeader, Blobs } from "@/components/site-chrome";
 import { Certificate, BACKGROUND_OPTIONS, type CertificateData } from "@/components/certificate";
 import { adminSetPassword, adminSendPasswordReset } from "@/lib/admin.functions";
 import { AdminOrgsTab } from "@/components/admin-orgs-tab";
+import { AdminBusinessTab } from "@/components/admin-business-tab";
 import { AdminCoreTab } from "@/components/admin-core-tab";
 import { AdminGlobalSearch } from "@/components/admin-global-search";
 import { AdminEntitiesTab } from "@/components/admin-entities-tab";
@@ -62,7 +63,7 @@ interface Settings {
 function formatKr(ore: number) { return `${(ore / 100).toLocaleString("sv-SE")} kr`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("sv-SE"); }
 
-type Tab = "overview" | "entities" | "core" | "organizations" | "rewards" | "orders" | "boosters" | "templates" | "settings" | "activity";
+type Tab = "overview" | "entities" | "core" | "organizations" | "business" | "rewards" | "orders" | "boosters" | "templates" | "settings" | "activity";
 
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -134,6 +135,7 @@ function AdminPage() {
                 ["entities", "Sök & filter"],
                 ["core", "Core"],
                 ["organizations", "Organisationer"],
+                ["business", "Företagskunder"],
                 ["rewards", "Belöningskatalog"],
                 ["orders", "Beställningar"],
                 ["boosters", "Boosters"],
@@ -228,6 +230,8 @@ function AdminPage() {
             {tab === "core" && <AdminCoreTab />}
 
             {tab === "organizations" && <AdminOrgsTab />}
+
+            {tab === "business" && <AdminBusinessTab />}
 
             {tab === "rewards" && <RewardsCatalogTab />}
 

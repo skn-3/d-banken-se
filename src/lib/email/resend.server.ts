@@ -9,7 +9,10 @@ interface SendArgs {
   from?: string;
   fallbackFrom?: string;
   replyTo?: string;
+  attachments?: Array<{ filename: string; content: string }>;
 }
+
+type MailPayload = { from: string; to: string; subject: string; html: string; reply_to?: string; attachments?: Array<{ filename: string; content: string }> };
 
 
 export interface SendEmailResult {
@@ -45,7 +48,7 @@ function summarizeBody(body: string | null) {
 // Fallback retry removed — auth mail always sends from AUTH_EMAIL_FROM (verified root domain).
 
 
-async function sendViaGateway(payload: { from: string; to: string; subject: string; html: string; reply_to?: string }, apiKey: string, gatewayKey: string) {
+async function sendViaGateway(payload: MailPayload, apiKey: string, gatewayKey: string) {
   const gatewayRes = await fetch(RESEND_GATEWAY_URL, {
     method: "POST",
     headers: {
@@ -66,7 +69,7 @@ async function sendViaGateway(payload: { from: string; to: string; subject: stri
   } satisfies SendEmailResult;
 }
 
-async function sendDirect(payload: { from: string; to: string; subject: string; html: string; reply_to?: string }, apiKey: string) {
+async function sendDirect(payload: MailPayload, apiKey: string) {
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
@@ -86,7 +89,7 @@ async function sendDirect(payload: { from: string; to: string; subject: string; 
   } satisfies SendEmailResult;
 }
 
-export async function sendEmail({ to, subject, html, from: fromOverride, fallbackFrom, replyTo }: SendArgs): Promise<SendEmailResult> {
+export async function sendEmail({ to, subject, html, from: fromOverride, fallbackFrom, replyTo, attachments }: SendArgs): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     const result: SendEmailResult = { ok: false, provider: "none", status: null, body: null, skipped: true, error: "RESEND_API_KEY missing" };
@@ -98,8 +101,9 @@ export async function sendEmail({ to, subject, html, from: fromOverride, fallbac
   // (send.smartklimat.org har status "failed" och kan inte skicka.)
   const from = fromOverride || process.env.RESEND_FROM_EMAIL || "SmartKlimat <bevis@smartklimat.org>";
 
-  const payload: { from: string; to: string; subject: string; html: string; reply_to?: string } = { from, to, subject, html };
+  const payload: MailPayload = { from, to, subject, html };
   if (replyTo) payload.reply_to = replyTo;
+  if (attachments?.length) payload.attachments = attachments;
 
   const gatewayKey = process.env.LOVABLE_API_KEY;
 
