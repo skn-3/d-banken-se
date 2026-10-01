@@ -219,7 +219,7 @@ function CustomerDetail({ id, onBack }: { id: string; onBack: () => void }) {
                   <td>
                     {l.invoice_id ? <>Faktura {invoiceNo(l.invoice_id)}</> : l.purchase_id
                       ? <a className="underline" href={`/admin?tab=entities&q=${l.purchase_id}`}>Köp {l.purchase_id.slice(0, 8)}</a> : null}
-                    {l.note && <div className="text-xs" style={muted}>{l.note}</div>}
+                    {l.note && l.note !== `Faktura ${invoiceNo(l.invoice_id)}` && <div className="text-xs" style={muted}>{l.note}</div>}
                   </td>
                 </tr>
               ))}
