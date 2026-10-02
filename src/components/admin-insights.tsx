@@ -83,13 +83,24 @@ export function AdminInsightsSection() {
   if (err) return <section className="surface-card p-6"><h2 className="font-display text-xl font-semibold">Insights</h2><p className="mt-2 text-sm" style={{ color: "var(--destructive)" }}>{err}</p></section>;
   if (!data) return <section className="surface-card p-6"><h2 className="font-display text-xl font-semibold">Insights</h2><p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>Läser in …</p></section>;
 
-  const kpis = data.kpis as Kpis;
-  const weekly = (data.weekly as WeeklyRow[]) ?? [];
-  const mix30 = (data.mix30 as MixRow[]) ?? [];
-  const engine = data.engine as Engine;
-  const recipients = data.recipients as Recipients;
-  const risk = data.risk as Risk;
-  const topTeams = (data.topTeams as TeamRow[]) ?? [];
+  const errs = {
+    kpis: data.kpis?.error, weekly: data.weekly?.error, mix30: data.mix30?.error,
+    engine: data.engine?.error, recipients: data.recipients?.error,
+    risk: data.risk?.error, topTeams: data.topTeams?.error,
+  };
+  const kpis = (data.kpis?.data ?? {
+    trees_total: 0, trees_week: 0, trees_prev_week: 0, active_planters: 0, revenue_mtd_ore: 0,
+    activation_rate: 0, sellers_registered: 0, sellers_active: 0, payout_count: 0, payout_amount_ore: 0, payout_oldest: null,
+  }) as Kpis;
+  const weekly = (data.weekly?.data as WeeklyRow[]) ?? [];
+  const mix30 = (data.mix30?.data as MixRow[]) ?? [];
+  const engine = data.engine?.data as Engine;
+  const recipients = data.recipients?.data as Recipients;
+  const risk = data.risk?.data as Risk;
+  const topTeams = (data.topTeams?.data as TeamRow[]) ?? [];
+  const BlockErr = ({ msg }: { msg: string }) => (
+    <p className="mt-2 text-sm" style={{ color: "var(--destructive)" }}>Kunde inte läsas in: {msg}</p>
+  );
 
   // Pivot weekly to chart data
   const weeksSet = Array.from(new Set(weekly.map((r) => r.week_start))).sort();
@@ -117,19 +128,19 @@ export function AdminInsightsSection() {
       </div>
 
       {/* KPI chips */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {errs.kpis ? <BlockErr msg={errs.kpis} /> : <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <KpiChip label="Träd totalt" value={kpis.trees_total.toLocaleString("sv-SE")} />
         <KpiChip label="Träd denna vecka" value={kpis.trees_week.toLocaleString("sv-SE")} sub={`v/v ${wowDelta}`} />
         <KpiChip label="Aktiva planterare" value={kpis.active_planters.toLocaleString("sv-SE")} sub="säljare 28 d + mån-prenumeranter" />
         <KpiChip label="Intäkt MTD" value={kr(kpis.revenue_mtd_ore)} />
         <KpiChip label="Aktiveringsgrad" value={pct(kpis.activation_rate)} sub={`${kpis.sellers_active} av ${kpis.sellers_registered} säljare`} />
         <KpiChip label="Payout-kö" value={`${kpis.payout_count} st · ${kr(kpis.payout_amount_ore)}`} sub={kpis.payout_oldest ? `äldsta ${dateStr(kpis.payout_oldest)}` : "inga öppna"} />
-      </div>
+      </div>}
 
       {/* Weekly series */}
       <div>
         <h3 className="font-display text-base font-semibold">Träd per vecka — 12 v</h3>
-        <div className="mt-2 h-64">
+        {errs.weekly ? <BlockErr msg={errs.weekly} /> : <div className="mt-2 h-64">
           <ResponsiveContainer>
             <LineChart data={weeklyChart}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -143,13 +154,13 @@ export function AdminInsightsSection() {
               <Line type="monotone" dataKey="total" stroke={SOURCE_COLORS.total} strokeWidth={2.5} strokeDasharray="4 3" dot={false} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </div>}
       </div>
 
       {/* Channel mix 30d */}
       <div>
         <h3 className="font-display text-base font-semibold">Kanalmix — 30 d</h3>
-        <div className="mt-2 h-56">
+        {errs.mix30 ? <BlockErr msg={errs.mix30} /> : <div className="mt-2 h-56">
           <ResponsiveContainer>
             <BarChart data={mix30}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -159,52 +170,52 @@ export function AdminInsightsSection() {
               <Bar dataKey="trees" fill="#1E9E6A" />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </div>}
       </div>
 
       {/* Sales engine */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
           <h3 className="font-display text-base font-semibold">Säljmotor</h3>
-          <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          {errs.engine ? <BlockErr msg={errs.engine} /> : <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Median till första trädet</dt><dd className="font-semibold">{fmtDur(engine.median_time_to_first_tree_sec)}</dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Streak-hälsa (≥ 2 v)</dt><dd className="font-semibold">{pct(engine.streak_healthy_pct)} <span className="text-xs font-normal" style={{ color: "var(--muted-foreground)" }}>({engine.streak_healthy}/{engine.streak_active})</span></dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Turboaktiveringar/v</dt><dd className="font-semibold">{engine.turbo_activations_week}</dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>W1-retention</dt><dd className="font-semibold">{pct(engine.w1_retention_pct)} <span className="text-xs font-normal" style={{ color: "var(--muted-foreground)" }}>({engine.w1_cohort} i kohort)</span></dd></div>
-          </dl>
+          </dl>}
         </div>
 
         {/* Recipients */}
         <div className="rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
           <h3 className="font-display text-base font-semibold">Mottagare</h3>
-          <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          {errs.recipients ? <BlockErr msg={errs.recipients} /> : <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Kunder totalt</dt><dd className="font-semibold">{recipients.customers_total.toLocaleString("sv-SE")}</dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Nya 30 d</dt><dd className="font-semibold">{recipients.customers_new_30d}</dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Bevis→konto</dt><dd className="font-semibold">{pct(recipients.proof_to_account_pct)} <span className="text-xs font-normal" style={{ color: "var(--muted-foreground)" }}>({recipients.certificates_linked}/{recipients.certificates_total})</span></dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Bevisvisningar 30 d</dt><dd className="font-semibold">{recipients.verify_views_30d}</dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Återkommande köpare</dt><dd className="font-semibold">{recipients.repeat_buyers}</dd></div>
             <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Aktiva månadsplanterare</dt><dd className="font-semibold">{recipients.active_monthly} <span className="text-xs font-normal" style={{ color: "var(--muted-foreground)" }}>churn 30 d: {recipients.churn_30d}</span></dd></div>
-          </dl>
+          </dl>}
         </div>
       </div>
 
       {/* Risk & queues */}
       <div className="rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
         <h3 className="font-display text-base font-semibold">Risk & köer</h3>
-        <dl className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+        {errs.risk ? <BlockErr msg={errs.risk} /> : <dl className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Payout-kö</dt><dd className="font-semibold">{risk.payout_count} · {kr(risk.payout_amount_ore)}</dd></div>
           <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Mail-suppression 7 d</dt><dd className="font-semibold">{risk.suppressions_7d}</dd></div>
           <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Öppna bildanmälningar</dt><dd className="font-semibold">{risk.open_photo_reports}</dd></div>
           <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Senaste backup</dt><dd className="font-semibold">{risk.last_backup ? `${risk.last_backup.ok ? "OK" : "FEL"} · ${dateStr(risk.last_backup.created_at)}` : "—"}</dd></div>
           <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Opackade belöningar</dt><dd className="font-semibold">{risk.reward_orders_pending}{risk.reward_orders_oldest ? ` · ${ageDays(risk.reward_orders_oldest)} d` : ""}</dd></div>
           <div><dt className="text-xs" style={{ color: "var(--muted-foreground)" }}>Äldsta payout</dt><dd className="font-semibold">{dateStr(risk.payout_oldest)}</dd></div>
-        </dl>
+        </dl>}
       </div>
 
       {/* Top 5 teams */}
       <div className="rounded-2xl border p-4" style={{ borderColor: "var(--border)" }}>
         <h3 className="font-display text-base font-semibold">Topp 5 lag — denna vecka</h3>
-        {topTeams.length === 0
+        {errs.topTeams ? <BlockErr msg={errs.topTeams} /> : topTeams.length === 0
           ? <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>Ingen aktivitet ännu.</p>
           : (
             <ol className="mt-3 space-y-1.5 text-sm">
