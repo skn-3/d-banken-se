@@ -83,13 +83,24 @@ export function AdminInsightsSection() {
   if (err) return <section className="surface-card p-6"><h2 className="font-display text-xl font-semibold">Insights</h2><p className="mt-2 text-sm" style={{ color: "var(--destructive)" }}>{err}</p></section>;
   if (!data) return <section className="surface-card p-6"><h2 className="font-display text-xl font-semibold">Insights</h2><p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>Läser in …</p></section>;
 
-  const kpis = data.kpis as Kpis;
-  const weekly = (data.weekly as WeeklyRow[]) ?? [];
-  const mix30 = (data.mix30 as MixRow[]) ?? [];
-  const engine = data.engine as Engine;
-  const recipients = data.recipients as Recipients;
-  const risk = data.risk as Risk;
-  const topTeams = (data.topTeams as TeamRow[]) ?? [];
+  const errs = {
+    kpis: data.kpis?.error, weekly: data.weekly?.error, mix30: data.mix30?.error,
+    engine: data.engine?.error, recipients: data.recipients?.error,
+    risk: data.risk?.error, topTeams: data.topTeams?.error,
+  };
+  const kpis = (data.kpis?.data ?? {
+    trees_total: 0, trees_week: 0, trees_prev_week: 0, active_planters: 0, revenue_mtd_ore: 0,
+    activation_rate: 0, sellers_registered: 0, sellers_active: 0, payout_count: 0, payout_amount_ore: 0, payout_oldest: null,
+  }) as Kpis;
+  const weekly = (data.weekly?.data as WeeklyRow[]) ?? [];
+  const mix30 = (data.mix30?.data as MixRow[]) ?? [];
+  const engine = data.engine?.data as Engine;
+  const recipients = data.recipients?.data as Recipients;
+  const risk = data.risk?.data as Risk;
+  const topTeams = (data.topTeams?.data as TeamRow[]) ?? [];
+  const BlockErr = ({ msg }: { msg: string }) => (
+    <p className="mt-2 text-sm" style={{ color: "var(--destructive)" }}>Kunde inte läsas in: {msg}</p>
+  );
 
   // Pivot weekly to chart data
   const weeksSet = Array.from(new Set(weekly.map((r) => r.week_start))).sort();
